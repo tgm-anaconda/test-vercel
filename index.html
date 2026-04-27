@@ -1,6 +1,1824 @@
 <!DOCTYPE html>
-<html>
-  <body>
-    <h1>ES FUNKTIONIERT</h1>
-  </body>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VERDEA — Studie zur KI-Beratung</title>
+  <style> /* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --color-bg: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-green: #2c5f2e;
+  --color-green-mid: #4a7c4e;
+  --color-green-light: #7aab7d;
+  --color-green-pale: #e8f0e8;
+  --color-green-xpale: #f2f7f2;
+  --color-accent: #c8a96e;
+  --color-dark: #1e2a1e;
+  --color-mid: #4a5a4a;
+  --color-muted: #8a9a8a;
+  --color-border: #e0e8e0;
+  --color-red: #c0392b;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --radius: 8px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 2px 8px rgba(44,95,46,.08);
+  --shadow-md: 0 8px 32px rgba(44,95,46,.12);
+  --shadow-lg: 0 24px 64px rgba(44,95,46,.16);
+  --transition: 0.25s ease;
+  --header-h: 56px;
+  --top-bar-h: 34px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-dark);
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+ul { list-style: none; }
+.container { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+.centered { text-align: center; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 28px;
+  font-family: var(--font-sans); font-size: 13.5px; font-weight: 600;
+  letter-spacing: .05em; border: 2px solid transparent;
+  border-radius: 100px; transition: all var(--transition); cursor: pointer;
+}
+.btn--green { background: var(--color-green); color: #fff; border-color: var(--color-green); }
+.btn--green:hover { background: #234e25; border-color: #234e25; }
+.btn--white { background: #fff; color: var(--color-green); border-color: #fff; }
+.btn--white:hover { background: var(--color-green-pale); }
+.btn--ghost-white { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+.btn--ghost-white:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+.btn--ghost-sm { background: transparent; color: var(--color-mid); border: 1.5px solid var(--color-border); padding: 8px 16px; border-radius: 100px; font-size: 13px; font-weight: 500; }
+.btn--ghost-sm:hover { border-color: var(--color-mid); }
+.btn--green-sm { background: var(--color-green); color: #fff; border: 1.5px solid var(--color-green); padding: 8px 16px; border-radius: 100px; font-size: 13px; font-weight: 600; }
+.btn--green-sm:hover { background: #234e25; }
+.btn--outline { background: transparent; color: var(--color-green); border-color: var(--color-green); }
+.btn--outline:hover { background: var(--color-green); color: #fff; }
+.btn--full { width: 100%; justify-content: center; border-radius: var(--radius); }
+.btn--lg { padding: 16px 40px; font-size: 15px; }
+
+/* ===== COOKIE BAR ===== */
+.cookie-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+  background: var(--color-dark); color: rgba(255,255,255,.85);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; padding: 16px 32px; font-size: 13.5px;
+  transform: translateY(100%); transition: transform 0.4s ease;
+}
+.cookie-bar.visible { transform: translateY(0); }
+.cookie-bar p { flex: 1; }
+.cookie-bar__actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ===== HEADER ===== */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+  background: #fff; border-bottom: 1px solid var(--color-border);
+  transition: box-shadow var(--transition);
+}
+.header.scrolled { box-shadow: var(--shadow-sm); }
+
+.header__top {
+  background: var(--color-green); color: #fff;
+  text-align: center; font-size: 12px; letter-spacing: .04em; padding: 8px;
+}
+.header__nav {
+  display: flex; align-items: center; justify-content: space-between;
+  height: var(--header-h); padding: 0 32px;
+  max-width: 1240px; margin: 0 auto;
+}
+.header__logo {
+  font-family: var(--font-serif); font-size: 22px; font-weight: 600;
+  letter-spacing: .14em; color: var(--color-green);
+  position: absolute; left: 50%; transform: translateX(-50%);
+}
+.nav__left, .nav__right { display: flex; align-items: center; gap: 24px; }
+.nav__link {
+  font-size: 13px; font-weight: 500; letter-spacing: .03em;
+  color: var(--color-mid); transition: color var(--transition); position: relative;
+}
+.nav__link::after {
+  content: ''; position: absolute; bottom: -4px; left: 0;
+  width: 0; height: 1.5px; background: var(--color-green); transition: width var(--transition);
+}
+.nav__link:hover, .nav__link.active { color: var(--color-green); }
+.nav__link:hover::after, .nav__link.active::after { width: 100%; }
+.nav__about-link { font-weight: 600; color: var(--color-green-mid); }
+
+.nav__icon-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  color: var(--color-dark); border-radius: 50%; transition: background var(--transition); position: relative;
+}
+.nav__icon-btn:hover { background: var(--color-green-pale); }
+.cart-badge {
+  position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
+  background: var(--color-green); color: #fff; font-size: 9px; font-weight: 700;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(0); transition: all var(--transition);
+}
+.cart-badge.visible { opacity: 1; transform: scale(1); }
+
+/* ===== SEARCH OVERLAY ===== */
+.search-overlay {
+  position: fixed; inset: 0; background: rgba(247,245,240,.97);
+  z-index: 950; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 16px;
+  opacity: 0; pointer-events: none; transition: opacity var(--transition);
+}
+.search-overlay.active { opacity: 1; pointer-events: all; }
+.search-overlay__hint { font-size: 13px; color: var(--color-muted); letter-spacing: .05em; text-transform: uppercase; }
+.search-overlay__input {
+  width: min(600px, 90%); border: none;
+  border-bottom: 2px solid var(--color-green);
+  background: transparent; font-family: var(--font-serif); font-size: 28px;
+  padding: 12px 0; color: var(--color-dark); outline: none; text-align: center;
+}
+.search-overlay__input::placeholder { color: var(--color-muted); }
+.search-overlay__close {
+  position: absolute; top: 24px; right: 32px; width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-dark); border-radius: 50%; transition: background var(--transition);
+}
+.search-overlay__close:hover { background: var(--color-border); }
+
+/* ===== HERO ===== */
+.hero {
+  position: relative; height: 100svh; min-height: 620px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; margin-top: calc(var(--header-h) + var(--top-bar-h));
+}
+.hero__bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(150deg, #1e3b1f 0%, #2c5f2e 45%, #3d7a40 100%);
+}
+.hero__bg::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(200,169,110,.15) 0%, transparent 60%);
+}
+.hero__visual { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hero__leaf { position: absolute; font-size: 80px; opacity: .12; animation: leafFloat 8s ease-in-out infinite; }
+.hero__leaf--1 { top: 15%; left: 8%; animation-delay: 0s; }
+.hero__leaf--2 { bottom: 20%; right: 10%; animation-delay: 2.5s; font-size: 60px; }
+.hero__leaf--3 { top: 30%; right: 20%; animation-delay: 5s; font-size: 40px; opacity: .2; }
+@keyframes leafFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(6deg)} }
+
+.hero__content { position: relative; text-align: center; color: #fff; padding: 0 24px; max-width: 700px; }
+.cert-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+  padding: 5px 14px; border-radius: 100px; font-size: 12px; font-weight: 500;
+}
+.hero__cert-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+.hero__title {
+  font-family: var(--font-serif); font-size: clamp(44px, 7vw, 84px);
+  font-weight: 400; line-height: 1.08; margin-bottom: 22px;
+}
+.hero__title em { font-style: italic; color: rgba(200,169,110,1); }
+.hero__sub { font-size: 16px; font-weight: 300; color: rgba(255,255,255,.75); margin-bottom: 40px; max-width: 520px; margin-left: auto; margin-right: auto; }
+.hero__actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.hero__scroll-hint {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,.4); animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+/* ===== TRUST BAR ===== */
+.trust-bar { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 28px 0; }
+.trust-bar__grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; }
+.trust-item { display: flex; align-items: center; gap: 14px; }
+.trust-item__icon { font-size: 28px; flex-shrink: 0; }
+.trust-item strong { display: block; font-size: 14px; font-weight: 600; color: var(--color-dark); }
+.trust-item p { font-size: 12.5px; color: var(--color-muted); margin: 0; }
+
+/* ===== CATEGORIES ===== */
+.categories { padding: 80px 0; }
+.categories__grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 40px; }
+.category-card {
+  background: var(--color-surface); border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: 28px 24px;
+  cursor: pointer; transition: all var(--transition); text-align: center;
+}
+.category-card:hover { border-color: var(--color-green); box-shadow: var(--shadow-md); transform: translateY(-4px); }
+.category-card__icon { font-size: 40px; margin-bottom: 16px; display: block; }
+.category-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--color-dark); }
+.category-card p { font-size: 13px; color: var(--color-muted); line-height: 1.6; }
+
+/* ===== SECTION LABELS ===== */
+.section-label {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--color-green-mid); margin-bottom: 12px; display: block;
+}
+.section-title { font-family: var(--font-serif); font-size: 32px; font-weight: 400; line-height: 1.2; }
+.section-sub { color: var(--color-muted); font-size: 14.5px; margin-top: 8px; }
+
+/* ===== PRODUCTS ===== */
+.products-section { padding: 0 0 80px; }
+.section-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 40px; flex-wrap: wrap; gap: 20px;
+}
+.filter-tabs { display: flex; gap: 4px; background: var(--color-border); padding: 4px; border-radius: 100px; align-self: flex-start; margin-top: 8px; }
+.filter-tab {
+  padding: 8px 18px; font-size: 12.5px; font-weight: 500;
+  border-radius: 100px; color: var(--color-mid); transition: all var(--transition);
+}
+.filter-tab.active, .filter-tab:hover { background: #fff; color: var(--color-green); box-shadow: var(--shadow-sm); font-weight: 600; }
+
+.products-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+
+/* ===== PRODUCT CARD ===== */
+.product-card {
+  background: var(--color-surface); border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg); overflow: hidden; cursor: pointer;
+  transition: all var(--transition); animation: fadeUp .4s ease both;
+}
+.product-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--color-green-light); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+.product-card__img-wrap {
+  position: relative; overflow: hidden; background: var(--color-green-xpale);
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+}
+.product-card__emoji { font-size: 72px; transition: transform 0.5s ease; }
+.product-card:hover .product-card__emoji { transform: scale(1.1) rotate(-4deg); }
+
+.product-card__badge {
+  position: absolute; top: 10px; left: 10px;
+  padding: 4px 10px; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; border-radius: 100px;
+}
+.badge--new { background: var(--color-green); color: #fff; }
+.badge--sale { background: var(--color-red); color: #fff; }
+.badge--bestseller { background: var(--color-accent); color: #fff; }
+.badge--bio { background: #e8f5e9; color: #2c5f2e; border: 1px solid #a5d6a7; }
+
+.product-card__certs {
+  position: absolute; bottom: 10px; left: 10px; right: 10px;
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.product-card__cert-tag {
+  background: rgba(255,255,255,.9); font-size: 10px; font-weight: 600;
+  padding: 3px 7px; border-radius: 100px; color: var(--color-green);
+}
+.product-card__quick-add {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(44,95,46,.93); color: #fff; font-size: 12px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; padding: 13px; text-align: center;
+  transform: translateY(100%); transition: transform var(--transition);
+}
+.product-card:hover .product-card__quick-add { transform: translateY(0); }
+
+.product-card__info { padding: 16px; }
+.product-card__brand { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-green-mid); margin-bottom: 4px; }
+.product-card__name { font-size: 14.5px; font-weight: 600; color: var(--color-dark); margin-bottom: 4px; line-height: 1.35; }
+.product-card__tagline { font-size: 12px; color: var(--color-muted); margin-bottom: 10px; line-height: 1.5; }
+.product-card__price-row { display: flex; align-items: center; gap: 8px; }
+.product-card__price { font-size: 15px; font-weight: 700; color: var(--color-green); }
+.product-card__price--old { font-weight: 400; color: var(--color-muted); text-decoration: line-through; font-size: 13px; }
+.product-card__unit { font-size: 11.5px; color: var(--color-muted); margin-left: auto; }
+
+/* ===== PRODUCT DETAIL — Inline-Seite (kein Overlay), normaler Body-Scroll ===== */
+.product-detail {
+  display: none;
+  background: var(--color-bg);
+  padding-top: calc(var(--header-h) + var(--top-bar-h));
+  min-height: 100vh;
+}
+.product-detail.open { display: block; }
+.product-detail__inner { max-width: 1240px; margin: 0 auto; padding: 40px 32px 100px; }
+.product-detail__back {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 500; color: var(--color-muted); margin-bottom: 40px;
+  transition: color var(--transition);
+}
+.product-detail__back:hover { color: var(--color-green); }
+
+.product-detail__content { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+
+.detail-gallery {
+  position: sticky;
+  /* Bleibt 24 px unter dem Header kleben — passt sich automatisch an Banner an */
+  top: calc(var(--header-h) + var(--top-bar-h) + 24px);
+  align-self: start;
+}
+body.has-task-banner .detail-gallery {
+  top: calc(var(--header-h) + var(--top-bar-h) + 48px + 24px);
+}
+.detail-gallery__main {
+  aspect-ratio: 1; background: var(--color-green-xpale); border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center; font-size: 140px;
+  margin-bottom: 12px;
+}
+.detail-gallery__thumbs { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.detail-thumb {
+  aspect-ratio: 1; background: var(--color-green-xpale); border-radius: var(--radius);
+  border: 2px solid transparent; cursor: pointer; transition: border-color var(--transition);
+  display: flex; align-items: center; justify-content: center; font-size: 26px; opacity: .6;
+}
+.detail-thumb.active, .detail-thumb:hover { border-color: var(--color-green); opacity: 1; }
+
+.detail-info { padding-top: 4px; }
+.detail-info__brand { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-green-mid); margin-bottom: 10px; }
+.detail-info__name { font-family: var(--font-serif); font-size: 34px; font-weight: 400; line-height: 1.2; margin-bottom: 6px; }
+.detail-info__tagline { font-size: 15px; color: var(--color-muted); margin-bottom: 16px; }
+.detail-info__rating { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+.detail-stars { color: var(--color-accent); font-size: 14px; }
+.detail-rating-count { font-size: 13px; color: var(--color-muted); }
+
+.detail-cert-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.detail-cert { background: var(--color-green-pale); color: var(--color-green); font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 100px; }
+
+.detail-price { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--color-border); }
+.detail-price__main { font-size: 28px; font-weight: 700; color: var(--color-green); }
+.detail-price__old { font-size: 18px; color: var(--color-muted); text-decoration: line-through; }
+.detail-price__save { font-size: 13px; font-weight: 600; color: var(--color-red); background: #fde8e8; padding: 3px 10px; border-radius: 100px; }
+.detail-price__unit { font-size: 13px; color: var(--color-muted); margin-left: 4px; }
+
+.detail-desc { font-size: 15px; color: var(--color-mid); line-height: 1.85; margin-bottom: 24px; }
+
+/* Ingredient List in Detail */
+.detail-ingredients { margin-bottom: 24px; }
+.detail-ingredients__title { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-dark); margin-bottom: 12px; }
+.ingredient-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.ingredient-row:last-child { border-bottom: none; }
+.ingredient-row__name { flex: 1; font-size: 14px; font-weight: 500; }
+.ingredient-row__sub { font-size: 12px; color: var(--color-muted); }
+.ingredient-row__amount { font-size: 13px; font-weight: 600; color: var(--color-green); white-space: nowrap; }
+.ingredient-row__origin { font-size: 12px; color: var(--color-muted); }
+
+.detail-options { margin-bottom: 24px; }
+.detail-options__label { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.detail-options__btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.detail-option-btn {
+  padding: 9px 20px; font-size: 13px; font-weight: 500;
+  border: 1.5px solid var(--color-border); border-radius: 100px;
+  color: var(--color-dark); transition: all var(--transition);
+}
+.detail-option-btn:hover, .detail-option-btn.selected { border-color: var(--color-green); color: var(--color-green); background: var(--color-green-pale); }
+
+.detail-actions { display: flex; gap: 10px; margin-bottom: 28px; }
+.detail-actions .btn { flex: 1; border-radius: var(--radius); }
+
+.detail-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-border); margin-bottom: 20px; }
+.detail-tab-btn {
+  padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--color-muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all var(--transition);
+}
+.detail-tab-btn.active { color: var(--color-green); border-bottom-color: var(--color-green); font-weight: 600; }
+.detail-tab-content { display: none; }
+.detail-tab-content.active { display: block; }
+
+.detail-feature { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 14px; color: var(--color-mid); }
+.detail-feature svg { flex-shrink: 0; color: var(--color-green); margin-top: 2px; }
+
+.detail-faq { margin-top: 4px; }
+.faq-item { border-bottom: 1px solid var(--color-border); }
+.faq-question {
+  width: 100%; text-align: left; padding: 14px 0;
+  font-size: 14px; font-weight: 500; color: var(--color-dark);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.faq-question svg { transition: transform var(--transition); flex-shrink: 0; }
+.faq-item.open .faq-question svg { transform: rotate(180deg); }
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.faq-answer p { padding: 0 0 14px; font-size: 13.5px; color: var(--color-muted); line-height: 1.8; }
+.faq-item.open .faq-answer { max-height: 200px; }
+
+/* ===== TRANSPARENCY ===== */
+.transparency { background: var(--color-surface); padding: 80px 0; }
+.transparency__inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.transparency__text .section-title { margin-bottom: 16px; }
+.transparency__text p { color: var(--color-mid); font-size: 15px; line-height: 1.85; margin-bottom: 24px; }
+.transparency__list { margin-bottom: 32px; }
+.transparency__list li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--color-mid); padding: 6px 0; }
+.transparency__list li span { color: var(--color-green); font-weight: 700; font-size: 16px; }
+
+.ingredient-card {
+  background: var(--color-green-xpale); border: 1.5px solid var(--color-border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+}
+.ingredient-card--sm { opacity: .7; }
+.ingredient-card--muted { opacity: .45; }
+.ingredient-card__header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.ingredient-card__emoji { font-size: 24px; }
+.ingredient-card__header strong { font-size: 14px; font-weight: 600; display: block; }
+.ingredient-card__header small { font-size: 11px; color: var(--color-muted); font-style: italic; }
+.ingredient-origin { margin-left: auto; font-size: 12px; color: var(--color-muted); white-space: nowrap; }
+.ingredient-bar { position: relative; }
+.ingredient-bar__fill { height: 4px; background: var(--color-green); border-radius: 100px; margin-bottom: 6px; }
+.ingredient-bar span { font-size: 12px; color: var(--color-muted); }
+.cert-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.cert-badge { background: #fff; border: 1px solid var(--color-border); padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; color: var(--color-green); }
+
+/* ===== STATS ===== */
+.stats-section { background: var(--color-green); padding: 64px 0; }
+.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 32px; text-align: center; }
+.stat-item { color: #fff; }
+.stat-number { display: block; font-family: var(--font-serif); font-size: 48px; font-weight: 400; color: #fff; line-height: 1; margin-bottom: 8px; }
+.stat-label { font-size: 13.5px; color: rgba(255,255,255,.7); }
+
+/* ===== NEWSLETTER ===== */
+.newsletter { padding: 80px 0; background: var(--color-bg); }
+.newsletter__inner { max-width: 560px; margin: 0 auto; text-align: center; }
+.newsletter__icon { font-size: 40px; margin-bottom: 16px; }
+.newsletter__title { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 10px; }
+.newsletter__sub { color: var(--color-muted); font-size: 14.5px; margin-bottom: 28px; }
+.newsletter__form { display: flex; gap: 8px; }
+.newsletter__input {
+  flex: 1; padding: 13px 18px; border: 1.5px solid var(--color-border);
+  border-radius: 100px; background: var(--color-surface); font-family: var(--font-sans);
+  font-size: 14px; color: var(--color-dark); outline: none; transition: border-color var(--transition);
+}
+.newsletter__input:focus { border-color: var(--color-green); }
+.newsletter__input::placeholder { color: var(--color-muted); }
+.newsletter__fine { font-size: 12px; color: var(--color-muted); margin-top: 12px; }
+
+/* ===== ABOUT PAGE — Inline-Seite (kein Overlay), normaler Body-Scroll ===== */
+.about-page {
+  display: none;
+  background: var(--color-bg);
+  padding-top: calc(var(--header-h) + var(--top-bar-h));
+  min-height: 100vh;
+}
+.about-page.open { display: block; }
+.about-page__inner { max-width: 1000px; margin: 0 auto; padding: 40px 32px 100px; }
+
+.about-hero { text-align: center; padding: 40px 0 64px; border-bottom: 1px solid var(--color-border); margin-bottom: 64px; }
+.about-hero__title { font-family: var(--font-serif); font-size: clamp(28px, 4vw, 48px); font-weight: 400; line-height: 1.2; margin-bottom: 20px; }
+.about-hero__sub { font-size: 16px; color: var(--color-muted); max-width: 560px; margin: 0 auto; line-height: 1.8; }
+
+.about-story { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 80px; }
+.about-story__text h2 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin-bottom: 20px; }
+.about-story__text p { font-size: 15px; color: var(--color-mid); line-height: 1.9; margin-bottom: 16px; }
+.about-story__text p em { font-style: italic; color: var(--color-green); }
+.about-img-placeholder {
+  background: var(--color-green-xpale); border-radius: var(--radius-lg); aspect-ratio: 3/4;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 80px; gap: 16px;
+}
+.about-img-placeholder p { font-size: 14px; color: var(--color-muted); }
+
+.about-values { margin-bottom: 80px; }
+.about-values h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 40px; }
+.values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+.value-card { background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: var(--radius-lg); padding: 32px 28px; transition: all var(--transition); }
+.value-card:hover { border-color: var(--color-green); box-shadow: var(--shadow-md); }
+.value-card__icon { font-size: 36px; margin-bottom: 16px; }
+.value-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+.value-card p { font-size: 14px; color: var(--color-muted); line-height: 1.8; }
+
+.about-certs { margin-bottom: 80px; }
+.about-certs h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 12px; }
+.certs-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.cert-item { background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: var(--radius-lg); padding: 28px 24px; text-align: center; }
+.cert-item__badge { font-size: 36px; margin-bottom: 12px; }
+.cert-item strong { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.cert-item p { font-size: 13px; color: var(--color-muted); line-height: 1.7; }
+
+.about-team { margin-bottom: 80px; }
+.about-team h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 40px; }
+.team-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+.team-card { text-align: center; }
+.team-avatar { font-size: 56px; margin-bottom: 14px; background: var(--color-green-xpale); border-radius: 50%; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.team-card strong { display: block; font-size: 14.5px; font-weight: 600; margin-bottom: 4px; }
+.team-card span { display: block; font-size: 12px; color: var(--color-green-mid); margin-bottom: 10px; }
+.team-card p { font-size: 13px; color: var(--color-muted); line-height: 1.7; font-style: italic; }
+
+.about-cta { background: var(--color-green); border-radius: var(--radius-lg); padding: 56px 40px; text-align: center; color: #fff; }
+.about-cta h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 12px; }
+.about-cta p { color: rgba(255,255,255,.75); font-size: 15px; margin-bottom: 28px; }
+
+/* ===== CART DRAWER ===== */
+.cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 980; opacity: 0; pointer-events: none; transition: opacity var(--transition); }
+.cart-overlay.active { opacity: 1; pointer-events: all; }
+.cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px,100vw); background: #fff; z-index: 990; transform: translateX(100%); transition: transform 0.35s cubic-bezier(.4,0,.2,1); display: flex; flex-direction: column; }
+.cart-drawer.open { transform: translateX(0); }
+.cart-drawer__header { display: flex; align-items: center; justify-content: space-between; padding: 22px 24px; border-bottom: 1px solid var(--color-border); }
+.cart-drawer__header h3 { font-family: var(--font-serif); font-size: 20px; font-weight: 400; }
+.cart-drawer__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--color-dark); transition: background var(--transition); }
+.cart-drawer__close:hover { background: var(--color-green-pale); }
+.cart-drawer__items { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.cart-empty { color: var(--color-muted); font-size: 14.5px; text-align: center; padding: 48px 0; }
+.cart-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--color-border); animation: fadeUp .3s ease; }
+.cart-item__emoji { width: 68px; height: 80px; background: var(--color-green-xpale); border-radius: var(--radius); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+.cart-item__info { flex: 1; }
+.cart-item__brand { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-green-mid); }
+.cart-item__name { font-size: 13.5px; font-weight: 500; margin: 3px 0 6px; }
+.cart-item__price { font-size: 14px; font-weight: 700; color: var(--color-green); }
+.cart-item__remove { font-size: 11px; color: var(--color-muted); text-decoration: underline; cursor: pointer; margin-left: 10px; }
+.cart-item__remove:hover { color: var(--color-red); }
+.cart-drawer__footer { padding: 18px 24px; border-top: 1px solid var(--color-border); }
+.cart-trust { display: flex; justify-content: space-between; font-size: 12px; color: var(--color-muted); margin-bottom: 14px; }
+.cart-total { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+
+/* ===== FOOTER ===== */
+.footer { background: #111811; color: rgba(255,255,255,.75); padding: 72px 0 0; }
+.footer__grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.footer__logo { font-family: var(--font-serif); font-size: 24px; color: #fff; letter-spacing: .12em; display: block; margin-bottom: 14px; }
+.footer__brand p { font-size: 13.5px; color: rgba(255,255,255,.45); line-height: 1.8; margin-bottom: 20px; }
+.footer__certs { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: rgba(255,255,255,.45); }
+.footer__certs span { background: rgba(255,255,255,.07); padding: 4px 10px; border-radius: 100px; }
+.footer__col h4 { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 18px; }
+.footer__col ul li+li { margin-top: 10px; }
+.footer__col ul a { font-size: 14px; color: rgba(255,255,255,.5); transition: color var(--transition); }
+.footer__col ul a:hover { color: rgba(255,255,255,.9); }
+.footer__bottom { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; font-size: 12.5px; color: rgba(255,255,255,.3); }
+.footer__legal { display: flex; gap: 20px; }
+.footer__legal a { color: rgba(255,255,255,.3); transition: color var(--transition); }
+.footer__legal a:hover { color: rgba(255,255,255,.65); }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: var(--color-green); color: #fff; padding: 13px 24px; border-radius: 100px;
+  font-size: 14px; font-weight: 500; z-index: 1000; opacity: 0;
+  transition: all 0.35s ease; white-space: nowrap; box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .products-grid { grid-template-columns: repeat(3,1fr); }
+  .product-detail__content { grid-template-columns: 1fr; gap: 40px; }
+  .detail-gallery { position: static; }
+  .transparency__inner { grid-template-columns: 1fr; }
+  .trust-bar__grid { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 768px) {
+  .container { padding: 0 20px; }
+  .header__nav { padding: 0 20px; }
+  .nav__left { display: none; }
+  .header__logo { position: static; transform: none; }
+  .categories__grid { grid-template-columns: repeat(2,1fr); }
+  .products-grid { grid-template-columns: repeat(2,1fr); gap: 14px; }
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+  .footer__grid { grid-template-columns: 1fr 1fr; }
+  .footer__brand { grid-column: 1 / -1; }
+  .about-story { grid-template-columns: 1fr; }
+  .values-grid { grid-template-columns: 1fr; }
+  .certs-grid { grid-template-columns: repeat(2,1fr); }
+  .team-grid { grid-template-columns: repeat(2,1fr); }
+  .newsletter__form { flex-direction: column; }
+  .hero__actions { flex-direction: column; align-items: center; }
+  .footer__bottom { flex-direction: column; gap: 10px; text-align: center; }
+  .cookie-bar { flex-direction: column; gap: 14px; padding: 16px 20px; }
+  .section-header { flex-direction: column; }
+}
+@media (max-width: 480px) {
+  .products-grid { grid-template-columns: 1fr; }
+  .footer__grid { grid-template-columns: 1fr; }
+  .certs-grid { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== STUDY GATES (Welcome / Demographics / Task Intro / Survey / Thanks) ===== */
+.gate-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(30, 42, 30, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 24px; overflow-y: auto;
+  animation: gateFade 0.35s ease;
+}
+.gate-overlay.active { display: flex; }
+@keyframes gateFade { from { opacity: 0; } to { opacity: 1; } }
+
+.gate-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 56px;
+  box-shadow: var(--shadow-lg);
+  max-width: 720px; width: 100%;
+  margin: auto;
+  animation: gateSlide 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes gateSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.gate-card__hero { text-align: center; margin-bottom: 32px; }
+.gate-card__leaf { font-size: 56px; display: block; margin-bottom: 12px; }
+.gate-card__title { font-family: var(--font-serif); font-size: clamp(28px, 4vw, 42px); font-weight: 500; line-height: 1.15; color: var(--color-dark); margin-bottom: 14px; }
+.gate-card__title--sm { font-size: clamp(22px, 3vw, 30px); }
+.gate-card__sub { font-size: 16px; color: var(--color-mid); max-width: 560px; margin: 0 auto 12px; }
+.gate-card__cta { text-align: center; margin-top: 8px; }
+.gate-card.centered { text-align: center; }
+
+.gate-list { display: grid; gap: 14px; margin: 28px 0; list-style: none; }
+.gate-list li { display: flex; gap: 14px; align-items: flex-start; padding: 14px 18px; background: var(--color-green-pale); border-radius: var(--radius); }
+.gate-list li > span:first-child { font-size: 22px; flex-shrink: 0; line-height: 1; }
+.gate-list li strong { display: block; color: var(--color-dark); margin-bottom: 2px; font-weight: 600; font-size: 15px; }
+.gate-list li span:not(:first-child) { font-size: 14px; color: var(--color-mid); }
+
+.gate-consent { margin: 24px 0; padding: 18px; background: var(--color-green-xpale); border-left: 3px solid var(--color-green); border-radius: 6px; }
+.gate-consent label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; font-size: 14px; color: var(--color-mid); }
+.gate-consent input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--color-green); cursor: pointer; flex-shrink: 0; }
+
+.btn--lg { padding: 16px 36px; font-size: 14.5px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Demographics form */
+.form-grid { display: grid; gap: 22px; margin: 28px 0; }
+.form-field { display: flex; flex-direction: column; gap: 8px; }
+.form-field label { font-weight: 600; font-size: 14px; color: var(--color-dark); }
+.form-field__hint { font-size: 12px; color: var(--color-muted); margin-top: -4px; }
+.form-input, .form-select {
+  padding: 13px 16px; border: 1.5px solid var(--color-border); border-radius: var(--radius);
+  background: #fafbfa; transition: border-color var(--transition), background var(--transition); outline: none;
+  font-family: inherit; font-size: 15px;
+}
+.form-input:focus, .form-select:focus { border-color: var(--color-green); background: #fff; }
+.form-radio-group { display: flex; flex-wrap: wrap; gap: 10px; }
+.form-radio { position: relative; }
+.form-radio input { position: absolute; opacity: 0; pointer-events: none; }
+.form-radio span {
+  display: inline-block; padding: 11px 20px; border: 1.5px solid var(--color-border); border-radius: 100px;
+  background: #fafbfa; color: var(--color-mid); font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all var(--transition);
+}
+.form-radio input:checked + span { background: var(--color-green); color: #fff; border-color: var(--color-green); }
+.form-radio span:hover { border-color: var(--color-green-mid); }
+.form-error { color: var(--color-red); font-size: 13px; min-height: 18px; }
+
+/* Task intro tip */
+.task-intro-text { color: var(--color-mid); font-size: 16px; line-height: 1.7; margin: 18px 0; }
+.task-intro-tip { padding: 16px 18px; background: var(--color-green-xpale); border-radius: var(--radius); font-size: 14px; color: var(--color-mid); margin-bottom: 28px; line-height: 1.6; }
+.task-intro-tip strong { color: var(--color-dark); }
+
+/* Final survey */
+.survey-progress { height: 4px; background: var(--color-border); border-radius: 100px; overflow: hidden; margin-bottom: 28px; }
+.survey-progress__bar { height: 100%; background: var(--color-green); width: 0; transition: width 0.3s ease; }
+.survey-question__title { font-family: var(--font-serif); font-size: 22px; font-weight: 500; margin: 8px 0 8px; color: var(--color-dark); }
+.survey-question__sub { color: var(--color-mid); margin-bottom: 24px; font-size: 14.5px; }
+.survey-scale { display: flex; gap: 10px; flex-wrap: wrap; }
+.survey-scale label { flex: 1; min-width: 64px; position: relative; cursor: pointer; }
+.survey-scale label input { position: absolute; opacity: 0; pointer-events: none; }
+.survey-scale label span { display: block; padding: 18px 0; text-align: center; font-weight: 700; font-size: 18px; border: 2px solid var(--color-border); border-radius: var(--radius); background: #fafbfa; color: var(--color-mid); cursor: pointer; transition: all var(--transition); }
+.survey-scale label input:checked + span { background: var(--color-green); color: #fff; border-color: var(--color-green); }
+.survey-scale label span:hover { border-color: var(--color-green-mid); }
+.survey-textarea { width: 100%; padding: 14px; border: 1.5px solid var(--color-border); border-radius: var(--radius); resize: vertical; min-height: 100px; outline: none; font-family: inherit; font-size: 15px; }
+.survey-textarea:focus { border-color: var(--color-green); }
+.survey-actions { display: flex; justify-content: space-between; margin-top: 32px; }
+
+/* Thank-you icon */
+.thanks-icon { width: 88px; height: 88px; border-radius: 50%; background: var(--color-green); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 44px; margin: 0 auto 24px; }
+
+/* ===== TASK BANNER (sticky during scenarios) ===== */
+.task-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 800;
+  background: linear-gradient(135deg, #234e25 0%, #4a7c4e 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(44,95,46,0.25);
+  animation: taskSlideDown 0.4s ease;
+}
+@keyframes taskSlideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+.task-banner[hidden] { display: none; }
+.task-banner__inner {
+  max-width: 1240px; margin: 0 auto;
+  padding: 10px 32px;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+}
+.task-banner__step {
+  font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  background: rgba(255,255,255,0.18); padding: 4px 10px; border-radius: 100px;
+  font-weight: 600; flex-shrink: 0;
+}
+.task-banner__text { flex: 1; font-size: 14px; line-height: 1.4; min-width: 200px; }
+.task-banner__help {
+  background: rgba(255,255,255,0.15); color: #fff; padding: 6px 14px;
+  border-radius: 100px; font-size: 12px; font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.25); transition: background var(--transition);
+  flex-shrink: 0;
+}
+.task-banner__help:hover { background: rgba(255,255,255,0.28); }
+
+
+/* =============================================================================
+   STUDIEN-LAYOUT — saubere, finale Version
+   =============================================================================
+   Z-Index-Reihenfolge (von hinten nach vorne):
+     bot              700
+     product-detail   800
+     about-page       800
+     task-banner      850
+     header           900
+     search-overlay   950
+     cart-overlay     960
+     cart-drawer      990
+     toast           1000
+     gate-overlay    2000
+   ============================================================================= */
+
+/* Banner & Header bei Aufgabe — Banner oben, Header rückt 48 px tiefer */
+body.has-task-banner .header { top: 48px; }
+body.has-task-banner .hero { margin-top: calc(var(--header-h) + var(--top-bar-h) + 48px); }
+body.has-task-banner .product-detail,
+body.has-task-banner .about-page { padding-top: calc(var(--header-h) + var(--top-bar-h) + 48px); }
+/* (Kein body-padding-top hier — die Hero/Detail-Margins regeln das schon, 
+    ein zusätzliches body-padding würde den Wert verdoppeln.) */
+
+/* Z-Index-Override für saubere Stack-Reihenfolge */
+.task-banner   { z-index: 850; }
+.product-detail, .about-page { z-index: 800; }
+.cart-overlay  { z-index: 960; }
+.cart-drawer   { z-index: 990; }
+
+/* =============================================================================
+   AI BERATER — VERDEA-Design, Side-Dock rechts, Layout schiebt korrekt
+   ============================================================================= */
+
+.ai-fab {
+  position: fixed; bottom: 32px; right: 32px;
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-green) 0%, var(--color-green-mid) 100%);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 14px 40px rgba(44,95,46,0.45), 0 0 0 6px rgba(44,95,46,0.12);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  animation: fabPulseGreen 2.4s ease-in-out infinite;
+  z-index: 700;
+  border: none;
+}
+.ai-fab:hover { transform: scale(1.08); }
+.ai-fab[hidden] { display: none; }
+@keyframes fabPulseGreen {
+  0%, 100% { box-shadow: 0 14px 40px rgba(44,95,46,0.45), 0 0 0 6px rgba(44,95,46,0.12); }
+  50%      { box-shadow: 0 18px 48px rgba(44,95,46,0.55), 0 0 0 16px rgba(44,95,46,0.06); }
+}
+.ai-fab__pulse {
+  position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid rgba(44,95,46,0.55);
+  animation: fabRing 1.8s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes fabRing {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.ai-fab__icon { font-size: 36px; line-height: 1; }
+.ai-fab__badge {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--color-accent);
+  color: var(--color-dark);
+  font-size: 10px; font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 100px;
+  letter-spacing: 0.08em;
+}
+.ai-fab__label {
+  position: absolute; right: calc(100% + 14px); top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-dark); color: #fff;
+  padding: 8px 14px; border-radius: 100px;
+  font-size: 13px; font-weight: 500; white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}
+.ai-fab__label::after {
+  content: ''; position: absolute; left: 100%; top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: var(--color-dark);
+}
+
+/* Bot-Panel: rechts angedockt, volle Höhe — auf Desktop */
+.ai-bot {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 420px; max-width: 100vw;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  box-shadow: -16px 0 48px rgba(44,95,46,0.16);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  animation: botSlideIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 700;
+}
+.ai-bot[hidden] { display: none; }
+@keyframes botSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Layout-Shift wenn Bot offen — gilt erst ab 1024 px (Desktop/Laptop) */
+@media (min-width: 1024px) {
+  /* Fixe Top-Elemente: Header und Banner nehmen nur die linke Spalte ein */
+  body.bot-open .header,
+  body.bot-open .task-banner { right: 420px; }
+  /* Inline-Inhalte (Main, Detail, About, Footer) bekommen rechtes Padding,
+     damit ihr Inhalt zentriert in der linken Spalte sitzt */
+  body.bot-open main,
+  body.bot-open .product-detail,
+  body.bot-open .about-page,
+  body.bot-open .footer { padding-right: 420px; }
+  /* Cart-Drawer, Search-Overlay, Gate-Overlays bleiben unangetastet —
+     sie überdecken den Bot bei Bedarf (Cart per Slide-in, Search/Gates fullscreen). */
+}
+
+/* Wenn Detail oder About offen ist, wird der Hauptinhalt komplett ausgeblendet —
+   die User scrollt eine echte Seite, kein Overlay. */
+body.viewing-overlay #mainContent { display: none; }
+
+/* Bot-Header */
+.ai-bot__header {
+  background: linear-gradient(135deg, var(--color-green) 0%, var(--color-green-mid) 100%);
+  padding: 22px 24px;
+  display: flex; align-items: center; gap: 14px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ai-bot__header::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(200,169,110,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ai-bot__avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.28);
+}
+.ai-bot__title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 19px;
+  color: #fff;
+  line-height: 1.2;
+}
+.ai-bot__sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 3px;
+}
+.ai-bot__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-accent);
+  animation: dotPulse 1.6s ease-out infinite;
+}
+@keyframes dotPulse {
+  0% { box-shadow: 0 0 0 0 rgba(200,169,110,0.7); }
+  100% { box-shadow: 0 0 0 10px rgba(200,169,110,0); }
+}
+.ai-bot__close {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  margin-left: auto;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.ai-bot__close:hover { background: rgba(255,255,255,0.28); }
+
+/* Bot-Inhalt */
+.ai-bot__intro {
+  padding: 16px 24px;
+  background: var(--color-green-xpale);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13.5px;
+  color: var(--color-mid);
+  line-height: 1.55;
+  flex-shrink: 0;
+}
+.ai-bot__intro strong {
+  color: var(--color-green);
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ai-bot__messages {
+  flex: 1; overflow-y: auto;
+  padding: 22px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  background: var(--color-bg);
+}
+.ai-msg {
+  max-width: 86%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  word-wrap: break-word;
+}
+.ai-msg--bot {
+  background: #fff;
+  color: var(--color-dark);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 4px rgba(44,95,46,0.04);
+}
+.ai-msg--user {
+  background: linear-gradient(135deg, var(--color-green) 0%, var(--color-green-mid) 100%);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.ai-msg--typing {
+  display: flex; gap: 5px;
+  align-self: flex-start;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+}
+.ai-msg--typing span {
+  width: 8px; height: 8px;
+  background: var(--color-green-light);
+  border-radius: 50%;
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+.ai-msg--typing span:nth-child(2) { animation-delay: 0.2s; }
+.ai-msg--typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-7px); opacity: 1; }
+}
+
+.ai-bot__suggestions {
+  padding: 10px 16px;
+  display: flex; gap: 6px; flex-wrap: wrap;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.ai-suggestion {
+  padding: 7px 14px;
+  background: var(--color-green-pale);
+  color: var(--color-green);
+  border: 1px solid transparent;
+  border-radius: 100px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.ai-suggestion:hover {
+  background: var(--color-green);
+  color: #fff;
+}
+
+.ai-bot__input-row {
+  display: flex; gap: 10px;
+  padding: 14px 16px 18px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.ai-bot__input {
+  flex: 1;
+  padding: 12px 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 100px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition);
+  font-family: inherit;
+  background: #fafbfa;
+}
+.ai-bot__input:focus { border-color: var(--color-green); background: #fff; }
+.ai-bot__send {
+  width: 44px; height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-green);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.ai-bot__send:hover { background: #234e25; transform: scale(1.05); }
+
+/* Mobile/Tablet: Bot wird Slide-up vom unteren Rand, KEIN Layout-Shift */
+@media (max-width: 1023px) {
+  .ai-bot {
+    top: auto;
+    height: 75vh;
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    box-shadow: 0 -16px 48px rgba(44,95,46,0.18);
+    animation: botSlideUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes botSlideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .ai-fab__label { display: none; }
+}
+@media (max-width: 480px) {
+  .ai-fab { right: 16px; bottom: 16px; width: 64px; height: 64px; }
+  .ai-fab__icon { font-size: 28px; }
+}
+
+/* =============================================================================
+   PRODUKTBILDER
+   ============================================================================= */
+.product-card__img-wrap { position: relative; overflow: hidden; }
+.product-card__img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  transition: transform 0.5s ease;
+}
+.product-card:hover .product-card__img { transform: scale(1.06); }
+.product-card__img + .product-card__emoji { display: none; }
+.product-card__img-wrap > .product-card__badge,
+.product-card__img-wrap > .product-card__certs,
+.product-card__img-wrap > .product-card__quick-add { z-index: 2; }
+.product-card__img-wrap::after {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.18) 100%);
+  pointer-events: none;
+}
+
+.detail-gallery__main {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-green-pale) 0%, var(--color-green-xpale) 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.detail-gallery__img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.detail-gallery__emoji { font-size: 120px; }
+</style>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- TASK BANNER (visible during scenarios) -->
+  <div class="task-banner" id="taskBanner" hidden>
+    <div class="task-banner__inner">
+      <div class="task-banner__step" id="taskBannerStep">Aufgabe 1 von 3</div>
+      <div class="task-banner__text" id="taskBannerText">…</div>
+      <button class="task-banner__help" id="taskBannerHelp" type="button">ℹ️ Anweisung erneut anzeigen</button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="header__top">
+      <span>🌱 Kostenloser Versand ab 60 € · 100% Bio-zertifiziert · 30 Tage Rückgabe</span>
+    </div>
+    <nav class="header__nav">
+      <div class="nav__left">
+        <a href="#" class="nav__link" data-category="all">Alle</a>
+        <a href="#" class="nav__link" data-category="vitamine">Vitamine</a>
+        <a href="#" class="nav__link" data-category="adaptogen">Adaptogene</a>
+        <a href="#" class="nav__link" data-category="darm">Darm & Immun</a>
+        <a href="#" class="nav__link" data-category="beauty">Beauty</a>
+      </div>
+      <a href="#" class="header__logo" id="logoHome">VERDEA</a>
+      <div class="nav__right">
+        <a href="#" class="nav__link nav__about-link" id="aboutNavBtn">Über uns</a>
+        <button class="nav__icon-btn" id="searchBtn" aria-label="Suche">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button class="nav__icon-btn nav__cart-btn" id="cartBtn" aria-label="Warenkorb">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-overlay__close" id="searchClose">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <p class="search-overlay__hint">Wonach suchen Sie?</p>
+    <input type="text" class="search-overlay__input" placeholder="z.B. Ashwagandha, Omega-3, Vitamin D …" id="searchInput" />
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main id="mainContent">
+
+    <!-- HERO -->
+    <section class="hero" id="heroSection">
+      <div class="hero__bg"></div>
+      <div class="hero__visual">
+        <div class="hero__leaf hero__leaf--1">🌿</div>
+        <div class="hero__leaf hero__leaf--2">🍃</div>
+        <div class="hero__leaf hero__leaf--3">✨</div>
+      </div>
+      <div class="hero__content">
+        <div class="hero__cert-row">
+          <span class="cert-pill">🌱 Bio-zertifiziert</span>
+          <span class="cert-pill">🐇 Vegan</span>
+          <span class="cert-pill">🔬 Laborgeprüft</span>
+        </div>
+        <h1 class="hero__title">Natur trifft<br/><em>Wissenschaft</em></h1>
+        <p class="hero__sub">Premium-Nahrungsergänzung aus kontrolliert biologischem Anbau. Transparent in Inhaltsstoffen, kompromisslos in Qualität.</p>
+        <div class="hero__actions">
+          <button class="btn btn--white hero__cta" id="heroCta">Produkte entdecken</button>
+          <button class="btn btn--ghost-white" id="heroAbout">Unsere Geschichte</button>
+        </div>
+      </div>
+      <div class="hero__scroll-hint">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </section>
+
+    <!-- TRUST BAR -->
+    <section class="trust-bar">
+      <div class="container">
+        <div class="trust-bar__grid">
+          <div class="trust-item">
+            <span class="trust-item__icon">🧪</span>
+            <div>
+              <strong>Laborgeprüft</strong>
+              <p>Unabhängige Analyse jeder Charge</p>
+            </div>
+          </div>
+          <div class="trust-item">
+            <span class="trust-item__icon">🌍</span>
+            <div>
+              <strong>Klimaneutral</strong>
+              <p>100% CO₂-kompensiert</p>
+            </div>
+          </div>
+          <div class="trust-item">
+            <span class="trust-item__icon">📦</span>
+            <div>
+              <strong>Plastikfrei</strong>
+              <p>Verpackung aus Recyclingmaterial</p>
+            </div>
+          </div>
+          <div class="trust-item">
+            <span class="trust-item__icon">🤝</span>
+            <div>
+              <strong>Faire Lieferkette</strong>
+              <p>Direkte Partnerschaften mit Bauern</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="categories">
+      <div class="container">
+        <h2 class="section-title centered">Was möchten Sie verbessern?</h2>
+        <div class="categories__grid">
+          <div class="category-card" data-category="vitamine">
+            <div class="category-card__icon">☀️</div>
+            <h3>Vitamine & Mineralien</h3>
+            <p>Grundversorgung für Energie, Immunsystem und Knochen</p>
+          </div>
+          <div class="category-card" data-category="adaptogen">
+            <div class="category-card__icon">🌿</div>
+            <h3>Adaptogene & Stress</h3>
+            <p>Natürliche Balance und mentale Resilienz</p>
+          </div>
+          <div class="category-card" data-category="darm">
+            <div class="category-card__icon">🦠</div>
+            <h3>Darm & Immunsystem</h3>
+            <p>Probiotika und Präbiotika für ein gesundes Mikrobiom</p>
+          </div>
+          <div class="category-card" data-category="beauty">
+            <div class="category-card__icon">✨</div>
+            <h3>Beauty & Regeneration</h3>
+            <p>Kollagen, Antioxidantien und Hautpflege von innen</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section class="products-section" id="productsSection">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title" id="sectionTitle">Unsere Produkte</h2>
+            <p class="section-sub">Jedes Produkt enthält eine transparente Auflistung aller Inhaltsstoffe und deren Herkunft.</p>
+          </div>
+          <div class="filter-tabs" id="filterTabs">
+            <button class="filter-tab active" data-category="all">Alle</button>
+            <button class="filter-tab" data-category="vitamine">Vitamine</button>
+            <button class="filter-tab" data-category="adaptogen">Adaptogene</button>
+            <button class="filter-tab" data-category="darm">Darm & Immun</button>
+            <button class="filter-tab" data-category="beauty">Beauty</button>
+          </div>
+        </div>
+        <div class="products-grid" id="productsGrid"></div>
+      </div>
+    </section>
+
+    <!-- TRANSPARENCY SECTION -->
+    <section class="transparency">
+      <div class="container">
+        <div class="transparency__inner">
+          <div class="transparency__text">
+            <p class="section-label">Unsere Philosophie</p>
+            <h2 class="section-title">Radikale Transparenz<br/>ist unser Standard</h2>
+            <p>Wir zeigen Ihnen jede Zutat, deren Herkunftsland und den Anteil in der Kapsel. Keine versteckten Mischungen, kein "proprietary blend" — nur reine Wahrheit über das, was Sie schlucken.</p>
+            <ul class="transparency__list">
+              <li><span>✓</span> Vollständige Inhaltsstoff-Deklaration</li>
+              <li><span>✓</span> Chargen-Zertifikate öffentlich einsehbar</li>
+              <li><span>✓</span> Herkunft jeder Zutat dokumentiert</li>
+              <li><span>✓</span> Keine Füllstoffe oder künstlichen Zusätze</li>
+            </ul>
+            <button class="btn btn--green" id="transparencyBtn">Mehr über uns</button>
+          </div>
+          <div class="transparency__visual">
+            <div class="ingredient-card">
+              <div class="ingredient-card__header">
+                <span class="ingredient-card__emoji">🌿</span>
+                <div>
+                  <strong>Ashwagandha</strong>
+                  <small>Withania somnifera</small>
+                </div>
+                <span class="ingredient-origin">🇮🇳 Indien</span>
+              </div>
+              <div class="ingredient-bar">
+                <div class="ingredient-bar__fill" style="width:75%"></div>
+                <span>600 mg · KSM-66® Extrakt</span>
+              </div>
+            </div>
+            <div class="ingredient-card ingredient-card--sm">
+              <div class="ingredient-card__header">
+                <span class="ingredient-card__emoji">⚫</span>
+                <div>
+                  <strong>Piperin</strong>
+                  <small>Piper nigrum</small>
+                </div>
+                <span class="ingredient-origin">🇮🇳 Kerala</span>
+              </div>
+              <div class="ingredient-bar">
+                <div class="ingredient-bar__fill" style="width:12%"></div>
+                <span>5 mg · Bioverfügbarkeit ↑ 20×</span>
+              </div>
+            </div>
+            <div class="ingredient-card ingredient-card--sm ingredient-card--muted">
+              <div class="ingredient-card__header">
+                <span class="ingredient-card__emoji">💊</span>
+                <div>
+                  <strong>HPMC-Kapsel</strong>
+                  <small>Hydroxypropylmethylcellulose</small>
+                </div>
+                <span class="ingredient-origin">🌱 Pflanzlich</span>
+              </div>
+            </div>
+            <div class="cert-badges">
+              <span class="cert-badge">🌱 Bio-DE-003</span>
+              <span class="cert-badge">🐇 Vegan</span>
+              <span class="cert-badge">🔬 GMP</span>
+              <span class="cert-badge">🌍 CO₂ neutral</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats-section">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number">98%</span>
+            <span class="stat-label">Zufriedene Kunden</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">47+</span>
+            <span class="stat-label">Laborgeprüfte Produkte</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">12</span>
+            <span class="stat-label">Partnerfarmen weltweit</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">0</span>
+            <span class="stat-label">Gramm Plastik in Versand</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section class="newsletter">
+      <div class="container">
+        <div class="newsletter__inner">
+          <div class="newsletter__icon">🌿</div>
+          <h3 class="newsletter__title">Wissen, das wirkt</h3>
+          <p class="newsletter__sub">Monatlicher Newsletter mit wissenschaftlich fundierten Tipps zu Nahrungsergänzung, Ernährung und einem nachhaltigen Lebensstil.</p>
+          <form class="newsletter__form" id="newsletterForm">
+            <input type="email" class="newsletter__input" placeholder="Ihre E-Mail-Adresse" />
+            <button type="submit" class="btn btn--green">Kostenlos abonnieren</button>
+          </form>
+          <p class="newsletter__fine">Kein Spam. Jederzeit kündbar. Datenschutz-konform.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PRODUCT DETAIL VIEW -->
+  <div class="product-detail" id="productDetail">
+    <div class="product-detail__inner">
+      <button class="product-detail__back" id="backBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück zur Übersicht
+      </button>
+      <div class="product-detail__content" id="productDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- ABOUT US PAGE -->
+  <div class="about-page" id="aboutPage">
+    <div class="about-page__inner">
+      <button class="product-detail__back" id="aboutBackBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück
+      </button>
+
+      <!-- About Hero -->
+      <div class="about-hero">
+        <p class="section-label">Unsere Geschichte</p>
+        <h1 class="about-hero__title">Gegründet aus Überzeugung,<br/>nicht aus Kalkül</h1>
+        <p class="about-hero__sub">VERDEA entstand 2019 in einer kleinen Küche in München. Heute liefern wir in 14 Länder — mit denselben Werten wie am ersten Tag.</p>
+      </div>
+
+      <!-- Founding Story -->
+      <div class="about-story">
+        <div class="about-story__text">
+          <h2>Die Geschichte hinter VERDEA</h2>
+          <p>Alles begann mit einer Frustration: Als unsere Gründerin <strong>Dr. Lena Wirth</strong> nach einem zuverlässigen Ashwagandha-Präparat suchte, stieß sie auf ein Problem — die meisten Produkte auf dem Markt enthielten weniger Wirkstoff als deklariert, waren mit Füllstoffen gestreckt oder kamen aus undurchsichtigen Lieferketten.</p>
+          <p>Als Biochemikerin beschloss sie, es selbst besser zu machen. Mit einem klaren Versprechen: <em>Jede Kapsel enthält genau das, was auf dem Etikett steht — nicht mehr, nicht weniger.</em></p>
+          <p>Heute arbeiten wir mit 12 zertifizierten Partnerbetrieben in 8 Ländern zusammen. Jede Lieferung wird von einem unabhängigen Labor in Deutschland analysiert, bevor sie das Haus verlässt.</p>
+        </div>
+        <div class="about-story__image">
+          <div class="about-img-placeholder">
+            <span>🌿</span>
+            <p>Dr. Lena Wirth, Gründerin</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Values -->
+      <div class="about-values">
+        <h2 class="centered">Unsere drei Säulen</h2>
+        <div class="values-grid">
+          <div class="value-card">
+            <div class="value-card__icon">🔬</div>
+            <h3>Wissenschaft</h3>
+            <p>Alle Formulierungen basieren auf peer-reviewed Studien. Wir arbeiten mit Forschern der TU München und der Charité zusammen, um sicherzustellen, dass unsere Dosierungen tatsächlich wirksam sind.</p>
+          </div>
+          <div class="value-card">
+            <div class="value-card__icon">🌍</div>
+            <h3>Nachhaltigkeit</h3>
+            <p>Von der Farm bis zur Apotheke: Wir messen und kompensieren jeden CO₂-Footprint. Unsere Verpackungen bestehen zu 100% aus recyceltem Papier und pflanzlichen Tinten. Kein Plastik.</p>
+          </div>
+          <div class="value-card">
+            <div class="value-card__icon">💚</div>
+            <h3>Transparenz</h3>
+            <p>Jede Charge hat ein öffentlich einsehbares Zertifikat. Sie können auf unserer Website jederzeit nachschauen, was in Ihren Kapseln steckt und woher es kommt. Keine Geheimnisse.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certifications -->
+      <div class="about-certs">
+        <h2 class="centered">Zertifizierungen & Standards</h2>
+        <p class="centered" style="color:var(--color-muted);max-width:560px;margin:0 auto 40px">Wir halten uns nicht nur an gesetzliche Mindeststandards — wir übertreffen sie.</p>
+        <div class="certs-grid">
+          <div class="cert-item">
+            <div class="cert-item__badge">🌱</div>
+            <strong>EU Bio-Zertifizierung</strong>
+            <p>DE-ÖKO-003<br/>Alle Rohstoffe bio-zertifiziert</p>
+          </div>
+          <div class="cert-item">
+            <div class="cert-item__badge">🏭</div>
+            <strong>GMP-zertifiziert</strong>
+            <p>Good Manufacturing<br/>Practice nach ISO 22000</p>
+          </div>
+          <div class="cert-item">
+            <div class="cert-item__badge">🐇</div>
+            <strong>Vegan Society</strong>
+            <p>Tierversuchsfrei &<br/>100% pflanzlich</p>
+          </div>
+          <div class="cert-item">
+            <div class="cert-item__badge">🔬</div>
+            <strong>Laboranalyse</strong>
+            <p>Externe Prüfung jeder<br/>Charge durch SGS Deutschland</p>
+          </div>
+          <div class="cert-item">
+            <div class="cert-item__badge">🌍</div>
+            <strong>Climate Partner</strong>
+            <p>Klimaneutrales Unternehmen<br/>seit 2021</p>
+          </div>
+          <div class="cert-item">
+            <div class="cert-item__badge">♻️</div>
+            <strong>Plastikfrei</strong>
+            <p>100% recycelbare<br/>Verpackung</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team -->
+      <div class="about-team">
+        <h2 class="centered">Das Team hinter VERDEA</h2>
+        <div class="team-grid">
+          <div class="team-card">
+            <div class="team-avatar">👩‍🔬</div>
+            <strong>Dr. Lena Wirth</strong>
+            <span>Gründerin & CEO · Biochemie</span>
+            <p>"Ich will, dass jeder Mensch weiß, was er schluckt."</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">👨‍⚕️</div>
+            <strong>Dr. Markus Berger</strong>
+            <span>Wissenschaftlicher Leiter</span>
+            <p>"Dosierungen müssen wirksam sein — nicht marketingfreundlich."</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">👩‍🌾</div>
+            <strong>Sofia Reyes</strong>
+            <span>Supply Chain & Nachhaltigkeit</span>
+            <p>"Jede Farm, die wir besuchen, wird zur Partnerschaft."</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">👨‍💻</div>
+            <strong>Tim Hoffmann</strong>
+            <span>Produktentwicklung</span>
+            <p>"Weniger Produkte, aber die richtigen — das ist unser Weg."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="about-cta">
+        <h2>Bereit, Ihren Körper besser zu verstehen?</h2>
+        <p>Entdecken Sie unsere Produkte — mit vollständiger Transparenz über jeden Inhaltsstoff.</p>
+        <button class="btn btn--green btn--lg" id="aboutShopBtn">Zu den Produkten</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CART DRAWER -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer__header">
+      <h3>Warenkorb</h3>
+      <button class="cart-drawer__close" id="cartClose">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="cart-drawer__items" id="cartItems">
+      <p class="cart-empty">Ihr Warenkorb ist leer.</p>
+    </div>
+    <div class="cart-drawer__footer" id="cartFooter" style="display:none">
+      <div class="cart-trust">
+        <span>🔒 Sichere Zahlung</span>
+        <span>📦 Versand in 1–2 Tagen</span>
+      </div>
+      <div class="cart-total">
+        <span>Gesamt (inkl. MwSt.)</span>
+        <span id="cartTotal">0,00 €</span>
+      </div>
+      <button class="btn btn--green btn--full" id="checkoutBtn">Zur sicheren Kasse →</button>
+    </div>
+  </aside>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <span class="footer__logo">VERDEA</span>
+          <p>Premium-Nahrungsergänzung aus kontrolliert biologischem Anbau. Transparent, nachhaltig, wirksam.</p>
+          <div class="footer__certs">
+            <span>🌱 Bio</span>
+            <span>🐇 Vegan</span>
+            <span>🔬 GMP</span>
+            <span>🌍 CO₂ neutral</span>
+          </div>
+        </div>
+        <div class="footer__col">
+          <h4>Produkte</h4>
+          <ul>
+            <li><a href="#">Vitamine & Mineralien</a></li>
+            <li><a href="#">Adaptogene</a></li>
+            <li><a href="#">Darm & Immunsystem</a></li>
+            <li><a href="#">Beauty & Kollagen</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Wissen</h4>
+          <ul>
+            <li><a href="#">Blog & Studien</a></li>
+            <li><a href="#">Inhaltsstoff-Lexikon</a></li>
+            <li><a href="#">Dosierungsguide</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Unternehmen</h4>
+          <ul>
+            <li><a href="#" id="footerAbout">Über VERDEA</a></li>
+            <li><a href="#">Nachhaltigkeit</a></li>
+            <li><a href="#">Partnerbetriebe</a></li>
+            <li><a href="#">Kontakt</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© 2025 VERDEA GmbH, München. Alle Rechte vorbehalten.</p>
+        <div class="footer__legal">
+          <a href="#">Datenschutz</a>
+          <a href="#">AGB</a>
+          <a href="#">Impressum</a>
+          <a href="#">Widerrufsrecht</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============== KI-BERATER (Side-Panel, prominent) ============== -->
+  <button class="ai-fab" id="aiFab" type="button" aria-label="KI-Berater öffnen">
+    <span class="ai-fab__pulse"></span>
+    <span class="ai-fab__label">Berater fragen</span>
+    <span class="ai-fab__icon">🌿</span>
+    <span class="ai-fab__badge">KI</span>
+  </button>
+
+  <aside class="ai-bot" id="aiBot" hidden>
+    <header class="ai-bot__header">
+      <div class="ai-bot__avatar">🌿</div>
+      <div>
+        <div class="ai-bot__title">Ihr persönlicher Berater</div>
+        <div class="ai-bot__sub"><span class="ai-bot__dot"></span> Online · KI-gestützt · sofort verfügbar</div>
+      </div>
+      <button class="ai-bot__close" id="aiBotClose" type="button" aria-label="Schließen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <div class="ai-bot__intro">
+      <strong>Willkommen</strong>
+      Ich kenne alle Produkte und helfe Ihnen, die passende Wahl zu treffen. Stellen Sie mir gern eine Frage — wie zu Inhalten, Preis oder Nachhaltigkeit.
+    </div>
+    <div class="ai-bot__messages" id="aiMessages"></div>
+    <div class="ai-bot__suggestions" id="aiSuggestions"></div>
+    <form class="ai-bot__input-row" id="aiForm">
+      <input type="text" class="ai-bot__input" id="aiInput" placeholder="Frag den KI-Berater …" autocomplete="off" />
+      <button type="submit" class="ai-bot__send" aria-label="Senden">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </form>
+  </aside>
+
+  <!-- ============== GATE: WELCOME ============== -->
+  <div class="gate-overlay active" id="gateWelcome">
+    <div class="gate-card">
+      <div class="gate-card__hero">
+        <span class="gate-card__leaf">🌿</span>
+        <p class="section-label">Willkommen zur Studie</p>
+        <h1 class="gate-card__title">Wie beeinflusst KI-Beratung<br/>Kaufentscheidungen?</h1>
+        <p class="gate-card__sub">Schön, dass Sie teilnehmen. Diese Studie untersucht, wie sich Empfehlungen einer KI auf Kaufentscheidungen auswirken. Sie dauert ca. <strong>8–12 Minuten</strong>.</p>
+      </div>
+
+      <ul class="gate-list">
+        <li><span>📋</span><div><strong>Kurze Befragung zu Ihrer Person</strong><span>Alter, Geschlecht, Einkommen — vollständig anonymisiert.</span></div></li>
+        <li><span>🛒</span><div><strong>3 Aufgaben auf der Website</strong><span>In jedem Szenario wählen Sie ein Produkt aus. Nutzen Sie die Website wie einen echten Online-Shop.</span></div></li>
+        <li><span>🤖</span><div><strong>Ein KI-Berater steht bereit</strong><span>Sie dürfen die KI nutzen — müssen aber nicht. Beide Wege sind interessant für unsere Forschung.</span></div></li>
+        <li><span>💬</span><div><strong>Abschlussfragen</strong><span>Wenige Fragen zu Ihrem Eindruck der KI-Beratung.</span></div></li>
+      </ul>
+
+      <div class="gate-consent">
+        <label>
+          <input type="checkbox" id="consentBox" />
+          <span>Ich willige ein, dass meine anonymisierten Antworten und mein Klickverhalten zu Forschungs­zwecken erhoben und ausgewertet werden. Es werden keine personen­bezogenen Daten gespeichert.</span>
+        </label>
+      </div>
+
+      <div class="gate-card__cta">
+        <button class="btn btn--green btn--lg" id="welcomeStart" disabled>Studie starten →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== GATE: DEMOGRAPHICS ============== -->
+  <div class="gate-overlay" id="gateDemographics">
+    <div class="gate-card">
+      <p class="section-label">Schritt 1 von 5 — Über Sie</p>
+      <h2 class="gate-card__title gate-card__title--sm">Ein paar Angaben zu Ihrer Person</h2>
+      <p style="color: var(--color-mid); margin-bottom: 8px;">Diese Angaben helfen uns, die Ergebnisse statistisch auszuwerten. Sie bleiben vollständig anonym.</p>
+
+      <form id="demoForm" class="form-grid" novalidate>
+        <div class="form-field">
+          <label for="demoAge">Alter</label>
+          <input type="number" id="demoAge" class="form-input" min="14" max="99" placeholder="z.B. 28" required />
+        </div>
+
+        <div class="form-field">
+          <label>Geschlecht</label>
+          <div class="form-radio-group">
+            <label class="form-radio"><input type="radio" name="gender" value="weiblich" /><span>Weiblich</span></label>
+            <label class="form-radio"><input type="radio" name="gender" value="männlich" /><span>Männlich</span></label>
+            <label class="form-radio"><input type="radio" name="gender" value="divers" /><span>Divers</span></label>
+            <label class="form-radio"><input type="radio" name="gender" value="keine_angabe" /><span>Keine Angabe</span></label>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="demoIncome">Monatliches Netto-Einkommen</label>
+          <span class="form-field__hint">Brutto abzgl. Steuern und Sozialabgaben.</span>
+          <select id="demoIncome" class="form-select" required>
+            <option value="">Bitte auswählen</option>
+            <option value="lt1000">unter 1.000 €</option>
+            <option value="1000-2000">1.000 – 2.000 €</option>
+            <option value="2000-3000">2.000 – 3.000 €</option>
+            <option value="3000-4500">3.000 – 4.500 €</option>
+            <option value="4500-6000">4.500 – 6.000 €</option>
+            <option value="gt6000">über 6.000 €</option>
+            <option value="keine_angabe">Keine Angabe</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="demoEducation">Höchster Bildungsabschluss</label>
+          <select id="demoEducation" class="form-select" required>
+            <option value="">Bitte auswählen</option>
+            <option value="schule">Schulabschluss</option>
+            <option value="ausbildung">Ausbildung</option>
+            <option value="abitur">Abitur</option>
+            <option value="bachelor">Bachelor</option>
+            <option value="master">Master / Diplom</option>
+            <option value="promotion">Promotion</option>
+            <option value="keine_angabe">Keine Angabe</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="demoAiUsage">Wie häufig nutzen Sie KI-Tools (z.B. ChatGPT)?</label>
+          <select id="demoAiUsage" class="form-select" required>
+            <option value="">Bitte auswählen</option>
+            <option value="nie">Nie</option>
+            <option value="selten">Selten (weniger als 1× pro Monat)</option>
+            <option value="gelegentlich">Gelegentlich (1–3× pro Monat)</option>
+            <option value="wöchentlich">Wöchentlich</option>
+            <option value="täglich">Täglich</option>
+          </select>
+        </div>
+
+        <p class="form-error" id="demoError"></p>
+
+        <div style="display:flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn--green">Weiter zu Aufgabe 1 →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============== GATE: TASK INTRO (zwischen Szenarien) ============== -->
+  <div class="gate-overlay" id="gateTaskIntro">
+    <div class="gate-card">
+      <p class="section-label" id="taskIntroStep">Aufgabe 1 von 3</p>
+      <h2 class="gate-card__title gate-card__title--sm" id="taskIntroTitle">…</h2>
+      <p class="task-intro-text" id="taskIntroText">…</p>
+      <div class="task-intro-tip">
+        <strong>💡 Tipp:</strong> Sie können den Online-Shop frei erkunden, Produkte vergleichen, die „Über uns"-Seite besuchen — und den KI-Berater unten rechts fragen. Wenn Sie sich entschieden haben: legen Sie das Produkt in den Warenkorb und gehen Sie zur Kasse.
+      </div>
+      <div class="gate-card__cta">
+        <button class="btn btn--green btn--lg" id="taskIntroStart">Aufgabe starten →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== GATE: FINAL SURVEY ============== -->
+  <div class="gate-overlay" id="gateSurvey">
+    <div class="gate-card">
+      <div class="survey-progress"><div class="survey-progress__bar" id="surveyBar"></div></div>
+      <p class="section-label" id="surveyStepLabel">Frage 1 von 6</p>
+      <div id="surveyContent"></div>
+      <div class="survey-actions">
+        <button class="btn btn--ghost-sm" id="surveyBack" type="button">← Zurück</button>
+        <button class="btn btn--green" id="surveyNext" type="button">Weiter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== GATE: THANKS ============== -->
+  <div class="gate-overlay" id="gateThanks">
+    <div class="gate-card centered">
+      <div class="thanks-icon">✓</div>
+      <h1 class="gate-card__title">Vielen Dank für Ihre Teilnahme!</h1>
+      <p class="gate-card__sub" style="margin: 0 auto;">Ihre Antworten wurden anonym gespeichert und tragen zur Forschung bei. Sie können das Fenster jetzt schließen.</p>
+    </div>
+  </div>
+
+  <!-- ============== TRACKER (inline für sichere Ladung) ============== -->
+  <script>
+  (function () {
+    'use strict';
+    const SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzciKlAoIJw2fUiXGqzL2aGWMNXVRlas2ySVmZmCKiXjTEx3Boo67PuzftxZmvHFv8/exec';
+    const DEBUG = true;
+
+    let enabled = false, sessionEnded = false;
+    function generateId() {
+      if (window.crypto && crypto.getRandomValues) {
+        const b = crypto.getRandomValues(new Uint8Array(16));
+        b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+        const h = [...b].map(x => x.toString(16).padStart(2, '0'));
+        return `${h.slice(0,4).join('')}-${h.slice(4,6).join('')}-${h.slice(6,8).join('')}-${h.slice(8,10).join('')}-${h.slice(10,16).join('')}`;
+      }
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16);
+      });
+    }
+    const sessionId = generateId();
+    const sessionStart = Date.now();
+    let demographics = {};
+    let currentScenario = '';
+
+    const device = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
+    const browser = (function(){const u=navigator.userAgent;
+      if(u.includes('Firefox'))return'Firefox';if(u.includes('Edg/'))return'Edge';
+      if(u.includes('OPR/'))return'Opera';if(u.includes('Chrome'))return'Chrome';
+      if(u.includes('Safari'))return'Safari';return'Sonstige';})();
+
+    function send(payload) {
+      if (!enabled) return;
+      const data = {
+        timestamp: new Date().toISOString(),
+        session_id: sessionId,
+        visitor_id: sessionId,
+        seconds_since_start: Math.round((Date.now() - sessionStart) / 1000),
+        device, browser,
+        current_scenario: currentScenario,
+        ...demographics,
+        ...payload,
+      };
+      if (DEBUG) console.log('[Tracker]', data);
+      const body = JSON.stringify(data);
+      if (payload.event === 'session_end' && navigator.sendBeacon) {
+        navigator.sendBeacon(SHEET_WEBHOOK_URL, body); return;
+      }
+      fetch(SHEET_WEBHOOK_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body
+      }).catch(err => console.error('[Tracker]', err));
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (!sessionEnded && enabled) { sessionEnded = true; send({ event: 'session_end' }); }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && !sessionEnded && enabled) {
+        sessionEnded = true; send({ event: 'session_end' });
+      }
+    });
+
+    window.VerdTracker = {
+      enable() { if (enabled) return; enabled = true; send({ event: 'session_started' }); },
+      setDemographics(d) { demographics = { ...demographics, ...d }; },
+      setScenario(id) { currentScenario = id; },
+      track(event, data = {}) { send({ event, ...data }); },
+      // Backwards-compat
+      trackProductView(id, name) { send({ event: 'product_view', product_id: id, product_name: name }); },
+      trackCartAdd(id, name, price) { send({ event: 'cart_add', product_id: id, product_name: name, price }); },
+      trackAboutView() { send({ event: 'about_view' }); },
+      trackNewsletter() { send({ event: 'newsletter_signup' }); },
+    };
+  })();
+  </script>
+
+  <script src="script.js"></script>
+</body>
 </html>
