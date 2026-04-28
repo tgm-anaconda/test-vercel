@@ -954,47 +954,41 @@ function removeTyping() { document.getElementById('aiTyping')?.remove(); }
 
 aiForm.addEventListener('submit', e => { e.preventDefault(); sendAiMessage(); });
 
-function sendAiMessage() {
+async function sendAiMessage() {
   const txt = aiInput.value.trim();
   if (!txt) return;
+
   aiInput.value = '';
   appendAiMessage('user', txt);
   aiMessageCount++;
+
   const sc = getCurrentScenario();
-  if (window.VerdTracker) window.VerdTracker.track('ai_message_sent', {
-    scenario_id: sc.id, message: txt, message_index: aiMessageCount
-  });
+
   showTyping();
-  setTimeout(() => {
-    removeTyping();
-    const reply = generateAiReply(sc, txt);
-    appendAiMessage('bot', reply.text);
-    if (window.VerdTracker) window.VerdTracker.track('ai_reply_shown', {
-      scenario_id: sc.id, recommended_product_id: reply.recommendedId || '', message_index: aiMessageCount
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: txt,
+        scenario: sc
+      })
     });
-  }, 700 + Math.random() * 600);
-}
 
-// AI Stub — wird später durch echten API-Call ersetzt (window.VERDEA_AI_API_KEY)
-function generateAiReply(scenario, userMessage) {
-  const msg = userMessage.toLowerCase();
-  const ps = scenario.products;
-  const recommended = ps[1]; // mittlere Option (Compromise-Effekt)
-  if (/(unterschied|verschieden|vergleich)/.test(msg)) {
-    return { text: `Die drei Optionen unterscheiden sich vor allem im Preis und im Umfang: „${ps[0].name}" ist die günstigste Variante (${fmt(ps[0].price)}), „${ps[1].name}" bietet ein gutes Verhältnis aus Qualität und Preis (${fmt(ps[1].price)}), und „${ps[2].name}" ist die Premium-Option (${fmt(ps[2].price)}).`, recommendedId: '' };
-  }
-  if (/(nachhaltig|umwelt|öko|bio|klimaneutral)/.test(msg)) {
-    return { text: `Wenn Ihnen Nachhaltigkeit besonders wichtig ist, wäre „${ps[2].name}" am ehesten passend. Wenn Sie aber einen guten Kompromiss möchten, ist „${ps[1].name}" eine sinnvolle Wahl.`, recommendedId: ps[2].id };
-  }
-  if (/(billig|günstig|sparen|preis|niedrig)/.test(msg)) {
-    return { text: `Die günstigste Option ist „${ps[0].name}" für ${fmt(ps[0].price)}. Für etwas mehr Qualität bei moderatem Aufpreis wäre „${ps[1].name}" mein Tipp.`, recommendedId: ps[0].id };
-  }
-  if (/(luxus|premium|hochwertig|beste|teuer)/.test(msg)) {
-    return { text: `Die Premium-Variante „${ps[2].name}" bietet das umfassendste Erlebnis. Wenn das Budget keine Rolle spielt, ist sie die klare Wahl.`, recommendedId: ps[2].id };
-  }
-  return { text: `Auf Basis dessen, was die meisten Menschen in Ihrer Situation wählen, würde ich „${recommended.name}" empfehlen. Es bietet ein ausgewogenes Verhältnis zwischen Preis und Qualität — nicht die günstigste Option, aber auch nicht überdimensioniert.`, recommendedId: recommended.id };
-}
+    const data = await res.json();
 
+    removeTyping();
+    appendAiMessage('bot', data.reply);
+
+  } catch (err) {
+    removeTyping();
+    appendAiMessage('bot', "Fehler bei der KI-Verbindung.");
+    console.error(err);
+  }
+}
 // ============== FINAL SURVEY ==============
 const SURVEY_QUESTIONS = [
   { id: 'ai_helpful', type: 'scale', title: 'Wie hilfreich war der KI-Berater bei Ihrer Entscheidung?', sub: '1 = gar nicht hilfreich · 5 = sehr hilfreich' },
