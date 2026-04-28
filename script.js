@@ -83,6 +83,8 @@ const SCENARIOS = [
 let currentScenarioIndex = 0;
 let scenarioStartTime = 0;
 let aiMessageCount = 0;
+let aiHistory = []; // [{ role: 'user'|'assistant', content: string }, …] — Konversations-Historie für die API
+let aiPending = false; // True während ein Request läuft, verhindert Mehrfach-Submit
 const allChoices = [];
 const allDemographics = {};
 
@@ -924,6 +926,9 @@ const AI_SUGGESTIONS = [
 
 function resetAiBot(scenario) {
   aiMessagesEl.innerHTML = '';
+  aiHistory = []; // Konversation pro Szenario zurücksetzen
+  aiPending = false;
+  aiInput.disabled = false;
   appendAiMessage('bot', `Hallo! Ich helfe Ihnen bei der Auswahl in der Aufgabe „${scenario.title}". Stellen Sie mir gerne eine Frage — z. B. welches Produkt zu Ihnen passen würde.`);
   aiSuggestions.innerHTML = '';
   AI_SUGGESTIONS.forEach(s => {
@@ -954,41 +959,146 @@ function removeTyping() { document.getElementById('aiTyping')?.remove(); }
 
 aiForm.addEventListener('submit', e => { e.preventDefault(); sendAiMessage(); });
 
+// Reduziert das Szenario-Objekt auf das, was die KI wirklich braucht.
+// Vermeidet, dass FAQ, Bilder, Zertifikate etc. unnötig in jedes Request gehen.
+function buildScenarioContext(scenario) {
+  if (!scenario) return null;
+  return {
+    id: scenario.id,
+    title: scenario.title,
+    text: scenario.text,
+    products: scenario.products.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      tagline: p.tagline,
+      desc: p.desc,
+    })),
+  };
+}
+
+// Identifiziert das empfohlene Produkt fürs Tracking.
+// Bevorzugt: serverHint (= recommendedProduct vom RECOMMENDATION-Marker der KI).
+// Fallback: Textsuche im Antworttext.
+function identifyRecommendedProduct(replyText, scenario, serverHint) {
+  if (!scenario) return '';
+  if (serverHint) {
+    const hintLower = serverHint.toLowerCase().trim();
+    // Exakte Namensübereinstimmung
+    const exact = scenario.products.find(p => p.name.toLowerCase() === hintLower);
+    if (exact) return exact.id;
+    // Fuzzy: serverHint enthält Produktnamen oder umgekehrt
+    const fuzzy = scenario.products.find(p => {
+      const n = p.name.toLowerCase();
+      return hintLower.includes(n) || n.includes(hintLower);
+    });
+    if (fuzzy) return fuzzy.id;
+  }
+  if (replyText) {
+    const lower = replyText.toLowerCase();
+    for (const p of scenario.products) {
+      if (lower.includes(p.name.toLowerCase())) return p.id;
+    }
+  }
+  return '';
+}
+
 async function sendAiMessage() {
+  if (aiPending) return;                       // Mehrfach-Submit verhindern
   const txt = aiInput.value.trim();
   if (!txt) return;
 
+  aiPending = true;
+  aiInput.disabled = true;
   aiInput.value = '';
   appendAiMessage('user', txt);
   aiMessageCount++;
 
   const sc = getCurrentScenario();
 
+  if (window.VerdTracker) window.VerdTracker.track('ai_message_sent', {
+    scenario_id: sc?.id || '',
+    message: txt,
+    message_index: aiMessageCount,
+  });
+
   showTyping();
 
+  // Historie: User-Message anhängen — Antwort kommt erst im finally
+  aiHistory.push({ role: 'user', content: txt });
+
+  let reply = '';
+  let serverRecommendation = null;
+  let usedFallback = false;
+
   try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: txt,
-        scenario: sc
-      })
+        scenarioContext: buildScenarioContext(sc),
+        // Historie OHNE die gerade gepushte User-Message (die kommt server-side
+        // als separate user-Nachricht oben drauf)
+        history: aiHistory.slice(0, -1),
+      }),
     });
 
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-
-    removeTyping();
-    appendAiMessage('bot', data.reply);
-
+    reply = (data && typeof data.reply === 'string') ? data.reply.trim() : '';
+    serverRecommendation = (data && typeof data.recommendedProduct === 'string')
+      ? data.recommendedProduct
+      : null;
+    if (!reply) throw new Error('Leere Antwort');
   } catch (err) {
-    removeTyping();
-    appendAiMessage('bot', "Fehler bei der KI-Verbindung.");
-    console.error(err);
+    console.error('[AI] API-Fehler, nutze lokalen Fallback:', err);
+    // Studie darf nicht blockieren wenn die API ausfällt — Stub-Antwort.
+    const fb = generateAiReply(sc, txt);
+    reply = fb.text;
+    usedFallback = true;
   }
+
+  // Antwort in Historie speichern, damit die KI im nächsten Turn Kontext hat
+  aiHistory.push({ role: 'assistant', content: reply });
+
+  removeTyping();
+  appendAiMessage('bot', reply);
+
+  if (window.VerdTracker) window.VerdTracker.track('ai_reply_shown', {
+    scenario_id: sc?.id || '',
+    reply,
+    recommended_product_id: identifyRecommendedProduct(reply, sc, serverRecommendation),
+    server_recommendation_raw: serverRecommendation || '',
+    used_fallback: usedFallback ? 'ja' : 'nein',
+    message_index: aiMessageCount,
+  });
+
+  aiPending = false;
+  aiInput.disabled = false;
+  aiInput.focus();
 }
+
+// AI Stub — wird später durch echten API-Call ersetzt (window.VERDEA_AI_API_KEY)
+function generateAiReply(scenario, userMessage) {
+  const msg = userMessage.toLowerCase();
+  const ps = scenario.products;
+  const recommended = ps[1]; // mittlere Option (Compromise-Effekt)
+  if (/(unterschied|verschieden|vergleich)/.test(msg)) {
+    return { text: `Die drei Optionen unterscheiden sich vor allem im Preis und im Umfang: „${ps[0].name}" ist die günstigste Variante (${fmt(ps[0].price)}), „${ps[1].name}" bietet ein gutes Verhältnis aus Qualität und Preis (${fmt(ps[1].price)}), und „${ps[2].name}" ist die Premium-Option (${fmt(ps[2].price)}).`, recommendedId: '' };
+  }
+  if (/(nachhaltig|umwelt|öko|bio|klimaneutral)/.test(msg)) {
+    return { text: `Wenn Ihnen Nachhaltigkeit besonders wichtig ist, wäre „${ps[2].name}" am ehesten passend. Wenn Sie aber einen guten Kompromiss möchten, ist „${ps[1].name}" eine sinnvolle Wahl.`, recommendedId: ps[2].id };
+  }
+  if (/(billig|günstig|sparen|preis|niedrig)/.test(msg)) {
+    return { text: `Die günstigste Option ist „${ps[0].name}" für ${fmt(ps[0].price)}. Für etwas mehr Qualität bei moderatem Aufpreis wäre „${ps[1].name}" mein Tipp.`, recommendedId: ps[0].id };
+  }
+  if (/(luxus|premium|hochwertig|beste|teuer)/.test(msg)) {
+    return { text: `Die Premium-Variante „${ps[2].name}" bietet das umfassendste Erlebnis. Wenn das Budget keine Rolle spielt, ist sie die klare Wahl.`, recommendedId: ps[2].id };
+  }
+  return { text: `Auf Basis dessen, was die meisten Menschen in Ihrer Situation wählen, würde ich „${recommended.name}" empfehlen. Es bietet ein ausgewogenes Verhältnis zwischen Preis und Qualität — nicht die günstigste Option, aber auch nicht überdimensioniert.`, recommendedId: recommended.id };
+}
+
 // ============== FINAL SURVEY ==============
 const SURVEY_QUESTIONS = [
   { id: 'ai_helpful', type: 'scale', title: 'Wie hilfreich war der KI-Berater bei Ihrer Entscheidung?', sub: '1 = gar nicht hilfreich · 5 = sehr hilfreich' },
