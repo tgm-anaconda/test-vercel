@@ -380,14 +380,16 @@
       if (!SHEETS_URL || SHEETS_URL === 'DEINE_GOOGLE_APPS_SCRIPT_URL') return;
       const payload = this._buildPayload(isFinal);
       // navigator.sendBeacon für beforeunload, sonst fetch
+      // text/plain vermeidet CORS-Preflight — GAS parst den Body trotzdem als JSON
+      const body = JSON.stringify(payload);
       if (typeof navigator.sendBeacon === 'function' && !isFinal) {
-        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        const blob = new Blob([body], { type: 'text/plain' });
         navigator.sendBeacon(SHEETS_URL, blob);
       } else {
         fetch(SHEETS_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'text/plain' },
+          body,
         }).catch(err => console.warn('[VerdTracker] Sheets-Send fehlgeschlagen:', err));
       }
     },
@@ -2184,17 +2186,27 @@ aiForm.addEventListener('submit', e => { e.preventDefault(); sendAiMessage(); })
 // Vermeidet, dass FAQ, Bilder, Zertifikate etc. unnötig in jedes Request gehen.
 function buildScenarioContext(scenario) {
   if (!scenario) return null;
+  const mainProducts = scenario.products.filter(p => p.role !== 'cross-sell');
+  const crossProduct = scenario.products.find(p => p.role === 'cross-sell');
   return {
     id: scenario.id,
     title: scenario.title,
     text: scenario.text,
-    products: scenario.products.map(p => ({
+    userMessageCount: aiHistory.filter(m => m.role === 'user').length,
+    products: mainProducts.map(p => ({
       id: p.id,
       name: p.name,
       price: p.price,
       tagline: p.tagline,
       desc: p.desc,
     })),
+    crossSellProduct: crossProduct ? {
+      id: crossProduct.id,
+      name: crossProduct.name,
+      price: crossProduct.price,
+      tagline: crossProduct.tagline,
+      desc: crossProduct.desc,
+    } : null,
   };
 }
 
@@ -2298,15 +2310,6 @@ async function sendAiMessage() {
 
   removeTyping();
   appendAiMessage('bot', reply);
-  // Variante C: auch in eingebettetem Panel anzeigen
-  const embedMessages = document.getElementById('aiMessagesEmbed');
-  if (embedMessages) {
-    const el = document.createElement('div');
-    el.className = 'ai-msg ai-msg--bot';
-    el.textContent = reply;
-    embedMessages.appendChild(el);
-    embedMessages.scrollTop = embedMessages.scrollHeight;
-  }
 
   // Dynamische Suggestions aktualisieren — wenn die KI welche zurückgegeben hat
   if (serverSuggestions && serverSuggestions.length > 0) {
