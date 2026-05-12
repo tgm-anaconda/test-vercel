@@ -200,14 +200,19 @@ Beispiele für gute Folgefragen je Phase:
 - Nach Rückfrage: ["Ich habe wenig Zeit — was empfiehlst du?", "Ist das vegan?", "Wie wirkt es?"]
 - Nach Empfehlung: ["Welche Mengen-Variante lohnt sich?", "Gibt es Alternativen?", "Wann sehe ich Effekte?"]
 
-AB DER 3. NUTZERNACHRICHT — SELL-ENTSCHEIDUNG:
-Analysiere den bisherigen Gesprächsverlauf:
-- Wenn Fragen produktspezifisch sind (Inhaltsstoffe, Dosierung, Preis eines Produkts, Vergleich ähnlicher Produkte): Empfehle im passenden Moment die größere Mengen-Variante (Up-Sell).
-- Wenn Fragen kategorisch sind (allgemeines Interesse an der Produktkategorie, "was sind Vitamine", Vergleich verschiedener Kategorien): Erwähne als Ergänzung das Cross-Sell-Produkt.
-Markiere deine Entscheidung IMMER (auch wenn du noch nicht empfiehlst):
-SELL_TYPE: {"type": "up"} oder SELL_TYPE: {"type": "cross"}
+SELL-LOGIK (greift ab Nachricht 3, nie früher):
+Der Wert "userMessageCount" im Kontext gibt an, wie viele Nachrichten der Nutzer bisher geschrieben hat.
 
-Vor der 3. Nutzernachricht: KEIN SELL_TYPE-Marker.
+Wenn userMessageCount >= 3:
+A) PRODUKTSPEZIFISCHES INTERESSE (Fragen zu Inhaltsstoffen, Dosierung, Vergleich ähnlicher Produkte, Preis eines konkreten Produkts):
+   → Betreibe Up-Sell: Erwähne aktiv, dass es die empfohlene Variante auch in einer größeren Packung/höherem Tier gibt oder dass ein Upgrade noch besser zu den Bedürfnissen passt. Benenne das teurere Produkt explizit mit Namen.
+   → Setze am Ende: SELL_TYPE: {"type": "up"}
+
+B) KATEGORISCHES INTERESSE (allgemeines Interesse, Vergleich verschiedener Kategorien, "was empfiehlst du grundsätzlich"):
+   → Betreibe Cross-Sell: Erwähne das Ergänzungsprodukt (aus CROSS-SELL-PRODUKT unten) als sinnvolle Ergänzung in einem natürlichen Satz.
+   → Setze am Ende: SELL_TYPE: {"type": "cross"}
+
+Wenn userMessageCount < 3: KEIN SELL_TYPE-Marker setzen.
 
 Alle Marker werden technisch entfernt — der User sieht nur deine Konversations-Antwort.`;
 
@@ -224,12 +229,17 @@ Alle Marker werden technisch entfernt — der User sieht nur deine Konversations
     })
     .join('\n');
 
+  const crossLine = ctx.crossSellProduct
+    ? `\nCROSS-SELL-PRODUKT (nur erwähnen, nicht als Hauptempfehlung setzen):\n- "${ctx.crossSellProduct.name}" (${typeof ctx.crossSellProduct.price === 'number' ? ctx.crossSellProduct.price.toFixed(2) + ' €' : '—'}) — ${ctx.crossSellProduct.tagline || ''} ${ctx.crossSellProduct.desc || ''}`
+    : '';
+
   return `${base}
 
 AKTUELLE AUFGABE
 ${ctx.title || '(unbenannt)'}
 ${ctx.text || ''}
+Bisherige Nutzer-Nachrichten: ${ctx.userMessageCount || 0}
 
-VERFÜGBARE PRODUKTE (genau aus diesen drei darf empfohlen werden):
-${productLines}`;
+VERFÜGBARE HAUPTPRODUKTE (Empfehlung nur aus dieser Liste):
+${productLines}${crossLine}`;
 }
