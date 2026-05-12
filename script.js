@@ -5,8 +5,8 @@
 // ============================================================================
 
 (function () {
-  // Google Apps Script Web-App URL — nach Deployment hier eintragen:
-  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyoWirqY_79VZ9V3kFnE-68qV83CEHHWbDSO0DlMhopb_dmKb0FkIawoPzU2v_fdRLW/exec';
+  // Vercel-Proxy — leitet Tracking-Daten server-seitig an Google Sheets weiter
+  const SHEETS_URL = '/api/track';
 
   // Hilfsfunktion: UUID v4
   function uuidv4() {
@@ -377,18 +377,17 @@
     },
 
     _sendToSheets(isFinal) {
-      if (!SHEETS_URL || SHEETS_URL === 'DEINE_GOOGLE_APPS_SCRIPT_URL') return;
+      if (!SHEETS_URL) return;
       const payload = this._buildPayload(isFinal);
-      // navigator.sendBeacon für beforeunload, sonst fetch
-      // text/plain vermeidet CORS-Preflight — GAS parst den Body trotzdem als JSON
       const body = JSON.stringify(payload);
-      if (typeof navigator.sendBeacon === 'function' && !isFinal) {
-        const blob = new Blob([body], { type: 'text/plain' });
+      // sendBeacon für beforeunload (Browser-Tab schließen), sonst fetch
+      if (!isFinal && typeof navigator.sendBeacon === 'function') {
+        const blob = new Blob([body], { type: 'application/json' });
         navigator.sendBeacon(SHEETS_URL, blob);
       } else {
         fetch(SHEETS_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
+          headers: { 'Content-Type': 'application/json' },
           body,
         }).catch(err => console.warn('[VerdTracker] Sheets-Send fehlgeschlagen:', err));
       }
