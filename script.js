@@ -1,85 +1,1095 @@
-// ===== STUDY SCENARIOS =====
-// Innerhalb eines Szenarios sind die 3 Produkte INHALTLICH identisch.
-// Sie unterscheiden sich nur in Beschreibung, Marketing und Preis.
-// So lässt sich die Kaufwahl auf KI-Empfehlung statt auf Produktunterschiede zurückführen.
-const SCENARIOS = [
-  {
-    id: 'supplements',
-    label: 'Nahrungsergänzung',
-    image: 'img/supplements.jpg',
-    title: 'Vitamin D3 für Ihre Energie',
-    text: 'Stellen Sie sich vor, Sie möchten Ihrem Körper im Winter mehr Vitamin D zuführen, um Ihre Energie und Ihr Immunsystem zu unterstützen. Wählen Sie eines der drei Vitamin-D3-Produkte aus, das Sie tatsächlich kaufen würden. Der KI-Berater unten rechts kann Ihnen helfen.',
-    bannerText: 'Aufgabe: Wählen Sie ein Vitamin-D3-Produkt aus, das Sie kaufen würden.',
-    products: [
-      { id: 'sup-budget', name: 'Vitamin D3 Basic', brand: 'VERDEA', tagline: 'Solide Grundversorgung', category: 'vitamine', price: 9.90, oldPrice: null, badge: null, emoji: '☀️', rating: 4.4, reviews: 89, unit: '90 Kapseln · 3 Monate', certs: ['🔬 GMP', '🇩🇪 DE'],
-        desc: 'Vitamin D3 (Cholecalciferol), 1.000 IU pro Kapsel. Hergestellt in Deutschland nach GMP-Standard. Für eine solide tägliche Grundversorgung.',
-        ingredients: [{ name: 'Vitamin D3 (Cholecalciferol)', sub: '1.000 IU', amount: '25 µg', origin: '🇩🇪 Deutschland', pct: 100 }, { name: 'HPMC-Kapsel', sub: 'Pflanzlich', amount: '—', origin: '🌱', pct: 0 }],
-        options: ['1 Packung (9,90 €)'],
-        faq: [{ q: 'Wie hoch ist die Dosierung?', a: '1.000 IU pro Kapsel — empfohlen 1× täglich.' }, { q: 'Ist das Produkt vegan?', a: 'Die Kapsel ist pflanzlich. Das Vitamin D3 stammt aus Lanolin (Schafwolle), also nicht vegan.' }] },
-      { id: 'sup-mid', name: 'Pure D3 Premium', brand: 'VERDEA', tagline: 'Bio-Qualität & vegan', category: 'vitamine', price: 22.90, oldPrice: null, badge: 'bestseller', emoji: '☀️', rating: 4.7, reviews: 287, unit: '90 Kapseln · 3 Monate', certs: ['🌱 Bio', '🐇 Vegan', '🔬 Laborgeprüft'],
-        desc: 'Vitamin D3 (1.000 IU) aus pflanzlichen Flechten gewonnen. Vegan, laborgeprüft, in MCT-Öl-Träger für bessere Aufnahme. 90 Kapseln aus Deutschland.',
-        ingredients: [{ name: 'Vitamin D3 (aus Flechten)', sub: '1.000 IU · vegan', amount: '25 µg', origin: '🇩🇪 Deutschland', pct: 95 }, { name: 'MCT-Öl', sub: 'Aus Bio-Kokosöl', amount: 'Träger', origin: '🇵🇭 Philippinen', pct: 0 }, { name: 'HPMC-Kapsel', sub: 'Pflanzlich', amount: '—', origin: '🌱', pct: 0 }],
-        options: ['1 Packung (22,90 €)', '3 Packungen (59,90 €)'],
-        faq: [{ q: 'Warum aus Flechten?', a: 'Flechten sind die einzige pflanzliche Quelle für natürliches Vitamin D3 — somit ist das Produkt vollständig vegan.' }, { q: 'Was bringt der MCT-Öl-Träger?', a: 'Vitamin D ist fettlöslich — MCT-Öl verbessert die Aufnahme im Körper.' }] },
-      { id: 'sup-premium', name: 'Sunlight Bio D3 Luxury', brand: 'VERDEA', tagline: 'Klimaneutrale Premium-Qualität', category: 'vitamine', price: 39.90, oldPrice: null, badge: 'new', emoji: '☀️', rating: 4.9, reviews: 142, unit: '90 Kapseln · 3 Monate', certs: ['🌱 Bio-DE-003', '🐇 Vegan', '🌍 CO₂ neutral'],
-        desc: 'Premium-Vitamin-D3 (1.000 IU) aus zertifiziertem Bio-Anbau. Klimaneutrale Produktion, plastikfreie Glasflasche, Chargen-Zertifikate online einsehbar. Höchste Bioverfügbarkeit durch Liposom-Technologie.',
-        ingredients: [{ name: 'Vitamin D3 (Bio-Flechten-Extrakt)', sub: '1.000 IU · liposomal', amount: '25 µg', origin: '🇮🇸 Island', pct: 95 }, { name: 'Bio-MCT-Öl', sub: 'Bio-Kokos, fair trade', amount: 'Träger', origin: '🇵🇭 Philippinen', pct: 0 }, { name: 'HPMC-Kapsel (Bio)', sub: 'Pflanzlich, kompostierbar', amount: '—', origin: '🌱', pct: 0 }],
-        options: ['1 Glasflasche (39,90 €)', '3 Glasflaschen (109,90 €)'],
-        faq: [{ q: 'Was ist liposomal?', a: 'Liposomale Verkapselung verbessert die Bioverfügbarkeit um bis zu 300% — der Wirkstoff erreicht effektiver die Zellen.' }, { q: 'Was bedeutet klimaneutral?', a: 'Der gesamte CO₂-Fußabdruck (Anbau, Produktion, Versand) wird durch zertifizierte Klimaschutzprojekte vollständig kompensiert.' }] },
-    ]
-  },
-  {
-    id: 'travel',
-    label: 'Erlebnisurlaub',
-    image: 'img/travel.jpg',
-    title: 'Wochenendtrip in die Alpen',
-    text: 'Stellen Sie sich vor, Sie planen ein verlängertes Wochenende (3 Tage / 2 Nächte) zum Wandern in den österreichischen Alpen. Drei Anbieter haben gleichwertige Pakete: Unterkunft, Verpflegung und ein geführter Tagesausflug. Welches Angebot würden Sie buchen?',
-    bannerText: 'Aufgabe: Buchen Sie ein 3-tägiges Wander-Wochenende in den Alpen.',
-    products: [
-      { id: 'trip-budget', name: 'Bergwochenende Standard', brand: 'AlpenReisen', tagline: 'Pension · Halbpension', category: 'vitamine', price: 199, oldPrice: null, badge: null, emoji: '🏔️', rating: 4.3, reviews: 67, unit: 'pro Person · DZ', certs: ['🏠 Pension', '🍽 HP'],
-        desc: '3 Tage / 2 Nächte in einer familiengeführten Pension in Tirol. Halbpension (Frühstück & Abendessen), eine geführte Wanderung. Bettwäsche und Endreinigung inklusive.',
-        ingredients: [{ name: 'Übernachtung', sub: 'Familienpension Tirol', amount: '2 Nächte', origin: '🇦🇹 Österreich', pct: 60 }, { name: 'Verpflegung', sub: 'Halbpension', amount: '2× FS, 2× AB', origin: 'lokal', pct: 50 }, { name: 'Wanderung', sub: '1× geführt', amount: '4 h', origin: '🥾', pct: 30 }],
-        options: ['1 Person (199 €)', '2 Personen (379 €)'],
-        faq: [{ q: 'Wie kommt man hin?', a: 'Anreise per Bahn oder Auto. Vom nächsten Bahnhof ist es ein 15-min Taxiweg.' }, { q: 'Sind Wanderausrüstung enthalten?', a: 'Nein, bitte feste Wanderschuhe und wetterfeste Kleidung mitbringen.' }] },
-      { id: 'trip-mid', name: 'Alpenretreat Premium', brand: 'AlpenReisen', tagline: 'Boutique-Hotel · Vollpension', category: 'vitamine', price: 389, oldPrice: null, badge: 'bestseller', emoji: '🏔️', rating: 4.8, reviews: 198, unit: 'pro Person · DZ', certs: ['🏨 4★', '🍽 VP', '🧖 Spa'],
-        desc: '3 Tage / 2 Nächte in einem Boutique-Berghotel mit Sauna. Vollpension mit regionalen Bio-Produkten, eine geführte Wanderung mit zertifiziertem Bergführer. Wellness-Bereich inklusive.',
-        ingredients: [{ name: 'Übernachtung', sub: '4★-Boutique-Hotel', amount: '2 Nächte', origin: '🇦🇹 Österreich', pct: 80 }, { name: 'Verpflegung', sub: 'Vollpension Bio', amount: '3 Mahlzeiten/Tag', origin: 'regional', pct: 75 }, { name: 'Wanderung', sub: 'Mit zertif. Bergführer', amount: '6 h', origin: '🥾', pct: 60 }, { name: 'Wellness', sub: 'Sauna & Pool', amount: 'unbegrenzt', origin: '🧖', pct: 40 }],
-        options: ['1 Person (389 €)', '2 Personen (729 €)'],
-        faq: [{ q: 'Welche Wandertour ist enthalten?', a: 'Eine 6-stündige geführte Tour mit erfahrenem Bergführer. Die Tour wird je nach Können der Gruppe angepasst.' }, { q: 'Was ist Bio-Vollpension?', a: 'Frühstück, Mittag- und Abendessen aus regionalen Bio-Produkten von Tiroler Bauernhöfen.' }] },
-      { id: 'trip-premium', name: 'Mountain Sanctuary Luxury', brand: 'AlpenReisen', tagline: '5★-Lodge · Privat-Guide', category: 'vitamine', price: 749, oldPrice: null, badge: 'new', emoji: '🏔️', rating: 4.9, reviews: 84, unit: 'pro Person · DZ', certs: ['⭐ 5★', '🍽 Gourmet', '🚐 Transfer'],
-        desc: '3 Tage / 2 Nächte in einer prämierten Mountain Lodge. Vollpension mit Gourmet-Küche, eine private Tagestour mit individuellem Guide. Spa, Welcome-Drink und Bahnhof-Transfer inklusive.',
-        ingredients: [{ name: 'Übernachtung', sub: '5★-Mountain Lodge', amount: '2 Nächte', origin: '🇦🇹 Österreich', pct: 100 }, { name: 'Verpflegung', sub: 'Gourmet-Vollpension', amount: '3 Mahlzeiten/Tag', origin: 'Sterne-Küche', pct: 95 }, { name: 'Privat-Guide', sub: 'Individueller Bergführer', amount: '8 h', origin: '🥾', pct: 90 }, { name: 'Bahnhof-Transfer', sub: 'Privat-Limousine', amount: 'Hin & Rück', origin: '🚐', pct: 70 }],
-        options: ['1 Person (749 €)', '2 Personen (1.399 €)'],
-        faq: [{ q: 'Was ist im Privat-Guide enthalten?', a: 'Ein individueller, deutsch- und englischsprachiger Bergführer, der Ihre Tour ganz auf Ihre Wünsche zuschneidet.' }, { q: 'Was beinhaltet die Gourmet-Küche?', a: 'Sterne-prämierter Küchenchef. Tasting-Menü mit 7 Gängen am Abend, regionales Frühstück, leichtes Mittag­essen.' }] },
-    ]
-  },
-  {
-    id: 'donation',
-    label: 'Spendenprojekt',
-    image: 'img/donation.jpg',
-    title: 'Spende für Trinkwasser-Projekte',
-    text: 'Stellen Sie sich vor, Sie möchten an ein Hilfsprojekt spenden, das Menschen in Subsahara-Afrika Zugang zu sauberem Trinkwasser verschafft. Drei Organisationen bieten ähnliche Programme an. Bitte wählen Sie eine Spende aus.',
-    bannerText: 'Aufgabe: Wählen Sie eine Trinkwasser-Spende, die Sie tätigen würden.',
-    products: [
-      { id: 'don-low', name: 'AquaHilfe e.V.', brand: 'Spendenprojekt', tagline: 'Kleine Brunnen · regional', category: 'vitamine', price: 25, oldPrice: null, badge: null, emoji: '💧', rating: 4.5, reviews: 156, unit: 'einmalige Spende', certs: ['📜 DZI', '✅ gemeinnützig'],
-        desc: 'Mit Ihrer Spende von 25 € unterstützen Sie den Bau und die Wartung kleiner Handpumpen-Brunnen in einer ländlichen Gemeinde. Direkter Verwendungs­nachweis per E-Mail.',
-        ingredients: [{ name: 'Brunnenbau', sub: 'Handpumpe, regional', amount: 'anteilig', origin: '🌍 Mali', pct: 70 }, { name: 'Wartung', sub: '1 Jahr', amount: 'inklusive', origin: 'lokal', pct: 30 }, { name: 'Verwaltungskosten', sub: 'transparent', amount: '8%', origin: '', pct: 8 }],
-        options: ['25 € einmalig', '25 € monatlich'],
-        faq: [{ q: 'Ist die Spende steuerlich absetzbar?', a: 'Ja, Sie erhalten automatisch eine Spendenquittung per E-Mail.' }, { q: 'Wie hoch sind die Verwaltungskosten?', a: '8% — der Rest fließt direkt in das Projekt.' }] },
-      { id: 'don-mid', name: 'Trinkwasser Initiative', brand: 'Spendenprojekt', tagline: 'Tiefbrunnen + Schulung', category: 'vitamine', price: 75, oldPrice: null, badge: 'bestseller', emoji: '💧', rating: 4.7, reviews: 412, unit: 'einmalige Spende', certs: ['📜 DZI', '⭐ Phineo', '✅ gemeinnützig'],
-        desc: 'Ihre Spende von 75 € finanziert anteilig einen Solarpumpen-Tiefbrunnen plus die Schulung lokaler Wartungsteams. Jahresbericht und Foto-Update inklusive.',
-        ingredients: [{ name: 'Tiefbrunnen', sub: 'Solarpumpe, 50 m', amount: 'anteilig', origin: '🌍 Kenia', pct: 80 }, { name: 'Schulung', sub: 'Lokale Wartungs­teams', amount: 'inklusive', origin: 'lokal', pct: 70 }, { name: 'Reporting', sub: 'Jahres­bericht & Fotos', amount: '1×/Jahr', origin: '📸', pct: 50 }, { name: 'Verwaltungskosten', sub: 'transparent', amount: '11%', origin: '', pct: 11 }],
-        options: ['75 € einmalig', '25 € monatlich'],
-        faq: [{ q: 'Was ist ein Solarpumpen-Tiefbrunnen?', a: 'Ein 30-50 m tiefer Brunnen mit solar­betriebener Pumpe — funktioniert auch bei niedrigem Grundwasser­spiegel.' }, { q: 'Bekomme ich Updates?', a: 'Ja, Sie erhalten einen Jahres­bericht mit Fotos und Fortschritts­bericht des Projekts.' }] },
-      { id: 'don-high', name: 'Comprehensive Water Program', brand: 'Spendenprojekt', tagline: 'Komplettes Versorgungsnetz', category: 'vitamine', price: 200, oldPrice: null, badge: 'new', emoji: '💧', rating: 4.9, reviews: 87, unit: 'einmalige Spende', certs: ['📜 DZI', '⭐ Phineo', '🔍 transparent.de'],
-        desc: 'Mit 200 € werden Sie Pate eines kompletten Wasserprojekts für ein Dorf: Brunnen, Leitungen, Wartung, Hygieneschulung. Sie erhalten eine Patenschaftsurkunde und persönliche Updates.',
-        ingredients: [{ name: 'Komplettes Wassernetz', sub: 'Brunnen + Leitungen', amount: '1 Dorf', origin: '🌍 Tansania', pct: 95 }, { name: 'Hygieneschulung', sub: 'Workshops für Familien', amount: '6 Monate', origin: 'lokal', pct: 85 }, { name: 'Patenschaft', sub: 'Persönliche Updates', amount: '4×/Jahr', origin: '📨', pct: 70 }, { name: 'Wartung', sub: '5 Jahre Garantie', amount: 'inklusive', origin: '🔧', pct: 60 }, { name: 'Verwaltungskosten', sub: 'transparent', amount: '14%', origin: '', pct: 14 }],
-        options: ['200 € einmalig', '50 € monatlich'],
-        faq: [{ q: 'Was bedeutet Patenschaft?', a: 'Sie werden persönlich benannte/r Pate für ein bestimmtes Dorfprojekt — mit Patenurkunde, Fotos der Familien und vierteljährlichen Updates.' }, { q: 'Warum 14% Verwaltungskosten?', a: 'Die höhere Quote deckt das umfassende Reporting, persönliche Patenschaft und langfristige Wartung. Höchste Transparenz­standards.' }] },
-    ]
+// ============================================================================
+// VERDEA STUDIE — VerdTracker (Vollständiges Tracking-System)
+// ============================================================================
+// Muss vor allem anderen stehen — wird in init() mit Variante initialisiert.
+// ============================================================================
+
+(function () {
+  // Google Apps Script Web-App URL — nach Deployment hier eintragen:
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyoWirqY_79VZ9V3kFnE-68qV83CEHHWbDSO0DlMhopb_dmKb0FkIawoPzU2v_fdRLW/exec';
+
+  // Hilfsfunktion: UUID v4
+  function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
   }
+
+  // Leeres Szenario-Datenobjekt
+  function emptyScenario(idx) {
+    return {
+      scenario_id: '',
+      product_chosen_id: '',
+      product_chosen_name: '',
+      option_chosen: '',
+      price_paid: '',
+      task_completed: false,
+      time_task_seconds: '',
+      bot_used: false,
+      bot_msg_count_user: 0,
+      bot_msg_count_ai: 0,
+      bot_msg_avg_len_user: 0,
+      bot_msg_total_len_user: 0,
+      bot_msg_avg_len_ai: 0,
+      bot_msg_total_len_ai: 0,
+      bot_chat_duration_seconds: '',
+      bot_first_or_pdp_first: 'keins',
+      pdp_ids_viewed: '',
+      pdp_total_time_seconds: 0,
+      pdp_tab_ingredients_clicked: false,
+      pdp_tab_usage_clicked: false,
+      pdp_tab_faq_clicked: false,
+      suggestions_used_count: 0,
+      upsell_recommended: false,
+      upsell_purchased: false,
+      crosssell_recommended: false,
+      crosssell_purchased: false,
+      ai_recommended_product_id: '',
+      ai_recommendation_followed: false,
+      bot_open_source_c: '',
+      abbruch_at: '',
+      // Interne Hilfsfelder (nicht direkt an Sheets)
+      _startTime: null,
+      _botOpenTime: null,
+      _botFirstMsgTime: null,
+      _botLastMsgTime: null,
+      _pdpOpenTimes: {}, // productId -> openTimestamp
+      _pdpIdsArray: [],
+      _userMsgLengths: [],
+      _aiMsgLengths: [],
+      _chatLog: [], // [{role, text}]
+      _pdpFirstTime: null,
+      _botFirstTime: null,
+    };
+  }
+
+  const VT = {
+    _sessionId: null,
+    _timestampStart: null,
+    _studyStartMs: null,
+    _completedAt: null,
+    _preStudy: {},
+    _variant: null,
+    _device: null,
+    _scenarios: [emptyScenario(0), emptyScenario(1), emptyScenario(2)],
+    _currentScenarioIdx: -1,
+    _demographics: {},
+    _surveyAnswers: {},
+    _allChatLog: [], // Globaler Log über alle Szenarien
+    _complete: false,
+
+    init(variant) {
+      this._sessionId = uuidv4();
+      this._timestampStart = new Date().toISOString();
+      this._variant = variant;
+      this._device = window.innerWidth < 768 ? 'mobile' : 'desktop';
+
+      // Abbruch-Tracking: beim Schließen des Tabs Teilabbruch senden
+      window.addEventListener('beforeunload', () => {
+        if (!this._complete) {
+          const sc = this._currentScenarioIdx >= 0 ? this._scenarios[this._currentScenarioIdx] : null;
+          if (sc && !sc.abbruch_at) {
+            sc.abbruch_at = `szenario_${this._currentScenarioIdx + 1}_nicht_abgeschlossen`;
+          }
+          this.flush('beforeunload');
+        }
+      });
+    },
+
+    setDemographics(data) {
+      this._demographics = {
+        demo_age: data.age || '',
+        demo_gender: data.gender || '',
+        demo_income: data.income || '',
+        demo_education: data.education || '',
+        demo_ai_usage: data.ai_usage || '',
+      };
+    },
+
+    startScenario(idx, id) {
+      this._currentScenarioIdx = idx;
+      const sc = this._scenarios[idx];
+      sc.scenario_id = id;
+      sc._startTime = Date.now();
+    },
+
+    trackBotOpen() {
+      const sc = this._currentScenario();
+      if (!sc) return;
+      sc._botOpenTime = Date.now();
+      if (!sc._botFirstTime) sc._botFirstTime = Date.now();
+      // bot_first_or_pdp_first Logik
+      if (sc._pdpFirstTime && !sc._botFirstTime_set) {
+        sc.bot_first_or_pdp_first = 'pdp_zuerst';
+        sc._botFirstTime_set = true;
+      } else if (!sc._pdpFirstTime && !sc._botFirstTime_set) {
+        sc.bot_first_or_pdp_first = 'bot_zuerst';
+        sc._botFirstTime_set = true;
+      }
+    },
+
+    trackBotClose() {
+      // Kein besonderer State notwendig — duration wird bei complete() berechnet
+    },
+
+    trackUserMessage(text, scenarioIdx) {
+      const idx = scenarioIdx !== undefined ? scenarioIdx : this._currentScenarioIdx;
+      const sc = this._scenarios[idx];
+      if (!sc) return;
+      sc.bot_used = true;
+      sc.bot_msg_count_user++;
+      const len = typeof text === 'string' ? text.length : 0;
+      sc._userMsgLengths.push(len);
+      sc.bot_msg_total_len_user = sc._userMsgLengths.reduce((a, b) => a + b, 0);
+      sc.bot_msg_avg_len_user = Math.round(sc.bot_msg_total_len_user / sc._userMsgLengths.length);
+      const now = Date.now();
+      if (!sc._botFirstMsgTime) sc._botFirstMsgTime = now;
+      sc._botLastMsgTime = now;
+      sc._chatLog.push({ role: 'user', text: text || '' });
+      this._allChatLog.push({ scenario: idx + 1, role: 'user', text: text || '' });
+    },
+
+    trackAiReply(text, scenarioIdx, recommendedProductId, sellType) {
+      const idx = scenarioIdx !== undefined ? scenarioIdx : this._currentScenarioIdx;
+      const sc = this._scenarios[idx];
+      if (!sc) return;
+      sc.bot_msg_count_ai++;
+      const len = typeof text === 'string' ? text.length : 0;
+      sc._aiMsgLengths.push(len);
+      sc.bot_msg_total_len_ai = sc._aiMsgLengths.reduce((a, b) => a + b, 0);
+      sc.bot_msg_avg_len_ai = Math.round(sc.bot_msg_total_len_ai / sc._aiMsgLengths.length);
+      const now = Date.now();
+      if (!sc._botFirstMsgTime) sc._botFirstMsgTime = now;
+      sc._botLastMsgTime = now;
+      sc._chatLog.push({ role: 'ai', text: text || '' });
+      this._allChatLog.push({ scenario: idx + 1, role: 'ai', text: text || '' });
+      if (recommendedProductId) {
+        sc.ai_recommended_product_id = recommendedProductId;
+      }
+      if (sellType === 'up') sc.upsell_recommended = true;
+      if (sellType === 'cross') sc.crosssell_recommended = true;
+    },
+
+    trackSuggestionUsed(scenarioIdx) {
+      const sc = this._scenarioAt(scenarioIdx);
+      if (!sc) return;
+      sc.suggestions_used_count++;
+    },
+
+    trackPdpOpen(productId, scenarioIdx) {
+      const sc = this._scenarioAt(scenarioIdx);
+      if (!sc) return;
+      sc._pdpOpenTimes[productId] = Date.now();
+      if (!sc._pdpIdsArray.includes(productId)) sc._pdpIdsArray.push(productId);
+      if (!sc._pdpFirstTime) {
+        sc._pdpFirstTime = Date.now();
+        // bot_first_or_pdp_first: pdp geöffnet vor oder nach bot
+        if (sc._botFirstTime_set) {
+          // Bot war schon offen gewesen — pdp danach
+          if (sc.bot_first_or_pdp_first === 'bot_zuerst') {
+            // bleibt
+          }
+        } else {
+          sc.bot_first_or_pdp_first = 'pdp_zuerst';
+        }
+      }
+    },
+
+    trackPdpClose(productId, scenarioIdx) {
+      const sc = this._scenarioAt(scenarioIdx);
+      if (!sc) return;
+      const openTime = sc._pdpOpenTimes[productId];
+      if (openTime) {
+        const duration = Math.round((Date.now() - openTime) / 1000);
+        sc.pdp_total_time_seconds = (sc.pdp_total_time_seconds || 0) + duration;
+        delete sc._pdpOpenTimes[productId];
+      }
+      sc.pdp_ids_viewed = sc._pdpIdsArray.join(',');
+    },
+
+    trackTabClick(tabName, scenarioIdx) {
+      const sc = this._scenarioAt(scenarioIdx);
+      if (!sc) return;
+      if (tabName === 'ingredients') sc.pdp_tab_ingredients_clicked = true;
+      if (tabName === 'usage') sc.pdp_tab_usage_clicked = true;
+      if (tabName === 'faq') sc.pdp_tab_faq_clicked = true;
+    },
+
+    trackCartAdd(productId, scenarioIdx, price, isUpsell, isCrosssell) {
+      const sc = this._scenarioAt(scenarioIdx);
+      if (!sc) return;
+      if (isUpsell) sc.upsell_purchased = true;
+      if (isCrosssell) sc.crosssell_purchased = true;
+    },
+
+    trackCheckout(scenarioIdx, cartData) {
+      const sc = this._scenarioAt(scenarioIdx);
+      if (!sc) return;
+      sc.task_completed = true;
+      if (sc._startTime) {
+        sc.time_task_seconds = Math.round((Date.now() - sc._startTime) / 1000);
+      }
+      if (sc._botFirstMsgTime && sc._botLastMsgTime) {
+        sc.bot_chat_duration_seconds = Math.round((sc._botLastMsgTime - sc._botFirstMsgTime) / 1000);
+      }
+      // Close any still-open PDPs
+      Object.keys(sc._pdpOpenTimes).forEach(pid => {
+        const dur = Math.round((Date.now() - sc._pdpOpenTimes[pid]) / 1000);
+        sc.pdp_total_time_seconds = (sc.pdp_total_time_seconds || 0) + dur;
+        delete sc._pdpOpenTimes[pid];
+      });
+      sc.pdp_ids_viewed = sc._pdpIdsArray.join(',');
+
+      // Main product from cart
+      if (cartData && cartData.mainChosen) {
+        const m = cartData.mainChosen;
+        sc.product_chosen_id = m.id || '';
+        sc.product_chosen_name = m.name || '';
+        sc.option_chosen = m.optionLabel || '';
+        sc.price_paid = m.price || '';
+        if (sc.ai_recommended_product_id && sc.ai_recommended_product_id === m.id) {
+          sc.ai_recommendation_followed = true;
+        }
+      }
+
+      // bot_first_or_pdp_first — Sonderfälle
+      if (!sc._pdpFirstTime && !sc._botFirstTime_set) {
+        sc.bot_first_or_pdp_first = 'keins';
+      } else if (sc._botFirstTime_set && !sc._pdpFirstTime) {
+        sc.bot_first_or_pdp_first = 'nur_bot';
+      } else if (!sc._botFirstTime_set && sc._pdpFirstTime) {
+        sc.bot_first_or_pdp_first = 'nur_pdp';
+      }
+
+      // Rolling update ans Sheet
+      this._sendToSheets(false);
+    },
+
+    trackSurveyAnswer(questionId, answer) {
+      this._surveyAnswers['survey_' + questionId] = answer;
+    },
+
+    setPreStudy(data) {
+      this._preStudy = {
+        pre_ai_usage_freq: data.ai_usage_freq || '',
+        pre_ai_confidence: data.ai_confidence || '',
+        pre_ai_trust: data.ai_trust || '',
+      };
+    },
+
+    trackBotOpenSource(source) {
+      const sc = this._currentScenario();
+      if (sc && !sc.bot_open_source_c) sc.bot_open_source_c = source;
+    },
+
+    complete() {
+      this._complete = true;
+      this._completedAt = Date.now();
+      this._sendToSheets(true);
+    },
+
+    flush(reason) {
+      const sc = this._currentScenarioIdx >= 0 ? this._scenarios[this._currentScenarioIdx] : null;
+      if (sc && !sc.abbruch_at) {
+        sc.abbruch_at = reason || 'flush';
+      }
+      this._sendToSheets(false);
+    },
+
+    _scenarioAt(idx) {
+      const i = idx !== undefined ? idx : this._currentScenarioIdx;
+      return this._scenarios[i] || null;
+    },
+
+    _currentScenario() {
+      return this._currentScenarioIdx >= 0 ? this._scenarios[this._currentScenarioIdx] : null;
+    },
+
+    _buildPayload(isFinal) {
+      const p = {
+        session_id: this._sessionId,
+        timestamp_start: this._timestampStart,
+        variant: this._variant,
+        device: this._device,
+        is_complete: isFinal ? 'ja' : 'nein',
+        abbruch_at: '',
+      };
+
+      // Szenarien
+      this._scenarios.forEach((sc, i) => {
+        const prefix = `sc${i + 1}_`;
+        p[prefix + 'scenario_id'] = sc.scenario_id;
+        p[prefix + 'product_chosen_id'] = sc.product_chosen_id;
+        p[prefix + 'product_chosen_name'] = sc.product_chosen_name;
+        p[prefix + 'option_chosen'] = sc.option_chosen;
+        p[prefix + 'price_paid'] = sc.price_paid;
+        p[prefix + 'task_completed'] = sc.task_completed ? 'ja' : 'nein';
+        p[prefix + 'time_task_seconds'] = sc.time_task_seconds;
+        p[prefix + 'bot_used'] = sc.bot_used ? 'ja' : 'nein';
+        p[prefix + 'bot_msg_count_user'] = sc.bot_msg_count_user;
+        p[prefix + 'bot_msg_count_ai'] = sc.bot_msg_count_ai;
+        p[prefix + 'bot_msg_avg_len_user'] = sc.bot_msg_avg_len_user;
+        p[prefix + 'bot_msg_total_len_user'] = sc.bot_msg_total_len_user;
+        p[prefix + 'bot_msg_avg_len_ai'] = sc.bot_msg_avg_len_ai;
+        p[prefix + 'bot_msg_total_len_ai'] = sc.bot_msg_total_len_ai;
+        p[prefix + 'bot_chat_duration_seconds'] = sc.bot_chat_duration_seconds;
+        p[prefix + 'bot_first_or_pdp_first'] = sc.bot_first_or_pdp_first;
+        p[prefix + 'pdp_ids_viewed'] = sc.pdp_ids_viewed;
+        p[prefix + 'pdp_total_time_seconds'] = sc.pdp_total_time_seconds;
+        p[prefix + 'pdp_tab_ingredients_clicked'] = sc.pdp_tab_ingredients_clicked ? 'ja' : 'nein';
+        p[prefix + 'pdp_tab_usage_clicked'] = sc.pdp_tab_usage_clicked ? 'ja' : 'nein';
+        p[prefix + 'pdp_tab_faq_clicked'] = sc.pdp_tab_faq_clicked ? 'ja' : 'nein';
+        p[prefix + 'suggestions_used_count'] = sc.suggestions_used_count;
+        p[prefix + 'upsell_recommended'] = sc.upsell_recommended ? 'ja' : 'nein';
+        p[prefix + 'upsell_purchased'] = sc.upsell_purchased ? 'ja' : 'nein';
+        p[prefix + 'crosssell_recommended'] = sc.crosssell_recommended ? 'ja' : 'nein';
+        p[prefix + 'crosssell_purchased'] = sc.crosssell_purchased ? 'ja' : 'nein';
+        p[prefix + 'ai_recommended_product_id'] = sc.ai_recommended_product_id;
+        p[prefix + 'ai_recommendation_followed'] = sc.ai_recommendation_followed ? 'ja' : 'nein';
+        p[prefix + 'bot_open_source_c'] = sc.bot_open_source_c;
+        p[prefix + 'abbruch_at'] = sc.abbruch_at;
+      });
+
+      // Gesamtbearbeitungszeit
+      p.total_duration_seconds = (this._completedAt && this._studyStartMs)
+        ? Math.round((this._completedAt - this._studyStartMs) / 1000)
+        : '';
+
+      // Pre-Study (KI-Nutzungsgewohnheiten, vor Szenarien erhoben)
+      Object.assign(p, this._preStudy);
+
+      // Demographik
+      Object.assign(p, this._demographics);
+
+      // Umfrage
+      Object.assign(p, this._surveyAnswers);
+
+      // Globaler Abbruch-Status
+      const abbruchSc = this._scenarios.find(sc => sc.abbruch_at);
+      p.abbruch_at = abbruchSc ? abbruchSc.abbruch_at : '';
+
+      // Chat-Log
+      const logParts = this._allChatLog.map(entry => `[Szenario${entry.scenario}-${entry.role === 'user' ? 'User' : 'AI'}]${entry.text}`);
+      p.chat_log_raw = logParts.join(';');
+
+      return p;
+    },
+
+    _sendToSheets(isFinal) {
+      if (!SHEETS_URL || SHEETS_URL === 'DEINE_GOOGLE_APPS_SCRIPT_URL') return;
+      const payload = this._buildPayload(isFinal);
+      // navigator.sendBeacon für beforeunload, sonst fetch
+      if (typeof navigator.sendBeacon === 'function' && !isFinal) {
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        navigator.sendBeacon(SHEETS_URL, blob);
+      } else {
+        fetch(SHEETS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(err => console.warn('[VerdTracker] Sheets-Send fehlgeschlagen:', err));
+      }
+    },
+  };
+
+  window.VerdTracker = VT;
+})();
+
+// ============================================================================
+// VERDEA STUDIE — Chatbot-Positionierungs-Varianten
+// ============================================================================
+// Beim ersten Aufruf zufällig eine der drei Varianten zuweisen (A/B/C, je 33%).
+// window.VERDEA_VARIANT wird für den gesamten Seitenaufruf gesetzt.
+// ============================================================================
+(function assignVariant() {
+  const r = Math.random();
+  window.VERDEA_VARIANT = r < 0.333 ? 'A' : r < 0.667 ? 'B' : 'C';
+})();
+
+// ============================================================================
+// VERDEA STUDIE — Produktdaten & Szenarien
+// ============================================================================
+//
+// PHILOSOPHIE
+//   Produktdaten in CSV-ähnlicher Form ganz oben → leicht editierbar
+//   (Preise, Namen, Taglines anpassen ohne JS-Kenntnisse).
+//   Komplexe Felder (Inhaltsstoffe, FAQs, Optionen/Up-Sell) als separate
+//   Maps mit Produkt-ID als Key — auch dort einfach pro Eintrag anpassbar.
+//
+// 3 SZENARIEN × 5 Produkte:
+//   1. Vitamine D3+K2 (4 Hauptprodukte)   + Ashwagandha (Cross-Sell)
+//   2. Tablettenboxen (4 Hauptprodukte)   + Shaker (Cross-Sell)
+//   3. Festival-Tickets (4 Hauptprodukte) + Festival-Shirt (Cross-Sell)
+//
+// UP-SELL: läuft über OPTIONS_BY_ID (Mengen-/Größen-Varianten mit Rabatt).
+//          Jede Option hat ein isUpsell-Flag → KI nutzt das für ihre Empfehlung.
+// CROSS-SELL: ist ein eigenes Produkt mit role=cross-sell (siehe CSV).
+// ============================================================================
+
+// ─── PRODUKT-CSV ────────────────────────────────────────────────────────────
+// Bearbeitung:  Du kannst Preise, Namen, Beschreibungen direkt hier ändern.
+// Format:       Spalten getrennt durch Semikolon, Zeilen durch Newline.
+// Sonderzeichen:
+//   - certs:        Pipe-getrennt, z.B. "🌱 Bio|🐇 Vegan"
+//   - Kommentare:   Zeilen mit # vorne werden ignoriert
+// ⚠️  KEIN Semikolon innerhalb von Zellen verwenden (würde die Spalten verschieben)!
+// ────────────────────────────────────────────────────────────────────────────
+const PRODUCTS_CSV = `
+id;scenario;role;category;name;brand;tagline;price;unit;emoji;rating;reviews;certs;short_desc
+
+# ─── Szenario 1: Vitamin D3 + K2 (4 Haupt) + Ashwagandha (Cross-Sell) ───
+vit-1;vitamine;main;vitamine;Vitamin D3 + K2 Basis;VERDEA;Solide Grundversorgung;14.90;90 Kapseln · 3 Monate;☀️;4.4;89;🔬 GMP|🇩🇪 DE;Vitamin D3 1.000 IU + K2 50 µg. Hergestellt in Deutschland nach GMP-Standard.
+vit-2;vitamine;main;vitamine;Vitamin D3 + K2 Plus;VERDEA;Vegan & laborgeprüft;24.90;90 Kapseln · 3 Monate;☀️;4.6;201;🐇 Vegan|🔬 Laborgeprüft|🇩🇪 DE;Vitamin D3 1.500 IU aus Flechten + K2 100 µg in MCT-Öl-Träger.
+vit-3;vitamine;main;vitamine;Vitamin D3 + K2 Premium;VERDEA;Bio & klimaneutral;34.90;90 Kapseln · 3 Monate;☀️;4.8;164;🌱 Bio|🐇 Vegan|🌍 CO₂ neutral;Bio-Vitamin D3 2.000 IU + K2 150 µg. Klimaneutrale Produktion in Glasflasche.
+vit-4;vitamine;main;vitamine;Vitamin D3 + K2 Pro;VERDEA;Liposomal · höchste Bioverfügbarkeit;49.90;90 Kapseln · 3 Monate;☀️;4.9;112;🌱 Bio|🐇 Vegan|🔬 Liposomal;Liposomales Vitamin D3 2.500 IU + K2 200 µg. Bis zu 300 % höhere Aufnahme.
+ada-1;vitamine;cross-sell;adaptogen;Ashwagandha KSM-66®;VERDEA;Stressbalance & Resilienz — perfekte Ergänzung zu Vitamin D;32.90;90 Kapseln · 3 Monate;🌿;4.7;243;🌱 Bio|🐇 Vegan|🔬 KSM-66®;Adaptogen aus indischer Wurzel. 600 mg KSM-66®-Vollspektrum-Extrakt pro Tagesdosis.
+
+# ─── Szenario 2: Tablettenboxen (4 Haupt) + Shaker (Cross-Sell) ───
+box-1;tablettenbox;main;tablettenbox;TagesBox Basic;VERDEA;Solide Grundausstattung;7.90;7 Fächer · 1 Woche;💊;4.3;156;🇩🇪 DE;BPA-freies Standard-Plastik mit einfachem Schiebeverschluss.
+box-2;tablettenbox;main;tablettenbox;TagesBox Smart;VERDEA;Wochentag-Beschriftung & sicherer Verschluss;14.90;7 Fächer · 1 Woche;💊;4.6;234;🇩🇪 DE|🔒 Klick-Verschluss;BPA-frei mit abriebfester Wochentag-Beschriftung und einrastendem Verschluss.
+box-3;tablettenbox;main;tablettenbox;TagesBox Premium;VERDEA;Spülmaschinenfest · luftdicht · medizinisches Silikon;22.90;7 Fächer · 1 Woche;💊;4.8;189;🔬 Med-Silikon|💧 Luftdicht;Medizinisches Silikon (FDA-zertifiziert), abnehmbare Einzelfächer, vollständig spülmaschinenfest.
+box-4;tablettenbox;main;tablettenbox;TagesBox Eco-Pro;VERDEA;Bambus & Edelstahl · ergonomisch · kompostierbar;32.90;7 Fächer · 1 Woche;💊;4.9;121;🌱 Bambus|🌍 Kompostierbar|🔒 Magnet;FSC-Bambus + Edelstahl 304, ergonomisches Design, magnetischer Verschluss.
+shk-1;tablettenbox;cross-sell;shaker;VERDEA Edelstahl-Shaker 600 ml;VERDEA;Doppelwandig & geruchsneutral — ideale Ergänzung zur TagesBox;19.90;600 ml · doppelwandig;🥤;4.7;278;🔬 Edelstahl 304|💧 Auslaufsicher;Premium-Shaker aus medizinischem Edelstahl 304. Geruchsneutral, doppelwandig und auslaufsicher.
+
+# ─── Szenario 3: VERDEA Wellness Festival 2026 (4 Tickets) + Shirt (Cross-Sell) ───
+tic-1;event;main;ticket;Standard-Ticket;VERDEA Festival;Festivaleintritt · Zugang zu allen Bühnen;49;1 Tag · 1 Person;🎫;4.5;1247;🎵 Alle Bühnen;Tageseintritt zum VERDEA Wellness Festival 2026 mit Zugang zu allen Open-Air-Bühnen und Talks.
+tic-2;event;main;ticket;Premium-Ticket;VERDEA Festival;Standard + Lunch + Goodie-Bag + Sitzbereich;89;1 Tag · 1 Person;🎫;4.7;643;🍽 Lunch|🎁 Goodie-Bag|🪑 Sitzplatz;Standard plus 3-Gänge-Lunch, exklusive Goodie-Bag (Wert ~25 €) und reservierter Sitzbereich vor den Bühnen.
+tic-3;event;main;ticket;VIP-Ticket;VERDEA Festival;Premium + Workshops + Meet-and-Greet + Gourmet-Catering;149;1 Tag · 1 Person;🎫;4.8;312;✨ Workshops|🎤 Meet-and-Greet|🍽 Gourmet;Premium plus exklusive Workshop-Slots, Meet-and-Greet mit Speakern und ganztägiges Gourmet-Catering.
+tic-4;event;main;ticket;Backstage-Ticket;VERDEA Festival;VIP + Übernachtung + Welcome-Reception + Fahrer-Service;249;1 Tag · 1 Person;🎫;4.9;87;🏨 Übernachtung|🥂 Reception|🚐 Fahrer;VIP plus Übernachtung im Festival-Hotel, private Welcome-Reception am Vorabend und Fahrer-Service hin und zurück.
+tee-1;event;cross-sell;shirt;VERDEA Festival-Shirt 2026;VERDEA Festival;Bio-Baumwolle · limitierte Edition;24.90;1 Stück · Größe S–XL;👕;4.6;456;🌱 Bio-Baumwolle|🌍 Fair Trade;Limitiertes Festival-Shirt aus 100 % Bio-Baumwolle. Mit dem offiziellen 2026er-Design.
+`;
+
+// ─── INHALTSSTOFFE / WAS-IST-ENTHALTEN pro Produkt ──────────────────────────
+// Wird auf der Detailseite im Tab „Inhaltsstoffe" angezeigt.
+// Bei Tickets: „Was ist enthalten" (Eintritt, Catering, …).
+// Bei Boxen:   Material und Funktionen.
+// ────────────────────────────────────────────────────────────────────────────
+const INGREDIENTS_BY_ID = {
+  // ─── Vitamine ────────────────────────────────────────────────────────────
+  'vit-1': [
+    { name: 'Vitamin D3 (Cholecalciferol)', sub: 'aus Lanolin', amount: '1.000 IU · 25 µg', origin: '🇩🇪 Deutschland' },
+    { name: 'Vitamin K2 (MK-7)', sub: 'all-trans, höchste Reinheit', amount: '50 µg', origin: '🇯🇵 Japan' },
+    { name: 'Mikrokristalline Cellulose', sub: 'pflanzlicher Trägerstoff', amount: 'Füllstoff', origin: '🇪🇺 EU' },
+    { name: 'Magnesiumstearat', sub: 'pflanzlich, Fließmittel', amount: 'Hilfsstoff', origin: '🇩🇪 Deutschland' },
+    { name: 'HPMC-Kapsel', sub: 'pflanzlich (vegan)', amount: '—', origin: '🌱' },
+    { name: 'Empfohlene Tagesdosis', sub: '1 Kapsel täglich zu einer Mahlzeit', amount: '1 Kps.', origin: '—' },
+  ],
+  'vit-2': [
+    { name: 'Vitamin D3', sub: 'aus Flechten · 100 % vegan', amount: '1.500 IU · 37,5 µg', origin: '🇩🇪 Deutschland' },
+    { name: 'Vitamin K2 (MK-7)', sub: 'all-trans, Bioaktiv-Form', amount: '100 µg', origin: '🇯🇵 Japan' },
+    { name: 'MCT-Öl', sub: 'aus Bio-Kokosöl, kaltgepresst', amount: 'Trägeröl', origin: '🇵🇭 Philippinen' },
+    { name: 'Sonnenblumen-Lecithin', sub: 'GMO-frei, verbessert Aufnahme', amount: 'Hilfsstoff', origin: '🇪🇺 EU' },
+    { name: 'HPMC-Kapsel', sub: 'pflanzlich (vegan)', amount: '—', origin: '🌱' },
+    { name: 'Empfohlene Tagesdosis', sub: '1 Kapsel täglich, vorzugsweise mit Fett', amount: '1 Kps.', origin: '—' },
+  ],
+  'vit-3': [
+    { name: 'Bio-Vitamin D3', sub: 'aus Bio-Flechten · vegan', amount: '2.000 IU · 50 µg', origin: '🇩🇪 Deutschland' },
+    { name: 'Vitamin K2 (MK-7)', sub: 'all-trans, Bio-zertifiziert', amount: '150 µg', origin: '🇯🇵 Japan' },
+    { name: 'Bio-MCT-Öl', sub: 'aus Bio-Kokos, fair trade', amount: 'Trägeröl', origin: '🇵🇭 Philippinen' },
+    { name: 'Bio-Olivenöl', sub: 'kaltgepresst, antioxidativ', amount: 'Co-Träger', origin: '🇮🇹 Italien' },
+    { name: 'HPMC-Kapsel (Bio)', sub: 'pflanzlich, kompostierbar', amount: '—', origin: '🌱' },
+    { name: 'Klimakompensation', sub: 'CO₂-Footprint vollständig ausgeglichen', amount: 'Climate Partner ID 1234', origin: '🌍' },
+    { name: 'Empfohlene Tagesdosis', sub: '1 Kapsel mit einer Hauptmahlzeit', amount: '1 Kps.', origin: '—' },
+  ],
+  'vit-4': [
+    { name: 'Liposomales Vitamin D3', sub: 'Bio-Flechten-Extrakt, liposomal verkapselt', amount: '2.500 IU · 62,5 µg', origin: '🇮🇸 Island' },
+    { name: 'Vitamin K2 (MK-7)', sub: 'all-trans, pharmazeutische Reinheit', amount: '200 µg', origin: '🇯🇵 Japan' },
+    { name: 'Bio-MCT-Öl', sub: 'aus Bio-Kokos', amount: 'Trägeröl', origin: '🇵🇭 Philippinen' },
+    { name: 'Phosphatidylcholin', sub: 'aus Sonnenblumen, GMO-frei', amount: 'Liposom-Matrix', origin: '🇩🇪 Deutschland' },
+    { name: 'Vitamin E (Tocopherol)', sub: 'natürliches Antioxidans', amount: '5 mg', origin: '🇪🇺 EU' },
+    { name: 'Glasflasche', sub: 'recyclebar, plastikfrei', amount: 'Verpackung', origin: '🇩🇪' },
+    { name: 'Empfohlene Tagesdosis', sub: '1 Kapsel täglich', amount: '1 Kps.', origin: '—' },
+  ],
+  'ada-1': [
+    { name: 'Ashwagandha-Wurzelextrakt', sub: 'KSM-66® Vollspektrum', amount: '600 mg', origin: '🇮🇳 Indien' },
+    { name: 'Standardisierung', sub: '≥ 5 % Withanolide (Wirkstoffe)', amount: '30+ mg', origin: '—' },
+    { name: 'BioPerine®', sub: 'Schwarzer-Pfeffer-Extrakt, +20× Bioverfügbarkeit', amount: '5 mg', origin: '🇮🇳 Kerala' },
+    { name: 'HPMC-Kapsel', sub: 'pflanzlich (vegan)', amount: '—', origin: '🌱' },
+    { name: 'Allergen-Status', sub: 'frei von Gluten, Soja, Milch, Nüssen', amount: 'hypoallergen', origin: '—' },
+    { name: 'Empfohlene Tagesdosis', sub: '1 Kapsel abends, idealerweise zur Mahlzeit', amount: '1 Kps.', origin: '—' },
+  ],
+
+  // ─── Tablettenboxen — „Inhaltsstoffe" = Material und Funktionen ─────────
+  'box-1': [
+    { name: 'Material', sub: 'BPA-freies Polypropylen, lebensmittelecht', amount: 'Hauptkörper', origin: '🇩🇪 DE-Produktion' },
+    { name: 'Verschluss', sub: 'Schiebeverschluss, einhändig bedienbar', amount: '—', origin: '—' },
+    { name: 'Abmessungen', sub: 'kompakt, taschentauglich', amount: '14 × 7 × 2 cm', origin: '—' },
+    { name: 'Fachgröße', sub: 'für Kapseln und mittelgroße Tabletten', amount: '25 × 25 × 18 mm', origin: '—' },
+    { name: 'Gewicht', sub: 'leicht, ideal für unterwegs', amount: '65 g', origin: '—' },
+    { name: 'Spülmaschine', sub: 'Oberkorb, niedrige Temperatur', amount: '—', origin: '—' },
+  ],
+  'box-2': [
+    { name: 'Material', sub: 'BPA-freies PP + ABS-Kunststoff', amount: 'Hauptkörper', origin: '🇩🇪 DE-Produktion' },
+    { name: 'Beschriftung', sub: 'Wochentage MO–SO, UV-resistenter Druck', amount: '7×', origin: '—' },
+    { name: 'Verschluss', sub: 'einrastender Klick-Verschluss, kindersicher', amount: '—', origin: '—' },
+    { name: 'Abmessungen', sub: 'leicht größer durch Beschriftungsfläche', amount: '15 × 7,5 × 2,5 cm', origin: '—' },
+    { name: 'Gewicht', sub: 'mit Beschriftung etwas schwerer', amount: '85 g', origin: '—' },
+    { name: 'Spülmaschine', sub: 'Oberkorb, Beschriftung bleibt erhalten', amount: '—', origin: '—' },
+  ],
+  'box-3': [
+    { name: 'Material', sub: 'medizinisches Silikon (FDA-zertifiziert)', amount: 'Hauptkörper', origin: '🇩🇪 DE-Produktion' },
+    { name: 'Fächer', sub: 'einzeln entnehmbar — 1 Tag separat mitnehmen', amount: '7×', origin: '—' },
+    { name: 'Verschluss', sub: 'luftdicht, IP67-zertifiziert', amount: '—', origin: '—' },
+    { name: 'Hitzebeständigkeit', sub: 'auch heißes Wasser möglich', amount: 'bis 220 °C', origin: '—' },
+    { name: 'Abmessungen', sub: 'etwas dicker durch Silikon', amount: '16 × 8 × 3 cm', origin: '—' },
+    { name: 'Gewicht', sub: 'Silikon ist robust aber schwerer', amount: '110 g', origin: '—' },
+    { name: 'Spülmaschine', sub: 'vollständig — auch bei hoher Temperatur', amount: '—', origin: '—' },
+  ],
+  'box-4': [
+    { name: 'Material', sub: 'FSC-zertifizierter Bambus + Edelstahl 304', amount: 'Hauptkörper', origin: '🌍 nachhaltige Forstwirtschaft' },
+    { name: 'Verschluss', sub: 'magnetisch, geräuschlos', amount: '—', origin: '—' },
+    { name: 'Design', sub: 'ergonomisch geformt, abgerundete Kanten', amount: '—', origin: '—' },
+    { name: 'Abmessungen', sub: 'edel, Tisch- und reisetauglich', amount: '17 × 8,5 × 2,8 cm', origin: '—' },
+    { name: 'Gewicht', sub: 'durch Bambus + Stahl höher', amount: '145 g', origin: '—' },
+    { name: 'Pflege', sub: 'Handwäsche, kein Einweichen, Bambusöl 1×/Jahr', amount: '—', origin: '—' },
+    { name: 'Lebensende', sub: 'Bambus kompostierbar, Stahl recycelbar', amount: '—', origin: '—' },
+  ],
+  'shk-1': [
+    { name: 'Material', sub: 'medizinischer Edelstahl 304, geruchsneutral', amount: 'Hauptkörper', origin: '🇩🇪 DE-Produktion' },
+    { name: 'Volumen', sub: 'doppelwandig vakuum-isoliert', amount: '600 ml', origin: '—' },
+    { name: 'Isolierung', sub: 'hält Getränke kalt oder warm', amount: '6 h kalt / 4 h warm', origin: '—' },
+    { name: 'Auslaufschutz', sub: 'Schraubdeckel + Silikondichtung', amount: '—', origin: '—' },
+    { name: 'Mixfunktion', sub: 'Edelstahl-Mischball für klumpenfreie Shakes', amount: 'inkl.', origin: '—' },
+    { name: 'Pflege', sub: 'spülmaschinenfest, BPA- & weichmacherfrei', amount: '—', origin: '—' },
+  ],
+
+  // ─── Tickets — „Inhaltsstoffe" = Was ist enthalten ──────────────────────
+  'tic-1': [
+    { name: 'Festivaleintritt', sub: 'gesamter Tag', amount: '1×', origin: '—' },
+    { name: 'Zugang Bühnen', sub: 'alle Open-Air-Bühnen + Talks', amount: 'unbegrenzt', origin: '—' },
+    { name: 'Datum', sub: 'Samstag, 18.07.2026', amount: '10:00–23:00', origin: '🇩🇪' },
+    { name: 'Ort', sub: 'Olympiapark München, Eingang Süd', amount: '—', origin: '🇩🇪' },
+    { name: 'Garderobe', sub: 'kostenlos', amount: '—', origin: '—' },
+    { name: 'Altersgrenze', sub: 'ab 16 Jahren (mit Ausweis)', amount: '—', origin: '—' },
+  ],
+  'tic-2': [
+    { name: 'Festivaleintritt', sub: 'gesamter Tag, alle Bühnen', amount: '1×', origin: '—' },
+    { name: 'Lunch', sub: '3-Gänge-Menü, vegan-optional', amount: '1×', origin: '🇩🇪 regional' },
+    { name: 'Goodie-Bag', sub: 'VERDEA-Proben + Trinkflasche + Programm', amount: '1×', origin: '~25 € Wert' },
+    { name: 'Sitzbereich', sub: 'reserviert vor den Hauptbühnen', amount: 'unbegrenzt', origin: '—' },
+    { name: 'Wassergutschein', sub: 'unbegrenzt am Tag', amount: 'inkl.', origin: '—' },
+    { name: 'Datum & Ort', sub: '18.07.2026 · Olympiapark München', amount: '10:00–23:00', origin: '🇩🇪' },
+    { name: 'Garderobe', sub: 'kostenlos', amount: '—', origin: '—' },
+  ],
+  'tic-3': [
+    { name: 'Festivaleintritt + Lunch + Goodie-Bag', sub: 'wie Premium', amount: '1×', origin: '—' },
+    { name: 'Workshop-Slots', sub: 'exklusive Plätze in 3 Workshops nach Wahl', amount: '3×', origin: '—' },
+    { name: 'Meet-and-Greet', sub: 'mit Speakern in der VIP-Lounge', amount: '1×', origin: '—' },
+    { name: 'Gourmet-Catering', sub: 'ganztägig, mit Getränken inkl. Wein/Bier', amount: 'unbegrenzt', origin: '—' },
+    { name: 'VIP-Eingang', sub: 'separater Einlass ohne Wartezeit', amount: 'inkl.', origin: '—' },
+    { name: 'VIP-Toiletten', sub: 'separat, gepflegt, mit Lounge-Bereich', amount: 'inkl.', origin: '—' },
+    { name: 'Datum & Ort', sub: '18.07.2026 · Olympiapark München', amount: '10:00–23:00', origin: '🇩🇪' },
+  ],
+  'tic-4': [
+    { name: 'VIP-Programm', sub: 'alles aus dem VIP-Ticket', amount: 'inkl.', origin: '—' },
+    { name: 'Übernachtung', sub: '4★-Festival-Hotel, Doppelzimmer', amount: '1 Nacht', origin: '🇩🇪 vor Ort' },
+    { name: 'Welcome-Reception', sub: 'private Veranstaltung mit Künstlern am Vorabend', amount: '1×', origin: '—' },
+    { name: 'Fahrer-Service', sub: 'Hin- und Rückfahrt zur Festival-Location', amount: 'innerhalb München', origin: '🚐' },
+    { name: 'Backstage-Tour', sub: 'geführte Tour mit Festival-Manager', amount: '1×', origin: '—' },
+    { name: 'Frühstücks-Buffet', sub: 'am Folgetag im Hotel', amount: '1×', origin: '🇩🇪 regional' },
+    { name: 'Persönlicher Concierge', sub: 'während des Events erreichbar', amount: 'WhatsApp', origin: '—' },
+    { name: 'Datum & Ort', sub: '18.07.2026 · Olympiapark + Hotel Bayerischer Hof', amount: '—', origin: '🇩🇪' },
+  ],
+  'tee-1': [
+    { name: 'Material', sub: '100 % Bio-Baumwolle, GOTS-zertifiziert', amount: '180 g/m²', origin: '🇮🇳 fair trade' },
+    { name: 'Druck', sub: 'wasserbasierte Tinten, schadstofffrei', amount: 'Frontprint', origin: '—' },
+    { name: 'Schnitt', sub: 'Unisex, leicht oversized', amount: '—', origin: '—' },
+    { name: 'Größen', sub: 'S, M, L, XL — kostenloser Größen­tausch', amount: '—', origin: '—' },
+    { name: 'Pflegehinweis', sub: '30 °C bunt waschen, nicht in den Trockner', amount: '—', origin: '—' },
+    { name: 'Versand', sub: 'in recycelter Papier-Versandtasche', amount: '—', origin: '—' },
+  ],
+};
+
+// ─── FAQs pro Produkt ───────────────────────────────────────────────────────
+const FAQS_BY_ID = {
+  // ─── Vitamine ────────────────────────────────────────────────────────────
+  'vit-1': [
+    { q: 'Wie hoch ist die Dosierung?', a: '1.000 IU Vitamin D3 + 50 µg K2 pro Kapsel. Empfohlen: 1× täglich zu einer fetthaltigen Mahlzeit.' },
+    { q: 'Ist das Produkt vegan?', a: 'Die Kapsel ist pflanzlich, das Vitamin D3 stammt jedoch aus Lanolin (Schafwolle), also nicht vegan. Für eine vegane Variante siehe Vitamin D3 + K2 Plus.' },
+    { q: 'Wann sehe ich erste Effekte?', a: 'Bei nachgewiesenem Mangel meist nach 4–8 Wochen. Bei normalem Spiegel vor allem im Winter spürbar (mehr Energie, stabileres Immunsystem).' },
+    { q: 'Kann man überdosieren?', a: 'Bei dieser Dosis nicht. Vitamin D wird vom Körper gespeichert, aber 1.000 IU täglich ist auch bei Sonnenlicht-Tagen unbedenklich.' },
+  ],
+  'vit-2': [
+    { q: 'Warum aus Flechten?', a: 'Flechten sind die einzige pflanzliche Quelle für natürliches Vitamin D3 — somit ist das Produkt vollständig vegan.' },
+    { q: 'Was bringt der MCT-Öl-Träger?', a: 'Vitamin D ist fettlöslich. MCT-Öl verbessert die Aufnahme messbar — auch ohne dass Sie zur Mahlzeit einnehmen.' },
+    { q: 'Wie unterscheidet sich Plus von Basis?', a: 'Plus ist vegan (Flechten statt Lanolin), höher dosiert (1.500 vs 1.000 IU), und hat MCT-Öl als Träger für bessere Aufnahme.' },
+    { q: 'Welche Wechselwirkungen gibt es?', a: 'K2 kann die Wirkung von Blutverdünnern (Marcumar) beeinflussen. Bei Einnahme bitte mit Arzt abstimmen.' },
+    { q: 'Wann ist die beste Einnahmezeit?', a: 'Morgens oder mittags zu einer Mahlzeit. Vitamin D abends genommen kann bei manchen den Schlaf stören.' },
+  ],
+  'vit-3': [
+    { q: 'Was bedeutet klimaneutral?', a: 'Der gesamte CO₂-Fußabdruck (Anbau, Produktion, Versand) wird durch zertifizierte Klimaschutzprojekte (Climate Partner) vollständig kompensiert. Zertifikat einsehbar.' },
+    { q: 'Wie hoch ist die Dosierung?', a: '2.000 IU Vitamin D3 + 150 µg K2 — höhere Dosis für Menschen mit nachgewiesenem Mangel oder im Winter ohne Sonnenexposition.' },
+    { q: 'Ist es für Schwangere geeignet?', a: 'Bei dieser Dosis grundsätzlich ja, aber Schwangere sollten ihre D-Werte vorab vom Arzt prüfen lassen.' },
+    { q: 'Was bedeutet Bio bei Vitamin D?', a: 'Die Flechten stammen aus zertifiziert biologischer Wildsammlung, das MCT-Öl aus EU-Bio-zertifizierten Plantagen, alle Hilfsstoffe sind bio-zugelassen.' },
+  ],
+  'vit-4': [
+    { q: 'Was ist liposomale Verkapselung?', a: 'Der Wirkstoff wird in winzige Fett-Vesikel (Liposomen) verpackt, die im Darm besser durchdringen. Studien zeigen bis zu 300 % höhere Bioverfügbarkeit gegenüber konventionellen Kapseln.' },
+    { q: 'Für wen ist Pro sinnvoll?', a: 'Für Menschen mit nachgewiesenen Resorptionsproblemen (z.B. nach Magen-OP), älteren Personen mit reduzierter Aufnahme, oder bei sehr hohem nachgewiesenem Bedarf. Für die meisten reicht Premium oder Plus.' },
+    { q: 'Wie hoch ist die Dosierung?', a: '2.500 IU Vitamin D3 + 200 µg K2. Durch die Liposom-Technologie entspricht die Aufnahme aber etwa 5.000 IU einer normalen Kapsel.' },
+    { q: 'Warum die Glasflasche?', a: 'Liposomale Inhalte reagieren empfindlich auf Plastik-Weichmacher. Die Glasflasche schützt Wirkstoff und ist zudem komplett plastikfrei.' },
+  ],
+  'ada-1': [
+    { q: 'Was ist Ashwagandha?', a: 'Ein Adaptogen aus der ayurvedischen Medizin — unterstützt den Umgang mit Stress, hilft beim Einschlafen und kann den Cortisol-Spiegel regulieren.' },
+    { q: 'Wie kombiniere ich es mit Vitamin D?', a: 'Vitamin D morgens (Energie), Ashwagandha abends (Entspannung) — beide ergänzen sich ideal für Energie tagsüber und besseren Schlaf nachts.' },
+    { q: 'Wie lange dauert, bis es wirkt?', a: 'Nach 2–3 Wochen regelmäßiger Einnahme. Klinische Studien (KSM-66®) zeigen signifikante Stress-Reduktion nach 8 Wochen.' },
+    { q: 'Macht es schläfrig?', a: 'Nicht direkt — es macht nicht müde wie ein Schlafmittel. Es senkt nur den Cortisol-Spiegel, was abends das Einschlafen erleichtert.' },
+    { q: 'Gibt es Nebenwirkungen?', a: 'Bei normaler Dosierung sehr selten. Bei Schwangerschaft, Schilddrüsen-Erkrankungen oder Immunsuppressiva: vorab Arzt fragen.' },
+  ],
+
+  // ─── Tablettenboxen ──────────────────────────────────────────────────────
+  'box-1': [
+    { q: 'Ist sie spülmaschinenfest?', a: 'Ja, aber nur im Oberkorb bei niedriger Temperatur (max. 50 °C). Bei Handwäsche hält der Verschluss länger geschmeidig.' },
+    { q: 'Wie groß sind die Fächer?', a: 'Jedes Fach fasst 4–6 mittelgroße Tabletten oder Kapseln. Größere Tabletten (z.B. Magnesium-Brausetabletten) passen evtl. einzeln.' },
+    { q: 'Passt sie in eine Handtasche?', a: 'Ja — mit 14 × 7 × 2 cm flach genug für jede Hand- oder Reisetasche.' },
+    { q: 'Wie reinige ich sie am besten?', a: 'Lauwarmes Wasser mit Spülmittel, mit weicher Bürste die Ecken erreichen. Trocken zurück in die Schublade.' },
+  ],
+  'box-2': [
+    { q: 'Verblasst die Beschriftung?', a: 'Nein — UV-resistenter Druck, hält auch nach 100+ Spülgängen.' },
+    { q: 'Sind die Wochentage farbig markiert?', a: 'Schwarze Buchstaben auf weißem Grund, mit dezenter grüner Farbleiste am unteren Rand jedes Fachs zur schnelleren Orientierung.' },
+    { q: 'Springt der Verschluss versehentlich auf?', a: 'Nein — der Klick-Verschluss muss aktiv gedrückt werden. Auch in der Tasche sicher.' },
+    { q: 'Wie öffne ich den Verschluss einhändig?', a: 'Mit dem Daumen den seitlichen Druckpunkt drücken, der Deckel klappt automatisch. Bei Routine nach 2–3 Tagen einhändig flüssig.' },
+  ],
+  'box-3': [
+    { q: 'Was bringt das medizinische Silikon?', a: 'Geschmacks- und geruchsneutral, hochtemperaturbeständig (bis 220 °C), vollständig hygienisch — ideal für sensible oder schnell oxidierende Medikamente.' },
+    { q: 'Sind die Fächer wirklich luftdicht?', a: 'Ja, IP67-zertifiziert — schützt Tabletten vor Luftfeuchtigkeit (wichtig im Bad/Strand) und Geruch (kein Übertrag bei verschiedenen Medikamenten).' },
+    { q: 'Wie reinige ich am besten?', a: 'Spülmaschine bei 75 °C — das Silikon übersteht es problemlos. Für besonders gründliche Reinigung können die Fächer einzeln entnommen werden.' },
+    { q: 'Kann ich einzelne Fächer mitnehmen?', a: 'Ja — jedes der 7 Fächer ist einzeln entnehmbar und bleibt für sich luftdicht. Praktisch für Tagesausflüge.' },
+  ],
+  'box-4': [
+    { q: 'Hält Bambus dauerhaft?', a: 'Bei normaler Pflege (Handwäsche, kein Einweichen) hält Bambus 5+ Jahre. Bei Bedarf 1× pro Jahr mit Bambusöl pflegen — dann sieht sie ewig gut aus. Am Lebensende: vollständig kompostierbar.' },
+    { q: 'Wie funktioniert der Magnetverschluss?', a: 'Der Deckel rastet sanft per Magnet ein — geräuschlos und elegant. Kein Klicken oder Klappern, ideal als Geschenk oder für ruhige Umgebungen.' },
+    { q: 'Ist Bambus wirklich hygienisch?', a: 'Bambus ist von Natur aus antibakteriell (durch Bambus-Kun). Mit gelegentlichem Reinigen mit Essigwasser bleibt sie hygienisch und geruchsneutral.' },
+    { q: 'Hält der Magnet dem Reisen stand?', a: 'Ja — Magnetkraft ist stark genug, dass die Box auch im Koffer geschlossen bleibt. Edelstahl-Verstärkung verhindert Verziehen.' },
+  ],
+  'shk-1': [
+    { q: 'Hält der Shaker mein Getränk kalt?', a: 'Ja, durch die doppelwandige Vakuum-Isolierung bleibt der Inhalt 6+ Stunden kalt oder 4 Stunden warm.' },
+    { q: 'Bleibt der Geschmack neutral?', a: 'Edelstahl 304 nimmt keine Aromen auf. Eiweißshake heute, Kaffee morgen, Smoothie übermorgen — kein Übertrag.' },
+    { q: 'Wie reinige ich den Shaker?', a: 'Spülmaschine im Oberkorb, oder von Hand mit warmem Wasser und Bürste. Mischball gleich mit reinigen, nicht im Shaker liegen lassen.' },
+    { q: 'Geht der Mischball kaputt?', a: 'Edelstahl-Mischball — praktisch unzerstörbar. Falls er trotzdem mal verschwindet: kostenlos nachbestellbar.' },
+    { q: 'Kann ich heißes Wasser einfüllen?', a: 'Ja — der Shaker ist hitzebeständig bis 90 °C. Aber: Deckel nicht sofort verschließen, damit kein Druck entsteht.' },
+  ],
+
+  // ─── Tickets ─────────────────────────────────────────────────────────────
+  'tic-1': [
+    { q: 'Wo findet das Festival statt?', a: 'Olympiapark München, Eingang Süd. 18. Juli 2026, 10:00–23:00 Uhr.' },
+    { q: 'Kann ich das Ticket umtauschen?', a: 'Ja, bis 7 Tage vor Veranstaltung kostenfrei stornierbar. Tickets sind personalisiert, Namensänderung kostenlos via E-Mail.' },
+    { q: 'Was bringe ich mit?', a: 'Personalausweis, dein digitales Ticket auf dem Handy, wetterfeste Kleidung. Trinkflasche darfst du mitbringen, Essen nicht.' },
+    { q: 'Sind Hunde erlaubt?', a: 'Nein, aus Rücksicht auf Andere und das große Publikum sind Tiere nicht erlaubt. Ausnahme: Assistenzhunde mit Nachweis.' },
+  ],
+  'tic-2': [
+    { q: 'Was ist im Lunch enthalten?', a: 'Vorspeise, Hauptgang und Dessert — vegan, vegetarisch oder Fleisch wählbar bei Buchung.' },
+    { q: 'Was ist in der Goodie-Bag?', a: 'VERDEA-Produktproben, Zero-Waste-Trinkflasche, Festival-Programm, Lavendel-Roll-on, Bio-Sonnencreme und kleine Überraschungen.' },
+    { q: 'Bekomme ich Tickets per Post?', a: 'Nein — alle Tickets sind digital. Du erhältst sie 48h vor dem Event per E-Mail mit QR-Code.' },
+    { q: 'Wo ist mein Sitzplatz?', a: 'Reservierter Bereich vor den 2 Hauptbühnen. Plätze nicht nummeriert, freie Wahl im Bereich.' },
+    { q: 'Was bei schlechtem Wetter?', a: 'Festival findet bei jedem Wetter statt. Bei Sturm gibt es überdachte Bühnen und einen Wetterschutz im Premium-Sitzbereich.' },
+  ],
+  'tic-3': [
+    { q: 'Welche Workshops kann ich besuchen?', a: '3 freie Slots aus dem Workshop-Programm: Yoga, Meditation, Breathwork, Ernährungstalks, Schlaf-Coaching, Kalt-Therapie u.v.m. Buchung 7 Tage vor Event.' },
+    { q: 'Mit welchen Speakern?', a: 'Renommierte Health-Experten — die Identität wird bei Buchung bekannt gegeben. Erwartung: 2025 waren u.a. Dr. Andrew Huberman, Dr. Rangan Chatterjee zu Gast.' },
+    { q: 'Wie lange dauert das Meet-and-Greet?', a: 'Ca. 60 Minuten in der VIP-Lounge, mit jedem Speaker einige Minuten persönlich. Foto-Möglichkeit garantiert.' },
+    { q: 'Was unterscheidet VIP vom Premium?', a: 'VIP hat zusätzlich: 3 exklusive Workshops, Meet-and-Greet, separater Eingang ohne Wartezeit, ganztägiges Gourmet-Catering inkl. Wein/Bier.' },
+  ],
+  'tic-4': [
+    { q: 'Wie ist das Hotel?', a: 'Hotel Bayerischer Hof — 4★, direkt im Zentrum Münchens. 4 km vom Olympiapark, durch Fahrer-Service problemlos. Frühstück inklusive.' },
+    { q: 'Wie weit reicht der Fahrer-Service?', a: 'Innerhalb Münchens kostenlos, hin und zurück zum Hotel und zum Festival. Größere Distanzen (z.B. zum Flughafen) auf Anfrage gegen Aufpreis.' },
+    { q: 'Was beinhaltet die Backstage-Tour?', a: '60-90 Minuten geführte Tour mit dem Festival-Manager — hinter den Bühnen, Künstler-Garderoben, Technik-Bereich. Inkl. Foto-Möglichkeiten.' },
+    { q: 'Kann ich eine Begleitperson mitbringen?', a: 'Das Backstage-Ticket ist personalisiert. Für 2 Personen empfehlen wir 2 Tickets mit Bring-A-Friend-Option (15 % Rabatt).' },
+    { q: 'Was ist die Welcome-Reception?', a: 'Privater Empfang am Vorabend (17.07., 19:00) im Hotel mit Künstlern, Live-Musik und 4-Gänge-Menü. Limitiert auf 50 Backstage-Gäste.' },
+  ],
+  'tee-1': [
+    { q: 'Welche Größen sind verfügbar?', a: 'S, M, L, XL — Unisex-Schnitt, leicht oversized. Bei Unsicherheit: lieber eine Nummer kleiner. Kostenloser Tausch innerhalb von 14 Tagen.' },
+    { q: 'Wie wird das Shirt produziert?', a: 'In einer GOTS-zertifizierten Manufaktur in Indien, mit fairer Bezahlung (Fair Trade) und ohne Schadstoffe. Wasserbasierte Tinten beim Druck.' },
+    { q: 'Wie wasche ich es?', a: '30 °C bunt mit ähnlichen Farben. Nicht in den Trockner — Bio-Baumwolle hält länger an der Luft. Bügeln auf links, Druck nicht direkt.' },
+    { q: 'Welche Größe passt mir?', a: 'Größentabelle (Brustumfang): S = 88-92 cm, M = 96-100 cm, L = 104-108 cm, XL = 112-116 cm. Im Zweifel das größere wählen für oversized-Look.' },
+  ],
+};
+
+// ─── TAB-LABELS pro Produktkategorie ────────────────────────────────────────
+// Die Detailseite hat 3 Tabs. Inhaltsstoffe + Einnahme passen für Vitamine,
+// aber für Tablettenboxen/Tickets/Shirts brauchen wir andere Labels.
+// ────────────────────────────────────────────────────────────────────────────
+const TAB_LABELS_BY_CATEGORY = {
+  vitamine:     { ingredients: 'Inhaltsstoffe',         usage: 'Einnahme',           sectionTitle: 'Vollständige Zutatenliste',   disclaimer: 'Alle Rohstoffzertifikate auf Anfrage erhältlich. Chargenprüfbericht auf unserer Website einsehbar.' },
+  adaptogen:    { ingredients: 'Inhaltsstoffe',         usage: 'Einnahme',           sectionTitle: 'Vollständige Zutatenliste',   disclaimer: 'Alle Rohstoffzertifikate auf Anfrage erhältlich. Chargenprüfbericht auf unserer Website einsehbar.' },
+  tablettenbox: { ingredients: 'Material & Funktion',   usage: 'Pflege',             sectionTitle: 'Material & Eigenschaften',     disclaimer: 'Materialprüfungen und Zertifikate auf Anfrage einsehbar.' },
+  shaker:       { ingredients: 'Material & Funktion',   usage: 'Pflege',             sectionTitle: 'Material & Eigenschaften',     disclaimer: 'Materialprüfungen und Zertifikate auf Anfrage einsehbar.' },
+  ticket:       { ingredients: 'Im Paket enthalten',    usage: 'Hinweise zum Event', sectionTitle: 'Was im Ticket enthalten ist',  disclaimer: 'Tickets werden 48 h vor dem Event als QR-Code per E-Mail versandt.' },
+  shirt:        { ingredients: 'Material',              usage: 'Pflege',             sectionTitle: 'Material & Verarbeitung',     disclaimer: 'Versand in plastikfreier Recycling-Verpackung.' },
+};
+function getTabLabels(category) {
+  return TAB_LABELS_BY_CATEGORY[category] || { ingredients: 'Details', usage: 'Hinweise', sectionTitle: 'Eigenschaften', disclaimer: '' };
+}
+
+// ─── EINNAHME / PFLEGE / HINWEISE pro Produkt ───────────────────────────────
+// Wird im 2. Tab der Detailseite angezeigt. Format: { strong, text } pro Zeile.
+// Bei fehlenden Einträgen wird der Tab leer gelassen.
+// ────────────────────────────────────────────────────────────────────────────
+const USAGE_BY_ID = {
+  // Vitamine
+  'vit-1': [
+    { strong: 'Empfohlene Tagesdosis', text: '1 Kapsel täglich zu einer Mahlzeit, am besten morgens.' },
+    { strong: 'Einnahmezeit', text: 'Vorzugsweise mit fetthaltigem Frühstück (verbessert die Aufnahme).' },
+    { strong: 'Lagerung', text: 'Trocken, unter 25 °C, vor direkter Sonne geschützt.' },
+    { strong: 'Hinweis', text: 'Nahrungsergänzungsmittel ersetzen keine ausgewogene Ernährung. Schwangere bitte Arzt fragen.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Lieferzeit 1–2 Werktage.' },
+    { strong: 'Garantie', text: '30 Tage Geld-zurück-Garantie, kein Risiko.' },
+  ],
+  'vit-2': [
+    { strong: 'Empfohlene Tagesdosis', text: '1 Kapsel täglich, vorzugsweise zur Mahlzeit.' },
+    { strong: 'Einnahmezeit', text: 'Morgens oder mittags. Abends nicht empfohlen — kann bei Sensiblen den Schlaf beeinflussen.' },
+    { strong: 'Lagerung', text: 'Trocken, unter 25 °C. Nach Anbruch innerhalb von 6 Monaten verwenden.' },
+    { strong: 'Wechselwirkungen', text: 'K2 kann die Wirkung von Blutverdünnern beeinflussen — bei Marcumar bitte Arzt fragen.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Lieferzeit 1–2 Werktage.' },
+    { strong: 'Garantie', text: '30 Tage Geld-zurück-Garantie.' },
+  ],
+  'vit-3': [
+    { strong: 'Empfohlene Tagesdosis', text: '1 Kapsel mit einer Hauptmahlzeit (höhere Dosis = wichtige Mahlzeitenkopplung).' },
+    { strong: 'Einnahmezeit', text: 'Morgens zum Frühstück optimal — Vitamin D wirkt am besten bei Tageslichtkopplung.' },
+    { strong: 'Lagerung', text: 'In der Glasflasche, kühl und trocken. Klimaneutrale Verpackung — bitte recyclen.' },
+    { strong: 'Hinweis', text: 'Bei nachgewiesenem Mangel evtl. höhere Dosis nötig — Bluttest beim Arzt empfohlen.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Klimaneutraler Versand.' },
+    { strong: 'Garantie', text: '30 Tage Geld-zurück-Garantie.' },
+  ],
+  'vit-4': [
+    { strong: 'Empfohlene Tagesdosis', text: '1 Kapsel täglich. Durch Liposom-Technologie reicht 1 Kapsel pro Tag — keine Mehrfachgabe nötig.' },
+    { strong: 'Einnahmezeit', text: 'Tagsüber zu einer Hauptmahlzeit. Liposomale Aufnahme ist auch ohne Fett gut.' },
+    { strong: 'Lagerung', text: 'Glasflasche, kühl und dunkel. Nach Anbruch 4 Monate haltbar.' },
+    { strong: 'Hinweis', text: 'Premium-Variante speziell für Resorptionsprobleme. Sonst reicht meist Premium oder Plus.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Klimaneutraler Versand.' },
+    { strong: 'Garantie', text: '30 Tage Geld-zurück-Garantie.' },
+  ],
+  'ada-1': [
+    { strong: 'Empfohlene Tagesdosis', text: '1 Kapsel abends, idealerweise zur Mahlzeit.' },
+    { strong: 'Einnahmezeit', text: 'Abends 1–2 h vor dem Schlafengehen — unterstützt die Cortisol-Senkung und das Einschlafen.' },
+    { strong: 'Lagerung', text: 'Trocken, unter 25 °C, vor Licht geschützt.' },
+    { strong: 'Wann sehe ich Effekte?', text: 'Erste Effekte nach 2–3 Wochen, klinisch volle Wirkung nach 8 Wochen Einnahme.' },
+    { strong: 'Hinweis', text: 'Bei Schilddrüsen-Erkrankungen, Schwangerschaft oder Immunsuppressiva: vorab Arzt fragen.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Lieferzeit 1–2 Werktage.' },
+  ],
+
+  // Tablettenboxen
+  'box-1': [
+    { strong: 'Reinigung', text: 'Spülmaschine im Oberkorb bei max. 50 °C. Bei Handwäsche hält der Verschluss länger geschmeidig.' },
+    { strong: 'Trocknen', text: 'Vollständig trocknen lassen vor dem Befüllen — schützt Tabletten vor Feuchtigkeit.' },
+    { strong: 'Pflege', text: 'Bei verschmiertem Verschluss: lauwarmes Wasser mit weicher Bürste reinigen.' },
+    { strong: 'Hinweis', text: 'Nicht in Mikrowelle. Plastik kann sich bei zu hoher Temperatur verformen.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Plastikfreie Verpackung.' },
+    { strong: 'Garantie', text: '30 Tage Rückgaberecht, 2 Jahre Funktionsgarantie auf Verschluss.' },
+  ],
+  'box-2': [
+    { strong: 'Reinigung', text: 'Spülmaschine im Oberkorb. UV-Druck bleibt auch nach 100+ Spülgängen erhalten.' },
+    { strong: 'Trocknen', text: 'Vor dem Befüllen vollständig trocknen — auch im Klick-Verschluss-Bereich.' },
+    { strong: 'Pflege Beschriftung', text: 'Keine scharfen Lösungsmittel verwenden — abriebfest, aber kein Aceton.' },
+    { strong: 'Hinweis', text: 'Klick-Verschluss-Mechanik: erst nach 2–3 Tagen wird einhändige Bedienung flüssig.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Plastikfreie Verpackung.' },
+    { strong: 'Garantie', text: '30 Tage Rückgaberecht, 2 Jahre Funktionsgarantie.' },
+  ],
+  'box-3': [
+    { strong: 'Reinigung', text: 'Spülmaschine bei beliebiger Temperatur — Silikon ist hitzebeständig bis 220 °C.' },
+    { strong: 'Trocknen', text: 'Silikon trocknet schnell. Fächer einzeln entnehmen für gründliche Reinigung.' },
+    { strong: 'Pflege', text: 'Geruchsbildung? 30 Min in Essigwasser einlegen — entfernt alle Rückstände.' },
+    { strong: 'Hinweis', text: 'IP67-Luftdichtigkeit: nur wenn Verschluss vollständig eingerastet ist.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Plastikfreie Verpackung.' },
+    { strong: 'Garantie', text: '30 Tage Rückgaberecht, 5 Jahre Materialgarantie auf Silikon.' },
+  ],
+  'box-4': [
+    { strong: 'Reinigung', text: 'Handwäsche mit lauwarmem Wasser. Kein Einweichen — Bambus saugt sich sonst voll.' },
+    { strong: 'Trocknen', text: 'Mit weichem Tuch abreiben, dann an der Luft komplett trocknen.' },
+    { strong: 'Pflege Bambus', text: '1× pro Jahr mit Bambusöl behandeln. Verhindert Austrocknen und Risse.' },
+    { strong: 'Hinweis', text: 'Edelstahl-Magnetverschluss bleibt jahrelang funktional. Magnetkraft hält auch im Koffer.' },
+    { strong: 'Lebensende', text: 'Bambus kompostierbar, Edelstahl recycelbar. Beides separat entsorgen.' },
+    { strong: 'Garantie', text: '30 Tage Rückgaberecht, 3 Jahre Materialgarantie.' },
+  ],
+  'shk-1': [
+    { strong: 'Reinigung', text: 'Spülmaschinenfest oben. Mischball gleich mitwaschen, nicht im Shaker liegen lassen.' },
+    { strong: 'Trocknen', text: 'Komplett trocknen vor dem nächsten Befüllen — verhindert Geruchsbildung.' },
+    { strong: 'Pflege Edelstahl', text: 'Bei Wasserflecken: trockenes Mikrofasertuch reicht.' },
+    { strong: 'Hinweis Heißgetränke', text: 'Hitzebeständig bis 90 °C, aber Deckel nicht sofort verschließen — Druck-Aufbau vermeiden.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. Plastikfreie Verpackung.' },
+    { strong: 'Garantie', text: '30 Tage Rückgaberecht, 5 Jahre Materialgarantie.' },
+  ],
+
+  // Tickets — Hinweise zum Event
+  'tic-1': [
+    { strong: 'Datum & Uhrzeit', text: 'Samstag, 18.07.2026 · 10:00 bis 23:00 Uhr.' },
+    { strong: 'Anfahrt', text: 'Olympiapark München, Eingang Süd. U-Bahn U3 (Olympiazentrum) · Auto: Parkplatz P5.' },
+    { strong: 'Was mitbringen', text: 'Personalausweis, dein QR-Ticket aufs Handy, wetterfeste Kleidung. Trinkflasche bis 0,5 l erlaubt.' },
+    { strong: 'Was ist nicht erlaubt', text: 'Eigenes Essen, Glasflaschen, Tiere (außer Assistenzhunde mit Nachweis).' },
+    { strong: 'Wetter', text: 'Findet bei jedem Wetter statt. Bei Sturm: überdachte Bühnen vorhanden.' },
+    { strong: 'Stornierung', text: 'Kostenfrei bis 7 Tage vor Event. Namensänderung jederzeit kostenlos.' },
+  ],
+  'tic-2': [
+    { strong: 'Datum & Uhrzeit', text: 'Samstag, 18.07.2026 · 10:00 bis 23:00 Uhr.' },
+    { strong: 'Anfahrt', text: 'Olympiapark München, Eingang Süd. Premium-Eingang am Haupttor.' },
+    { strong: 'Lunch', text: 'Reservierung am Buffet zwischen 12:00 und 14:00 Uhr. Vegan/vegetarisch bei Buchung wählbar.' },
+    { strong: 'Sitzbereich', text: 'Reservierter Bereich vor den 2 Hauptbühnen. Plätze nicht nummeriert.' },
+    { strong: 'Was mitbringen', text: 'Personalausweis, QR-Ticket, wetterfeste Kleidung. Goodie-Bag wird beim Eintritt überreicht.' },
+    { strong: 'Stornierung', text: 'Kostenfrei bis 7 Tage vor Event. Lunch-Sonderwünsche können später nicht geändert werden.' },
+  ],
+  'tic-3': [
+    { strong: 'Datum & Uhrzeit', text: 'Samstag, 18.07.2026 · 10:00 bis 23:00 Uhr.' },
+    { strong: 'VIP-Eingang', text: 'Separater Eingang ohne Wartezeit, ausgeschildert ab Olympiapark Süd.' },
+    { strong: 'Workshop-Buchung', text: '7 Tage vor Event erhältst du Link zur Workshop-Auswahl. Wähle 3 von 12 angebotenen Slots.' },
+    { strong: 'Meet-and-Greet', text: '60 Min in der VIP-Lounge gegen 17:00 Uhr. Alle Speakers nacheinander, Foto-Möglichkeit garantiert.' },
+    { strong: 'Catering', text: 'Ganztägig in der VIP-Lounge: Getränke (inkl. Wein/Bier), Snacks, Hauptmahlzeiten 12:00–20:00.' },
+    { strong: 'Stornierung', text: 'Kostenfrei bis 7 Tage vor Event.' },
+  ],
+  'tic-4': [
+    { strong: 'Datum', text: 'Anreise Freitag, 17.07.2026 ab 17:00 Uhr ins Hotel. Festival am 18.07. · Abreise Sonntag nach Frühstück.' },
+    { strong: 'Hotel & Anreise', text: 'Hotel Bayerischer Hof München, Promenadeplatz. Eigene Anreise oder Fahrer-Service ab Hauptbahnhof.' },
+    { strong: 'Welcome-Reception', text: 'Freitag 19:00 Uhr im Hotel. Live-Musik, 4-Gänge-Menü, Künstler-Treff. Limitiert auf 50 Gäste.' },
+    { strong: 'Backstage-Tour', text: 'Samstag 14:00 oder 16:00 Uhr (1 Slot wählbar). Ca. 90 Min mit Festival-Manager.' },
+    { strong: 'Fahrer-Service', text: 'Hin- und Rückfahrt zwischen Hotel und Festival kostenlos. Innerhalb Münchens auch sonst inklusive.' },
+    { strong: 'Stornierung', text: 'Kostenfrei bis 14 Tage vor Event (höhere Frist wegen Hotel-Reservierung).' },
+  ],
+
+  // Shirt
+  'tee-1': [
+    { strong: 'Waschen', text: '30 °C bunt mit ähnlichen Farben. Kein Vollwaschmittel — Bio-Baumwolle hält länger mit Feinwaschmittel.' },
+    { strong: 'Trocknen', text: 'An der Luft trocknen, nicht in den Trockner. Naturfasern danken es mit längerer Lebensdauer.' },
+    { strong: 'Bügeln', text: 'Auf links bügeln (Druck nicht direkt mit Bügeleisen berühren). Mittlere Stufe.' },
+    { strong: 'Lagerung', text: 'Liegend oder hängend. Nicht in der Sonne lagern — Druck kann ausbleichen.' },
+    { strong: 'Größentausch', text: 'Innerhalb von 14 Tagen kostenfrei. Versandetikett liegt bei.' },
+    { strong: 'Versand', text: 'Kostenlos ab 60 €. In Recycling-Papier, kein Plastik.' },
+  ],
+};
+
+// ─── OPTIONS / UP-SELL pro Produkt ──────────────────────────────────────────
+// Jedes Produkt hat 1+ Mengen-/Größen-Optionen.
+//   isUpsell: true → KI darf diese Option als Up-Sell empfehlen
+// Cross-Sell-Produkte haben i.d.R. nur eine Option (= Standardgröße).
+// Editierung: Preis & Label hier anpassen, units = wieviele physische Einheiten.
+// ────────────────────────────────────────────────────────────────────────────
+const OPTIONS_BY_ID = {
+  // Vitamine: 1er / 2er-Pack -10 % / 3er-Pack -15 %
+  'vit-1': [
+    { label: '1 Packung',                                  price:  14.90, units: 1, isUpsell: false },
+    { label: '2er-Pack — 10 % Rabatt',                     price:  26.82, units: 2, isUpsell: true  },
+    { label: '3er-Pack — 15 % Rabatt',                     price:  37.99, units: 3, isUpsell: true  },
+  ],
+  'vit-2': [
+    { label: '1 Packung',                                  price:  24.90, units: 1, isUpsell: false },
+    { label: '2er-Pack — 10 % Rabatt',                     price:  44.82, units: 2, isUpsell: true  },
+    { label: '3er-Pack — 15 % Rabatt',                     price:  63.50, units: 3, isUpsell: true  },
+  ],
+  'vit-3': [
+    { label: '1 Packung',                                  price:  34.90, units: 1, isUpsell: false },
+    { label: '2er-Pack — 10 % Rabatt',                     price:  62.82, units: 2, isUpsell: true  },
+    { label: '3er-Pack — 15 % Rabatt',                     price:  88.99, units: 3, isUpsell: true  },
+  ],
+  'vit-4': [
+    { label: '1 Packung',                                  price:  49.90, units: 1, isUpsell: false },
+    { label: '2er-Pack — 10 % Rabatt',                     price:  89.82, units: 2, isUpsell: true  },
+    { label: '3er-Pack — 15 % Rabatt',                     price: 127.25, units: 3, isUpsell: true  },
+  ],
+  'ada-1': [
+    { label: '1 Packung',                                  price:  32.90, units: 1, isUpsell: false },
+  ],
+
+  // Tablettenboxen: Standard 7 Fächer / XXL 28 Fächer (+50 %)
+  'box-1': [
+    { label: 'Standard — 7 Fächer / 1 Woche',              price:   7.90, units: 1, isUpsell: false },
+    { label: 'XXL — 28 Fächer / 4 Wochen',                 price:  11.85, units: 1, isUpsell: true  },
+  ],
+  'box-2': [
+    { label: 'Standard — 7 Fächer / 1 Woche',              price:  14.90, units: 1, isUpsell: false },
+    { label: 'XXL — 28 Fächer / 4 Wochen',                 price:  22.35, units: 1, isUpsell: true  },
+  ],
+  'box-3': [
+    { label: 'Standard — 7 Fächer / 1 Woche',              price:  22.90, units: 1, isUpsell: false },
+    { label: 'XXL — 28 Fächer / 4 Wochen',                 price:  34.35, units: 1, isUpsell: true  },
+  ],
+  'box-4': [
+    { label: 'Standard — 7 Fächer / 1 Woche',              price:  32.90, units: 1, isUpsell: false },
+    { label: 'XXL — 28 Fächer / 4 Wochen',                 price:  49.35, units: 1, isUpsell: true  },
+  ],
+  'shk-1': [
+    { label: '1 Stück',                                    price:  19.90, units: 1, isUpsell: false },
+  ],
+
+  // Tickets: 1 / 2 (Bring-A-Friend -15 %)
+  'tic-1': [
+    { label: '1 Ticket',                                   price:  49.00, units: 1, isUpsell: false },
+    { label: '2 Tickets — Bring-A-Friend (15 % Rabatt)',   price:  83.30, units: 2, isUpsell: true  },
+  ],
+  'tic-2': [
+    { label: '1 Ticket',                                   price:  89.00, units: 1, isUpsell: false },
+    { label: '2 Tickets — Bring-A-Friend (15 % Rabatt)',   price: 151.30, units: 2, isUpsell: true  },
+  ],
+  'tic-3': [
+    { label: '1 Ticket',                                   price: 149.00, units: 1, isUpsell: false },
+    { label: '2 Tickets — Bring-A-Friend (15 % Rabatt)',   price: 253.30, units: 2, isUpsell: true  },
+  ],
+  'tic-4': [
+    { label: '1 Ticket',                                   price: 249.00, units: 1, isUpsell: false },
+    { label: '2 Tickets — Bring-A-Friend (15 % Rabatt)',   price: 423.30, units: 2, isUpsell: true  },
+  ],
+  'tee-1': [
+    { label: '1 Stück',                                    price:  24.90, units: 1, isUpsell: false },
+  ],
+};
+
+// ─── SZENARIEN-METADATA ─────────────────────────────────────────────────────
+// Pro Szenario: Aufgabentitel, Beschreibung, Banner-Text, Filter-Tab-Logik.
+// Wichtig: defaultTab landet immer auf der Hauptkategorie, damit Cross-Sell
+// nur dann erscheint wenn der User aktiv den Reiter wechselt.
+// ────────────────────────────────────────────────────────────────────────────
+const SCENARIOS_META = [
+  {
+    id: 'vitamine',
+    label: 'Vitamine',
+    image: 'img/supplements.jpg', // optional, fallback = Emoji
+    title: 'Vitamin D3 + K2 für Ihre Energie',
+    text: 'Stellen Sie sich vor, Sie möchten Ihrem Körper im Winter mehr Vitamin D zuführen — für Energie, Immunsystem und Knochengesundheit. Stöbern Sie im Sortiment und wählen Sie das Produkt aus, das Sie tatsächlich kaufen würden.',
+    bannerText: 'Aufgabe: Wählen Sie ein Vitamin-D3-Produkt aus, das Sie kaufen würden.',
+    mainCategoryId: 'vitamine',
+    crossSellCategoryId: 'adaptogen',
+    mainCategoryLabel: 'Vitamine',
+    crossSellCategoryLabel: 'Adaptogene',
+    productSectionTitle: 'Unsere Vitamine',
+    productSectionSub: 'Vier Optionen — von Basis-Versorgung bis liposomales Pro. Alle mit transparenter Herkunft und vollständiger Inhaltsdeklaration.',
+  },
+  {
+    id: 'tablettenbox',
+    label: 'Tablettenboxen',
+    image: 'img/pillbox.jpg',
+    title: 'Tablettenbox für Ihre Routine',
+    text: 'Stellen Sie sich vor, Sie möchten Ihre tägliche Einnahme strukturieren — z.B. Vitamine, Medikamente oder Mineralien. Wählen Sie eine Tablettenbox aus, die Sie tatsächlich kaufen würden.',
+    bannerText: 'Aufgabe: Wählen Sie eine Tablettenbox aus, die Sie kaufen würden.',
+    mainCategoryId: 'tablettenbox',
+    crossSellCategoryId: 'shaker',
+    mainCategoryLabel: 'Tablettenboxen',
+    crossSellCategoryLabel: 'Shaker',
+    productSectionTitle: 'Unsere Tablettenboxen',
+    productSectionSub: 'Vier Tablettenboxen mit jeweils 7 Fächern — von Basic bis Eco-Pro. Unterschied: Material, Funktion und Verarbeitung.',
+  },
+  {
+    id: 'event',
+    label: 'Festival-Tickets',
+    image: 'img/event.jpg',
+    title: 'VERDEA Wellness Festival 2026',
+    text: 'Stellen Sie sich vor, Sie möchten am VERDEA Wellness Festival 2026 teilnehmen — ein Tag voller Workshops, Talks und Live-Acts rund um Gesundheit & Lifestyle. Wählen Sie eine Ticket-Kategorie aus, die Sie tatsächlich buchen würden.',
+    bannerText: 'Aufgabe: Wählen Sie ein Ticket aus, das Sie buchen würden.',
+    mainCategoryId: 'ticket',
+    crossSellCategoryId: 'shirt',
+    mainCategoryLabel: 'Tickets',
+    crossSellCategoryLabel: 'Festival-Shirt',
+    productSectionTitle: 'Festival-Tickets 2026',
+    productSectionSub: 'Vier Ticket-Stufen — von Standard bis Backstage. Jede Stufe mit klar abgegrenztem Inklusivpaket.',
+  },
 ];
 
+// ─── CSV-PARSER (mini, ~25 Zeilen) ──────────────────────────────────────────
+function parseProductsCSV(csv) {
+  const lines = csv.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+  if (lines.length < 2) return [];
+  const header = lines[0].split(';').map(s => s.trim());
+  return lines.slice(1).map(line => {
+    const cells = line.split(';').map(s => s.trim());
+    const obj = {};
+    header.forEach((key, i) => {
+      let val = cells[i] !== undefined ? cells[i] : '';
+      if (key === 'certs') {
+        val = val ? val.split('|').map(s => s.trim()).filter(Boolean) : [];
+      } else if (key === 'price' || key === 'rating') {
+        val = parseFloat(val) || 0;
+      } else if (key === 'reviews') {
+        val = parseInt(val, 10) || 0;
+      }
+      obj[key] = val;
+    });
+    return obj;
+  });
+}
+
+// Helper: Preis in EUR formatieren (für Options-Labels)
+function _fmtEur(n) {
+  return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+}
+
+// ─── SZENARIEN ZUSAMMENBAUEN ────────────────────────────────────────────────
+// Aus CSV + Maps die finale SCENARIOS-Struktur erzeugen, die das Render-System
+// wie bisher erwartet (products[], jeweils mit ingredients/faq/options).
+// ────────────────────────────────────────────────────────────────────────────
+function buildScenarios() {
+  const allProducts = parseProductsCSV(PRODUCTS_CSV);
+  return SCENARIOS_META.map(meta => {
+    const scenarioProducts = allProducts
+      .filter(p => p.scenario === meta.id)
+      .map(p => {
+        const optionDetails = OPTIONS_BY_ID[p.id] || [
+          { label: 'Standard', price: p.price, units: 1, isUpsell: false }
+        ];
+        return {
+          ...p,
+          // Bild-Pfad wird automatisch aus der Produkt-ID abgeleitet:
+          //   z.B. vit-1 → img/vit-1.png
+          // Fehlt die Datei, fällt das Rendering per onerror auf Emoji zurück.
+          image: `img/${p.id}.png`,
+          // Backwards-Kompatibilität für bestehenden Render-Code
+          oldPrice: null,
+          badge: null, // bewusst KEINE Badges (bestseller/neu zur Bias-Vermeidung entfernt)
+          desc: p.short_desc, // .desc wird in der Detailseite verwendet
+          ingredients: INGREDIENTS_BY_ID[p.id] || [],
+          faq: FAQS_BY_ID[p.id] || [],
+          usage: USAGE_BY_ID[p.id] || [],
+          tabLabels: getTabLabels(p.category),
+          optionDetails, // strukturierte Form mit isUpsell-Flag
+          options: optionDetails.map(o => `${o.label} (${_fmtEur(o.price)})`), // legacy strings für Render
+        };
+      });
+    return { ...meta, products: scenarioProducts };
+  });
+}
+
+const SCENARIOS = buildScenarios();
+
+// ───────────────────────────────────────────────────────────────────────────
+// PIKTOGRAMME (Inline-SVG, einfarbig — passen sich via currentColor an)
+// ───────────────────────────────────────────────────────────────────────────
+// Verwendung im JS:           ${icon('leaf')}
+// Verwendung mit Größe:       ${icon('leaf', 20)}
+// Inline im HTML (statisch):  einfach das SVG aus ICONS direkt einsetzen
+// Farbe: stammt vom Eltern-Element (CSS color: …) → automatisch anpassend.
+// ───────────────────────────────────────────────────────────────────────────
+const ICONS = {
+  // Pflanze / Marke
+  leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>',
+  // Wissenschaft / Mikroskop
+  microscope: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1h-1a1 1 0 0 0-1 1v3"/></svg>',
+  // Herz / kuratiert
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.45 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>',
+  // Labor-Kolben
+  flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>',
+  // Globus
+  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>',
+  // Paket
+  package: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+  // Handschlag
+  handshake: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>',
+  // Funken / Highlight
+  sparkle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>',
+  // Info-Kreis
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+  // Glühbirne
+  lightbulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
+  // Chat-Bubble
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  // E-Mail (Newsletter)
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+};
+
+// Helper: produziert ein SVG-Snippet mit gewünschter Pixelgröße
+function icon(name, size = 16) {
+  const svg = ICONS[name];
+  if (!svg) return '';
+  return svg.replace('<svg ', `<svg width="${size}" height="${size}" class="icon" `);
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Studien-State (bleibt unverändert)
+// ───────────────────────────────────────────────────────────────────────────
 let currentScenarioIndex = 0;
 let scenarioStartTime = 0;
 let aiMessageCount = 0;
@@ -92,217 +1102,6 @@ function getCurrentScenario() { return SCENARIOS[currentScenarioIndex]; }
 
 // ===== PRODUCT DATA — wird dynamisch aus aktuellem Szenario geladen =====
 let products = SCENARIOS[0].products;
-const _placeholderProducts = [
-  {
-    id: 'placeholder-unused',
-    name: 'placeholder',
-    brand: 'VERDEA',
-    tagline: 'Adaptogen für Stressresistenz & mentale Balance',
-    category: 'adaptogen',
-    price: 34.90,
-    oldPrice: null,
-    badge: 'bestseller',
-    emoji: '🌿',
-    rating: 4.9,
-    reviews: 512,
-    unit: '90 Kapseln · 3 Monate',
-    certs: ['🌱 Bio', '🐇 Vegan', '🔬 GMP'],
-    desc: 'Unser Ashwagandha verwendet das patentierte KSM-66® Vollspektrum-Extrakt — die weltweit am besten erforschte Ashwagandha-Form. Mit 600 mg pro Tagesdosis entspricht es dem Standard klinischer Studien, die signifikante Stressreduktion belegen.',
-    ingredients: [
-      { name: 'Ashwagandha Wurzelextrakt', sub: 'KSM-66® · Withania somnifera', amount: '600 mg', origin: '🇮🇳 Indien', pct: 88 },
-      { name: 'Schwarzer Pfeffer Extrakt', sub: 'BioPerine® · Piper nigrum', amount: '5 mg', origin: '🇮🇳 Kerala', pct: 10 },
-      { name: 'HPMC-Kapsel', sub: 'Hydroxypropylmethylcellulose', amount: '—', origin: '🌱 Pflanzlich', pct: 0 }
-    ],
-    options: ['1 Packung (34,90 €)', '2 Packungen (62,90 €)', '3 Packungen (89,90 €)'],
-    faq: [
-      { q: 'Wann sehe ich erste Effekte?', a: 'Die meisten Anwender berichten nach 2–4 Wochen regelmäßiger Einnahme von ersten Verbesserungen. Für optimale Ergebnisse empfehlen wir eine Einnahmedauer von mindestens 8 Wochen.' },
-      { q: 'Wann ist die beste Einnahmezeit?', a: 'Ashwagandha kann morgens oder abends eingenommen werden. Bei Einnahme zur Stressreduktion tagsüber, bei Schlafverbesserung abends mit einer Mahlzeit.' },
-      { q: 'Kann ich es mit anderen Supplementen kombinieren?', a: 'Ja. Ashwagandha lässt sich gut mit Magnesium (abends) oder Vitamin D kombinieren. Bei verschreibungspflichtigen Medikamenten bitten wir, vorher einen Arzt zu konsultieren.' }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Vitamin D3 + K2',
-    brand: 'VERDEA',
-    tagline: 'Optimale Knochengesundheit & Immunsystem',
-    category: 'vitamine',
-    price: 24.90,
-    oldPrice: 29.90,
-    badge: 'sale',
-    emoji: '☀️',
-    rating: 4.8,
-    reviews: 388,
-    unit: '120 Tropfen · 4 Monate',
-    certs: ['🌱 Bio', '🐇 Vegan', '🔬 Laborgeprüft'],
-    desc: 'Die Kombination aus D3 (5000 IU) und K2 (MK-7, 200 µg) gilt als Goldstandard: Vitamin K2 sorgt dafür, dass das durch D3 aufgenommene Kalzium in die Knochen gelangt — statt in die Arterien. In MCT-Öl für maximale Bioverfügbarkeit.',
-    ingredients: [
-      { name: 'Vitamin D3 (Cholecalciferol)', sub: 'Aus Flechten, vegan', amount: '5000 IU · 125 µg', origin: '🇩🇪 Deutschland', pct: 95 },
-      { name: 'Vitamin K2 (MK-7)', sub: 'Menaquinon-7, all-trans', amount: '200 µg', origin: '🇯🇵 Japan', pct: 80 },
-      { name: 'MCT-Öl', sub: 'Aus Bio-Kokosöl', amount: 'Träger', origin: '🇵🇭 Philippinen', pct: 0 }
-    ],
-    options: ['1 Flasche (24,90 €)', '3 Flaschen (64,90 €)'],
-    faq: [
-      { q: 'Warum D3 + K2 kombinieren?', a: 'Vitamin D3 fördert die Kalziumaufnahme, doch ohne K2 kann dieses Kalzium in Blutgefäßen eingelagert werden. K2 aktiviert Proteine, die Kalzium gezielt in Knochen und Zähne lenken.' },
-      { q: 'Wie hoch ist mein Vitamin-D-Bedarf?', a: 'Das hängt von Ihrem Ausgangswert ab. Wir empfehlen, den 25(OH)D-Spiegel im Blut testen zu lassen. Zielwert: 50–80 ng/ml.' }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Magnesium Glycinat',
-    brand: 'VERDEA',
-    tagline: 'Schlaf, Muskelregeneration & Nervensystem',
-    category: 'vitamine',
-    price: 28.90,
-    oldPrice: null,
-    badge: 'new',
-    emoji: '🌙',
-    rating: 4.7,
-    reviews: 241,
-    unit: '120 Kapseln · 2 Monate',
-    certs: ['🐇 Vegan', '🔬 GMP', '🚫 Füllstofffrei'],
-    desc: 'Magnesiumglycinat ist die sanfteste und am besten bioverfügbare Magnesiumform. Anders als Magnesiumoxid (Billigvariante) verursacht es keine Magenprobleme und wird direkt vom Nervensystem aufgenommen. Ideal zur abendlichen Einnahme.',
-    ingredients: [
-      { name: 'Magnesium Bisglicinat', sub: 'Chelat-gebunden', amount: '400 mg Mg²⁺', origin: '🇩🇪 Deutschland', pct: 90 },
-      { name: 'HPMC-Kapsel', sub: 'Pflanzliche Kapsel', amount: '—', origin: '🌱 Pflanzlich', pct: 0 }
-    ],
-    options: ['1 Packung (28,90 €)', '3 Packungen (74,90 €)'],
-    faq: [
-      { q: 'Wann sollte ich Magnesium einnehmen?', a: 'Abends, etwa 30–60 Minuten vor dem Schlafen. Die entspannende Wirkung auf Muskeln und Nervensystem unterstützt den Einschlafprozess.' },
-      { q: 'Was ist der Unterschied zu Magnesiumoxid?', a: 'Magnesiumoxid hat eine Bioverfügbarkeit von ca. 4% und verursacht häufig Durchfall. Magnesiumglycinat hat ca. 80% Bioverfügbarkeit und ist magenfreundlich.' }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Omega-3 Arctic Pure',
-    brand: 'VERDEA',
-    tagline: 'EPA & DHA aus nachhaltigem Wildfang',
-    category: 'vitamine',
-    price: 39.90,
-    oldPrice: null,
-    badge: null,
-    emoji: '🐟',
-    rating: 4.6,
-    reviews: 167,
-    unit: '90 Kapseln · 1,5 Monate',
-    certs: ['🌊 MSC-zertifiziert', '🔬 TOTOX-geprüft', '🔬 GMP'],
-    desc: 'Höchste Reinheit aus arktischen Gewässern: 1000 mg Fischöl mit 660 mg EPA und 440 mg DHA pro Kapsel. TOTOX-Wert unter 5 (Industriestandard: 26). Kein Fischgeruch, da in triglyzeridgebundener Form.',
-    ingredients: [
-      { name: 'Fischöl (Wildfang)', sub: 'Sardellen, Anchosen · MSC-zertifiziert', amount: '1000 mg', origin: '🇳🇴 Norwegen', pct: 95 },
-      { name: 'davon EPA', sub: 'Eicosapentaensäure', amount: '660 mg', origin: '', pct: 70 },
-      { name: 'davon DHA', sub: 'Docosahexaensäure', amount: '440 mg', origin: '', pct: 50 },
-      { name: 'Vitamin E (Tocopherol)', sub: 'Natürliches Antioxidans', amount: '1 mg', origin: '🇩🇪 Deutschland', pct: 5 }
-    ],
-    options: ['1 Packung (39,90 €)', '3 Packungen (99,90 €)'],
-    faq: [
-      { q: 'Was bedeutet TOTOX-Wert?', a: 'TOTOX misst die Oxidation (Ranzigkeit) des Öls. Werte über 26 gelten als inakzeptabel, viele günstige Produkte überschreiten 40+. Unser Wert liegt unter 5 — frischer als frischer Fisch.' },
-      { q: 'Ist das Produkt nachhaltig?', a: 'Ja. Alle Rohstoffe kommen aus MSC-zertifiziertem Wildfang. Wir verarbeiten ausschließlich kleine, schnell nachwachsende Fischarten (keine Thunfisch, kein Lachs).' }
-    ]
-  },
-  {
-    id: 5,
-    name: 'Probiotika Pro 50 Mrd.',
-    brand: 'VERDEA',
-    tagline: '12 Stämme · Magensäureresistente Kapsel',
-    category: 'darm',
-    price: 44.90,
-    oldPrice: 54.90,
-    badge: 'sale',
-    emoji: '🦠',
-    rating: 4.8,
-    reviews: 298,
-    unit: '60 Kapseln · 2 Monate',
-    certs: ['🐇 Vegan', '🔬 Klinisch getestet', '🌡 Kühlkettenversand'],
-    desc: '50 Milliarden koloniebildende Einheiten (KBE) aus 12 klinisch erforschten Lactobacillus- und Bifidobacterium-Stämmen. Magensäureresistente MAKTREK®-Kapsel garantiert, dass 99% der Bakterien lebend den Darm erreichen.',
-    ingredients: [
-      { name: 'Lactobacillus acidophilus', sub: 'NCFM-Stamm', amount: '10 Mrd. KBE', origin: '🇩🇰 Dänemark', pct: 85 },
-      { name: 'Bifidobacterium longum', sub: 'BB536-Stamm', amount: '8 Mrd. KBE', origin: '🇯🇵 Japan', pct: 75 },
-      { name: '10 weitere Stämme', sub: 'Lactobacillus & Bifidobacterium', amount: '32 Mrd. KBE', origin: '🇩🇪 Deutschland', pct: 60 },
-      { name: 'Inulin (Präbiotikum)', sub: 'Chicorée-Wurzel', amount: '100 mg', origin: '🇧🇪 Belgien', pct: 15 }
-    ],
-    options: ['1 Packung (44,90 €)', '3 Packungen (119,90 €)'],
-    faq: [
-      { q: 'Warum ist die Lagerung wichtig?', a: 'Probiotika sind lebende Bakterien, die durch Hitze absterben. Unsere Kapseln überleben ohne Kühlung, wir empfehlen aber Lagerung im Kühlschrank für maximale Potenz über die gesamte Haltbarkeit.' },
-      { q: 'Wann sehe ich Effekte auf den Darm?', a: 'Die meisten Anwender berichten nach 7–14 Tagen erste Veränderungen. Für nachhaltige Darmflora-Verbesserung empfehlen wir 3 Monate kontinuierliche Einnahme.' }
-    ]
-  },
-  {
-    id: 6,
-    name: 'Marine Kollagen Peptide',
-    brand: 'VERDEA',
-    tagline: 'Typ I & III für Haut, Gelenke & Haare',
-    category: 'beauty',
-    price: 49.90,
-    oldPrice: null,
-    badge: 'new',
-    emoji: '✨',
-    rating: 4.7,
-    reviews: 183,
-    unit: '300 g Pulver · 30 Portionen',
-    certs: ['🌊 MSC-zertifiziert', '🔬 Hydrolysat', '🚫 Zuckerfrei'],
-    desc: 'Hydrolysiertes Kollagen aus MSC-zertifizierten Fischen der Nordatlantik. Molekulargewicht unter 3 kDa für maximale Resorption. Klinisch belegt: 2,5 g täglich verbessern Hauthautfeuchtigkeit und -elastizität signifikant.',
-    ingredients: [
-      { name: 'Hydrolysiertes Fischkollagen', sub: 'Typ I & III, <3 kDa', amount: '10 g', origin: '🇮🇸 Island', pct: 98 },
-      { name: 'Vitamin C (L-Ascorbinsäure)', sub: 'Fördert endogene Kollagensynthese', amount: '80 mg', origin: '🇩🇪 Deutschland', pct: 20 }
-    ],
-    options: ['1 Beutel (49,90 €)', '3 Beutel (134,90 €)'],
-    faq: [
-      { q: 'Wie nehme ich das Pulver ein?', a: 'Einen Messlöffel (10 g) in Wasser, Kaffee, Smoothie oder Joghurt einrühren. Das Pulver ist geruchs- und geschmacksneutral und löst sich vollständig auf.' },
-      { q: 'Ab wann sehe ich Veränderungen der Haut?', a: 'In klinischen Studien wurden nach 4 Wochen signifikante Verbesserungen der Hautelastizität gemessen. Für Gelenke und Haare empfehlen wir 8–12 Wochen.' }
-    ]
-  },
-  {
-    id: 7,
-    name: 'Bio Superfood Blend',
-    brand: 'VERDEA',
-    tagline: '23 Superfoods · Spirulina, Moringa, Weizengras',
-    category: 'darm',
-    price: 54.90,
-    oldPrice: null,
-    badge: 'bestseller',
-    emoji: '🥬',
-    rating: 4.5,
-    reviews: 421,
-    unit: '240 g Pulver · 30 Portionen',
-    certs: ['🌱 Bio-zertifiziert', '🐇 Vegan', '🌿 Rohkost'],
-    desc: 'Unsere Grüne Matrix vereint 23 bio-zertifizierte Superfoods — von Spirulina und Chlorella bis Moringa und Matcha. Kalt-verarbeitet unter 40°C, um Enzyme und Vitamine zu erhalten. Entspricht 7 Portionen Gemüse pro Tagesdosis.',
-    ingredients: [
-      { name: 'Bio-Spirulina', sub: 'Arthrospira platensis', amount: '3000 mg', origin: '🇩🇪 Deutschland', pct: 90 },
-      { name: 'Bio-Moringa', sub: 'Moringa oleifera Blattextrakt', amount: '2000 mg', origin: '🇮🇳 Indien', pct: 80 },
-      { name: 'Bio-Weizengras', sub: 'Triticum aestivum, Rohkost', amount: '1500 mg', origin: '🇦🇹 Österreich', pct: 70 },
-      { name: '20 weitere Superfoods', sub: 'Chlorella, Matcha, Acai, Maca u.a.', amount: 'Mix', origin: 'Weltweit', pct: 50 }
-    ],
-    options: ['1 Beutel (54,90 €)', '3 Beutel (144,90 €)'],
-    faq: [
-      { q: 'Wie schmeckt das Pulver?', a: 'Earthy-grün mit leichtem Matcha-Unterton. In Smoothies mit Banane und Mandelmilch kaum wahrnehmbar. Pur in Wasser für hartgesottene Gesundheitsfans.' },
-      { q: 'Kann ich es mit anderen VERDEA-Produkten kombinieren?', a: 'Ja, besonders gut kombinierbar mit unseren Probiotika oder Kollagen. Nehmen Sie das Superfood-Pulver morgens und Probiotika abends.' }
-    ]
-  },
-  {
-    id: 8,
-    name: 'Curcumin + Piperin',
-    brand: 'VERDEA',
-    tagline: 'Anti-Entzündung · 95% Curcuminoide',
-    category: 'darm',
-    price: 32.90,
-    oldPrice: null,
-    badge: null,
-    emoji: '🌶',
-    rating: 4.6,
-    reviews: 156,
-    unit: '90 Kapseln · 3 Monate',
-    certs: ['🌱 Bio', '🐇 Vegan', '🔬 Hochdosiert'],
-    desc: 'Handelsübliches Kurkuma-Pulver enthält 2–5% Curcuminoide. Unseres enthält 95% — das Maximum. Kombiniert mit BioPerine® Piperin wird die Bioverfügbarkeit um das 20-fache gesteigert, da Curcumin allein kaum resorbiert wird.',
-    ingredients: [
-      { name: 'Kurkuma-Extrakt', sub: '95% Curcuminoide · Curcuma longa', amount: '500 mg', origin: '🇮🇳 Tamil Nadu', pct: 90 },
-      { name: 'BioPerine® Piperin', sub: 'Schwarzer Pfeffer Extrakt', amount: '5 mg', origin: '🇮🇳 Kerala', pct: 10 }
-    ],
-    options: ['1 Packung (32,90 €)', '3 Packungen (84,90 €)'],
-    faq: [
-      { q: 'Warum ist normales Kurkuma nicht ausreichend?', a: 'Gelbes Curry-Kurkuma enthält 2–5% Curcuminoide und hat eine Bioverfügbarkeit von unter 1%. Unser Extrakt mit 95% Curcuminoiden und BioPerine® erreicht eine 2000% höhere Bioverfügbarkeit.' },
-      { q: 'Kann ich es mit Erkrankungen einnehmen?', a: 'Curcumin kann die Wirkung von Blutverdünnern verstärken. Bei Gallenproblemen oder Blutverdünnungstherapie bitten wir, vorher einen Arzt zu konsultieren.' }
-    ]
-  }
-];
 
 // ===== STATE =====
 let cart = [];
@@ -337,17 +1136,26 @@ const heroAbout     = document.getElementById('heroAbout');
 const logoHome      = document.getElementById('logoHome');
 const transparencyBtn = document.getElementById('transparencyBtn');
 const checkoutBtn   = document.getElementById('checkoutBtn');
-const navLinks      = document.querySelectorAll('.nav__link[data-category]');
-const categoryCards = document.querySelectorAll('.category-card[data-category]');
+const headerNavTabs = document.getElementById('headerNavTabs');
+// Hinweis: navLinks und categoryCards (alte Versionen) sind raus —
+// die Tabs werden jetzt dynamisch via renderScenarioTabs() generiert,
+// und die Kategorien-Sektion existiert nicht mehr (Brand-Intro stattdessen).
 
 // ===== RENDER PRODUCTS =====
 function renderProducts(filter = 'all') {
-  const list = filter === 'all' ? products : products.filter(p => p.category === filter);
+  let list = filter === 'all' ? products : products.filter(p => p.category === filter);
+  // Cross-Sell-Produkte immer ans Ende sortieren (für "Alle"-Reiter)
+  list = [...list].sort((a, b) => {
+    const aXS = a.role === 'cross-sell' ? 1 : 0;
+    const bXS = b.role === 'cross-sell' ? 1 : 0;
+    return aXS - bXS;
+  });
   const sceneImg = (typeof getCurrentScenario === 'function' && getCurrentScenario()) ? getCurrentScenario().image : null;
   productsGrid.innerHTML = '';
   list.forEach((p, i) => {
     const card = document.createElement('div');
-    card.className = 'product-card';
+    const isCrossSell = p.role === 'cross-sell';
+    card.className = 'product-card' + (isCrossSell ? ' product-card--cross-sell' : '');
     card.style.animationDelay = `${i * 55}ms`;
     const imgSrc = p.image || sceneImg;
     card.innerHTML = `
@@ -356,8 +1164,12 @@ function renderProducts(filter = 'all') {
         <div class="product-card__emoji">${p.emoji}</div>
         ${p.badge ? `<span class="product-card__badge badge--${p.badge}">${badgeLabel(p.badge)}</span>` : ''}
         <div class="product-card__certs">
-          ${p.certs.slice(0,2).map(c => `<span class="product-card__cert-tag">${c}</span>`).join('')}
+          ${p.certs.slice(0,2).map(c => `<span class="product-card__cert-tag">${stripCertEmoji(c)}</span>`).join('')}
         </div>
+        ${window.VERDEA_VARIANT === 'C' ? `<button class="product-card__chat-btn" aria-label="Chatbot öffnen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Beraten lassen
+        </button>` : ''}
         <div class="product-card__quick-add">Jetzt ansehen →</div>
       </div>
       <div class="product-card__info">
@@ -371,6 +1183,12 @@ function renderProducts(filter = 'all') {
         </div>
       </div>
     `;
+    if (window.VERDEA_VARIANT === 'C') {
+      card.querySelector('.product-card__chat-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        openDetailWithBot(p);
+      });
+    }
     card.addEventListener('click', () => openDetail(p));
     productsGrid.appendChild(card);
   });
@@ -385,37 +1203,78 @@ function fmt(n) {
 function stars(r) {
   return '★'.repeat(Math.floor(r)) + (r % 1 >= 0.5 ? '½' : '');
 }
+// Entfernt führende Emoji-Sequenz aus Cert-Text (z.B. "🔬 GMP" → "GMP").
+// Lässt rein-textliche Certs unverändert (z.B. "Klinisch getestet" → "Klinisch getestet").
+function stripCertEmoji(text) {
+  if (!text) return '';
+  const parts = text.split(/\s+/);
+  if (parts.length > 1 && /[^\x00-\x7F]/.test(parts[0])) {
+    return parts.slice(1).join(' ');
+  }
+  return text;
+}
 
-// ===== FILTER =====
+// Map: Flaggen-Emoji → CSS-Klasse für unsere Mini-SVG-Flaggen
+// Wenn ein Origin-Text mit einem Flaggen-Emoji startet, wird es durch
+// ein farbiges <span class="flag flag-xx"></span> ersetzt.
+const FLAG_EMOJI_TO_CLASS = {
+  '🇩🇪': 'flag-de', '🇮🇳': 'flag-in', '🇯🇵': 'flag-jp', '🇮🇸': 'flag-is',
+  '🇵🇭': 'flag-ph', '🇧🇪': 'flag-be', '🇩🇰': 'flag-dk', '🇦🇹': 'flag-at',
+  '🇮🇹': 'flag-it', '🇪🇺': 'flag-eu', '🌍': 'flag-globe',
+};
+function replaceFlagEmojis(text) {
+  if (!text) return '';
+  let out = text;
+  for (const [emoji, cls] of Object.entries(FLAG_EMOJI_TO_CLASS)) {
+    if (out.includes(emoji)) {
+      out = out.split(emoji).join(`<span class="flag ${cls}" aria-hidden="true"></span>`);
+    }
+  }
+  return out;
+}
+
+// ===== FILTER + TABS =====
+// Header zeigt nur EINEN Reiter „Produkte" — Klick führt zur Hauptkategorie
+// (z.B. „Tablettenboxen"), NICHT zu „Alle". Die feinere Filter-Steuerung
+// passiert über die Reiter direkt über dem Produktgrid.
+function renderScenarioTabs(scenario) {
+  if (!scenario) return;
+  // Header-Navigation: ein einziger „Produkte"-Link
+  headerNavTabs.innerHTML = `
+    <a href="#" class="nav__link nav__link--products" data-category="${scenario.mainCategoryId}">Produkte</a>
+  `;
+  // Filter-Reiter über dem Produktgrid: Alle / Hauptkategorie / Cross-Sell
+  filterTabs.innerHTML = `
+    <button class="filter-tab" data-category="all">Alle</button>
+    <button class="filter-tab" data-category="${scenario.mainCategoryId}">${scenario.mainCategoryLabel}</button>
+    <button class="filter-tab" data-category="${scenario.crossSellCategoryId}">${scenario.crossSellCategoryLabel}</button>
+  `;
+}
+
+// Event-Delegation: ein Click-Handler reicht für alle dynamisch erzeugten Tabs.
 filterTabs.addEventListener('click', e => {
   const tab = e.target.closest('.filter-tab');
   if (!tab) return;
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-  tab.classList.add('active');
-  currentFilter = tab.dataset.category;
-  renderProducts(currentFilter);
-  if (window.VerdTracker) window.VerdTracker.track('filter_change', { category: currentFilter });
+  setFilter(tab.dataset.category);
+  // filter_change — kein dediziertes Tracking in V10
 });
 
-navLinks.forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    setFilter(link.dataset.category);
-    scrollToProducts();
-  });
-});
-
-categoryCards.forEach(card => {
-  card.addEventListener('click', () => {
-    setFilter(card.dataset.category);
-    scrollToProducts();
-    if (window.VerdTracker) window.VerdTracker.track('category_click', { category: card.dataset.category });
-  });
+headerNavTabs.addEventListener('click', e => {
+  const link = e.target.closest('[data-category]');
+  if (!link) return;
+  e.preventDefault();
+  setFilter(link.dataset.category);
+  scrollToProducts();
+  // filter_change — kein dediziertes Tracking in V10
 });
 
 function setFilter(cat) {
   currentFilter = cat;
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.category === cat));
+  // Active-State für beide Tab-Sets gleichzeitig setzen
+  document.querySelectorAll('.filter-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.category === cat));
+  document.querySelectorAll('.nav__link[data-category]').forEach(l =>
+    l.classList.toggle('active', l.dataset.category === cat));
   renderProducts(cat);
 }
 
@@ -427,7 +1286,8 @@ heroCta.addEventListener('click', () => scrollToProducts());
 
 // ===== PRODUCT DETAIL =====
 function openDetail(p) {
-  if (window.VerdTracker) window.VerdTracker.trackProductView(p.id, p.name);
+  window._openDetailProductId = p.id;
+  if (window.VerdTracker) window.VerdTracker.trackPdpOpen(p.id, currentScenarioIndex);
 
   const sceneImg = (typeof getCurrentScenario === 'function' && getCurrentScenario()) ? getCurrentScenario().image : null;
   const detailImg = p.image || sceneImg;
@@ -446,7 +1306,7 @@ function openDetail(p) {
         <span class="detail-rating-count">${p.rating} · ${p.reviews} Bewertungen</span>
       </div>
       <div class="detail-cert-row">
-        ${p.certs.map(c => `<span class="detail-cert">${c}</span>`).join('')}
+        ${p.certs.map(c => `<span class="detail-cert">${stripCertEmoji(c)}</span>`).join('')}
       </div>
       <div class="detail-price">
         ${p.oldPrice ? `<span class="detail-price__old">${fmt(p.oldPrice)}</span>` : ''}
@@ -459,7 +1319,7 @@ function openDetail(p) {
       <div class="detail-options">
         <div class="detail-options__label">Menge wählen</div>
         <div class="detail-options__btns">
-          ${p.options.map((o, i) => `<button class="detail-option-btn ${i===0?'selected':''}">${o}</button>`).join('')}
+          ${p.options.map((o, i) => `<button class="detail-option-btn ${i===0?'selected':''}" data-option-index="${i}">${o}</button>`).join('')}
         </div>
       </div>
 
@@ -472,49 +1332,43 @@ function openDetail(p) {
 
       <!-- Tabs -->
       <div class="detail-tabs">
-        <button class="detail-tab-btn active" data-tab="ingredients">Inhaltsstoffe</button>
-        <button class="detail-tab-btn" data-tab="usage">Einnahme</button>
+        <button class="detail-tab-btn active" data-tab="ingredients">${p.tabLabels.ingredients}</button>
+        <button class="detail-tab-btn" data-tab="usage">${p.tabLabels.usage}</button>
         <button class="detail-tab-btn" data-tab="faq">FAQ</button>
       </div>
 
       <div class="detail-tab-content active" data-tab="ingredients">
         <div class="detail-ingredients">
-          <div class="detail-ingredients__title">Vollständige Zutatenliste</div>
-          ${p.ingredients.map(ing => `
+          <div class="detail-ingredients__title">${p.tabLabels.sectionTitle}</div>
+          ${p.ingredients.map(ing => {
+            const showAmount = ing.amount && ing.amount !== '—' && ing.amount !== '';
+            const showOrigin = ing.origin && ing.origin !== '—' && ing.origin !== '';
+            return `
             <div class="ingredient-row">
-              <div>
+              <div class="ingredient-row__main">
                 <div class="ingredient-row__name">${ing.name}</div>
-                <div class="ingredient-row__sub">${ing.sub}</div>
+                ${ing.sub ? `<div class="ingredient-row__sub">${ing.sub}</div>` : ''}
               </div>
-              <span class="ingredient-row__origin">${ing.origin}</span>
-              <span class="ingredient-row__amount">${ing.amount}</span>
+              ${(showAmount || showOrigin) ? `
+                <div class="ingredient-row__meta">
+                  ${showAmount ? `<span class="ingredient-row__amount">${ing.amount}</span>` : ''}
+                  ${showOrigin ? `<span class="ingredient-row__origin">${replaceFlagEmojis(ing.origin)}</span>` : ''}
+                </div>
+              ` : ''}
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
-        <p style="font-size:12px;color:var(--color-muted);margin-top:8px">Alle Rohstoffzertifikate auf Anfrage erhältlich. Chargenprüfbericht auf unserer Website einsehbar.</p>
+        ${p.tabLabels.disclaimer ? `<p style="font-size:12px;color:var(--color-muted);margin-top:8px">${p.tabLabels.disclaimer}</p>` : ''}
       </div>
 
       <div class="detail-tab-content" data-tab="usage">
-        <div class="detail-feature">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <div><strong>Empfohlene Tagesdosis:</strong> ${p.name.includes('Kollagen') || p.name.includes('Superfood') ? '1 Messlöffel (10 g) in Wasser oder Smoothie' : '1–2 Kapseln täglich mit einer Mahlzeit'}</div>
-        </div>
-        <div class="detail-feature">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <div><strong>Lagerung:</strong> Kühl und trocken, außer Reichweite von Kindern. ${p.category === 'darm' ? 'Für Probiotika: Kühlung empfohlen.' : ''}</div>
-        </div>
-        <div class="detail-feature">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <div><strong>Hinweis:</strong> Nahrungsergänzungsmittel sind kein Ersatz für eine ausgewogene Ernährung. Bei schwangeren oder stillenden Frauen Rücksprache mit Arzt halten.</div>
-        </div>
-        <div class="detail-feature">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-          Kostenloser Versand ab 60 € · Lieferzeit 1–2 Werktage
-        </div>
-        <div class="detail-feature">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.09"/></svg>
-          30 Tage Geld-zurück-Garantie, kein Risiko
-        </div>
+        ${(p.usage || []).map(u => `
+          <div class="detail-feature">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <div><strong>${u.strong}:</strong> ${u.text}</div>
+          </div>
+        `).join('')}
       </div>
 
       <div class="detail-tab-content" data-tab="faq">
@@ -542,21 +1396,29 @@ function openDetail(p) {
     });
   });
 
-  // Option buttons
+  // Option buttons — speichert gewählten Index und aktualisiert Preis live
+  let selectedOptionIndex = 0;
   productDetailContent.querySelectorAll('.detail-option-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       productDetailContent.querySelectorAll('.detail-option-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
+      selectedOptionIndex = parseInt(btn.dataset.optionIndex, 10) || 0;
+      const opt = p.optionDetails && p.optionDetails[selectedOptionIndex];
+      if (opt) {
+        const priceEl = productDetailContent.querySelector('.detail-price__main');
+        if (priceEl) priceEl.textContent = fmt(opt.price);
+      }
     });
   });
 
-  // Tab switching
+  // Tab switching + Tracking
   productDetailContent.querySelectorAll('.detail-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       productDetailContent.querySelectorAll('.detail-tab-btn').forEach(b => b.classList.remove('active'));
       productDetailContent.querySelectorAll('.detail-tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       productDetailContent.querySelector(`.detail-tab-content[data-tab="${btn.dataset.tab}"]`).classList.add('active');
+      if (window.VerdTracker) window.VerdTracker.trackTabClick(btn.dataset.tab, currentScenarioIndex);
     });
   });
 
@@ -567,9 +1429,10 @@ function openDetail(p) {
     });
   });
 
-  // Add to cart
+  // Add to cart — übergibt die gewählte Option, damit der korrekte Preis greift
   document.getElementById('detailAddCart').addEventListener('click', () => {
-    addToCart(p);
+    const opt = (p.optionDetails && p.optionDetails[selectedOptionIndex]) || (p.optionDetails && p.optionDetails[0]) || null;
+    addToCart(p, opt);
     const btn = document.getElementById('detailAddCart');
     btn.textContent = '✓ Hinzugefügt';
     btn.style.background = '#4a7c4e';
@@ -582,9 +1445,49 @@ function openDetail(p) {
   document.body.classList.add('viewing-overlay');
   // Springen wir an den Anfang der Detailseite (echte Seitennavigation)
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
+  // Variante C: Bot einbetten (erst nach dem Rendern)
+  if (window.VERDEA_VARIANT === 'C') {
+    setTimeout(() => embedBotInDetail(), 100);
+  }
+}
+
+function openDetailWithBot(p) {
+  openDetail(p);
+  const v = window.VERDEA_VARIANT;
+  if (v === 'A') {
+    setTimeout(() => { if (typeof aiInput !== 'undefined' && aiInput) aiInput.focus(); }, 200);
+  } else if (v === 'B') {
+    setTimeout(() => openAiBot(false), 200);
+  } else if (v === 'C') {
+    if (window.VerdTracker) window.VerdTracker.trackBotOpenSource('karte');
+    setTimeout(() => {
+      openVariantCChat();
+      // Zum Gallery-Element scrollen: Bild-Anfang direkt unter dem Header sichtbar
+      setTimeout(() => {
+        const gallery = document.querySelector('.detail-gallery');
+        const header = document.querySelector('.header');
+        if (gallery) {
+          const headerH = header ? header.offsetHeight : 70;
+          const top = gallery.getBoundingClientRect().top + window.scrollY - headerH - 8;
+          window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        }
+      }, 150);
+    }, 280);
+  }
 }
 
 function closeDetail() {
+  // Variante C: Bot aus Detailseite entfernen und PDP-Zeit tracken
+  if (window.VERDEA_VARIANT === 'C') {
+    removeBotFromDetail();
+  }
+  // PDP-Close tracking — wir müssen das aktuell offene Produkt herausfinden
+  // Wir nutzen ein globales _openDetailProductId das wir beim Öffnen setzen
+  if (window._openDetailProductId && window.VerdTracker) {
+    window.VerdTracker.trackPdpClose(window._openDetailProductId, currentScenarioIndex);
+    window._openDetailProductId = null;
+  }
   productDetail.classList.remove('open');
   document.body.classList.remove('viewing-overlay');
   // Sanft zurück zur Produktliste scrollen
@@ -605,7 +1508,7 @@ function openAbout() {
   aboutPage.classList.add('open');
   document.body.classList.add('viewing-overlay');
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  if (window.VerdTracker) window.VerdTracker.trackAboutView();
+  // about_view — kein dediziertes Tracking in V10
 }
 function closeAbout() {
   aboutPage.classList.remove('open');
@@ -619,17 +1522,42 @@ aboutShopBtn.addEventListener('click', () => { closeAbout(); scrollToProducts();
 footerAbout?.addEventListener('click', e => { e.preventDefault(); openAbout(); });
 
 // ===== CART =====
-function addToCart(product) {
-  const ex = cart.find(i => i.id === product.id);
-  if (ex) ex.qty++; else cart.push({ ...product, qty: 1 });
+// Cart-Items kombinieren Produkt-ID + Option-Label zu einer eindeutigen cartId,
+// damit z.B. "1 Packung" und "2er-Pack" desselben Vitamins separate Einträge sind.
+function addToCart(product, option) {
+  // Fallback wenn keine Option übergeben wurde (z.B. später beim Aufruf aus KI-Link)
+  const opt = option || (product.optionDetails && product.optionDetails[0]) || {
+    label: 'Standard', price: product.price, units: 1, isUpsell: false,
+  };
+  const cartId = `${product.id}::${opt.label}`;
+  const ex = cart.find(i => i.cartId === cartId);
+  if (ex) {
+    ex.qty++;
+  } else {
+    cart.push({
+      ...product,
+      cartId,
+      price: opt.price,        // ← korrekter Options-Preis (nicht mehr Basispreis)
+      optionLabel: opt.label,
+      isUpsell: !!opt.isUpsell,
+      units: opt.units || 1,
+      qty: 1,
+    });
+  }
   renderCart();
   openCart();
   showToast(`„${product.name}" wurde hinzugefügt`);
-  if (window.VerdTracker) window.VerdTracker.trackCartAdd(product.id, product.name, product.price);
+  if (window.VerdTracker) window.VerdTracker.trackCartAdd(
+    product.id,
+    currentScenarioIndex,
+    opt.price,
+    !!opt.isUpsell,
+    product.role === 'cross-sell'
+  );
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
+function removeFromCart(cartId) {
+  cart = cart.filter(i => i.cartId !== cartId);
   renderCart();
 }
 
@@ -649,15 +1577,16 @@ function renderCart() {
       <div class="cart-item__info">
         <div class="cart-item__brand">${item.brand}</div>
         <div class="cart-item__name">${item.name}${item.qty > 1 ? ` ×${item.qty}` : ''}</div>
+        ${item.optionLabel ? `<div class="cart-item__option">${item.optionLabel}</div>` : ''}
         <div>
           <span class="cart-item__price">${fmt(item.price * item.qty)}</span>
-          <span class="cart-item__remove" data-id="${item.id}">Entfernen</span>
+          <span class="cart-item__remove" data-cart-id="${item.cartId}">Entfernen</span>
         </div>
       </div>
     </div>
   `).join('');
   cartItemsEl.querySelectorAll('.cart-item__remove').forEach(btn => {
-    btn.addEventListener('click', () => removeFromCart(Number(btn.dataset.id)));
+    btn.addEventListener('click', () => removeFromCart(btn.dataset.cartId));
   });
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   cartTotalEl.textContent = fmt(total);
@@ -668,7 +1597,7 @@ function openCart() {
   cartDrawer.classList.add('open');
   cartOverlay.classList.add('active');
   document.body.style.overflow = 'hidden';
-  if (window.VerdTracker) window.VerdTracker.track('cart_opened', {});
+  // cart_open — kein dediziertes Tracking in V10
 }
 function closeCart() {
   cartDrawer.classList.remove('open');
@@ -716,7 +1645,7 @@ document.getElementById('newsletterForm').addEventListener('submit', e => {
   const input = e.target.querySelector('input');
   if (input.value) {
     showToast('Danke! Sie erhalten ab sofort unseren Newsletter.');
-    if (window.VerdTracker) window.VerdTracker.trackNewsletter();
+    // newsletter — kein dediziertes Tracking in V10
     input.value = '';
   }
 });
@@ -761,15 +1690,13 @@ lockBody(true);
 const consentBox = document.getElementById('consentBox');
 const welcomeStart = document.getElementById('welcomeStart');
 consentBox.addEventListener('change', () => welcomeStart.disabled = !consentBox.checked);
+// Einwilligung → direkt in Szenario 1 (keine Demografie vorher)
 welcomeStart.addEventListener('click', () => {
-  if (window.VerdTracker) {
-    window.VerdTracker.enable();
-    window.VerdTracker.track('consent_given');
-  }
-  showGate(gateDemographics);
+  if (window.VerdTracker) window.VerdTracker._studyStartMs = Date.now();
+  startScenario(0);
 });
 
-// ----- DEMOGRAPHICS -----
+// ----- DEMOGRAPHICS (jetzt am Ende, nach der Umfrage) -----
 document.getElementById('demoForm').addEventListener('submit', e => {
   e.preventDefault();
   const age = document.getElementById('demoAge').value;
@@ -788,9 +1715,9 @@ document.getElementById('demoForm').addEventListener('submit', e => {
   Object.assign(allDemographics, { age, gender, income, education, ai_usage: aiUsage });
   if (window.VerdTracker) {
     window.VerdTracker.setDemographics(allDemographics);
-    window.VerdTracker.track('demographics_submitted', allDemographics);
+    window.VerdTracker.complete();
   }
-  startScenario(0);
+  showGate(gateThanks);
 });
 
 // ----- SCENARIO START -----
@@ -799,7 +1726,7 @@ function startScenario(idx) {
   scenarioStartTime = Date.now();
   aiMessageCount = 0;
   const sc = getCurrentScenario();
-  if (window.VerdTracker) window.VerdTracker.setScenario(sc.id);
+  if (window.VerdTracker) window.VerdTracker.startScenario(idx, sc.id);
 
   // Reset cart for clean scenario
   cart = [];
@@ -807,8 +1734,19 @@ function startScenario(idx) {
 
   // Update product list
   products = sc.products;
-  setFilter('all');
-  renderProducts('all');
+
+  // Tabs für aktuelles Szenario rendern (Header + Filter-Reiter)
+  renderScenarioTabs(sc);
+
+  // Section-Header (über Produktgrid) szenario-spezifisch
+  const stEl = document.getElementById('sectionTitle');
+  const ssEl = document.getElementById('sectionSub');
+  if (stEl && sc.productSectionTitle) stEl.textContent = sc.productSectionTitle;
+  if (ssEl && sc.productSectionSub) ssEl.textContent = sc.productSectionSub;
+
+  // Default: nicht "Alle", sondern die Hauptkategorie — damit der Cross-Sell-
+  // Reiter bewusst angeklickt werden muss (= relevant für Tracking).
+  setFilter(sc.mainCategoryId);
 
   // Show task intro modal
   document.getElementById('taskIntroStep').textContent = `Aufgabe ${idx + 1} von ${SCENARIOS.length} · ${sc.label}`;
@@ -822,54 +1760,56 @@ function startScenario(idx) {
 
   // AI bot reset
   resetAiBot(sc);
-
-  if (window.VerdTracker) window.VerdTracker.track('scenario_started', {
-    scenario_id: sc.id, scenario_index: idx + 1, scenario_label: sc.label
-  });
 }
 
 document.getElementById('taskIntroStart').addEventListener('click', () => {
   hideAllGates();
   taskBanner.hidden = false;
   document.body.classList.add('has-task-banner');
-  aiFab.hidden = false;
   // close any open panels
   if (productDetail.classList.contains('open')) closeDetail();
   if (aboutPage.classList.contains('open')) closeAbout();
   closeCart();
   // scroll to products section
   setTimeout(() => scrollToProducts(), 200);
-  // Auto-open AI bot — present and prominent
-  setTimeout(() => openAiBot(true), 700);
+  // Varianten-spezifische Bot-Initialisierung
+  initVariantBot();
 });
 
 // Re-show task intro when participant clicks "ℹ️"
 taskBannerHelp.addEventListener('click', () => {
   showGate(gateTaskIntro);
-  if (window.VerdTracker) window.VerdTracker.track('task_instruction_reopened');
+  // task_instruction_reopened — kein dediziertes Tracking in V10
 });
 
 // ----- CHECKOUT INTERCEPTION (= scenario completion) -----
 checkoutBtn.addEventListener('click', () => {
   if (!cart.length) return;
   const sc = getCurrentScenario();
-  // The chosen product = first item in cart (or most expensive — let's record everything)
-  const chosen = cart[0];
+  // Hauptauswahl = erstes Hauptkategorie-Produkt im Cart (Cross-Sell extra erfasst)
+  const mainChosen = cart.find(i => i.role === 'main') || cart[0];
+  const crossSellInCart = cart.filter(i => i.role === 'cross-sell');
+  const upsellInCart = cart.filter(i => i.isUpsell);
   const choice = {
     scenario_id: sc.id,
     scenario_index: currentScenarioIndex + 1,
     scenario_label: sc.label,
-    product_id: chosen.id,
-    product_name: chosen.name,
-    price: chosen.price,
-    quantity: chosen.qty,
+    product_id: mainChosen.id,
+    product_name: mainChosen.name,
+    option_label: mainChosen.optionLabel || '',
+    is_upsell_chosen: !!mainChosen.isUpsell ? 'ja' : 'nein',
+    price: mainChosen.price,
+    quantity: mainChosen.qty,
     cart_total: cart.reduce((s, i) => s + i.price * i.qty, 0),
-    cart_items: cart.map(i => `${i.id}×${i.qty}`).join(','),
+    cart_items: cart.map(i => `${i.id}[${i.optionLabel || 'std'}]×${i.qty}`).join(','),
+    cross_sell_count: crossSellInCart.length,
+    cross_sell_ids: crossSellInCart.map(i => i.id).join(','),
+    upsell_count: upsellInCart.length,
     seconds_in_scenario: Math.round((Date.now() - scenarioStartTime) / 1000),
     ai_messages_in_scenario: aiMessageCount,
   };
   allChoices.push(choice);
-  if (window.VerdTracker) window.VerdTracker.track('product_selected', choice);
+  if (window.VerdTracker) window.VerdTracker.trackCheckout(currentScenarioIndex, { mainChosen });
 
   closeCart();
 
@@ -886,6 +1826,11 @@ function finishScenarios() {
   document.body.classList.remove('bot-open');
   aiFab.hidden = true;
   aiBot.hidden = true;
+  // Eingebetteten Bot (Variante C) aufräumen
+  const embed = document.getElementById('variantCEmbed');
+  if (embed) embed.remove();
+  const openBtn = document.getElementById('variantCOpenBtn');
+  if (openBtn) openBtn.remove();
   startSurvey();
 }
 
@@ -896,49 +1841,301 @@ const aiForm = document.getElementById('aiForm');
 const aiInput = document.getElementById('aiInput');
 
 function openAiBot(autoOpen = false) {
+  // Variante A: ignorieren — ist immer offen
+  if (window.VERDEA_VARIANT === 'A') return;
   aiBot.hidden = false;
   aiFab.hidden = true;
-  document.body.classList.add('bot-open');
+  // Kein bot-open für B/C — B ist ein Popup, C ist embedded; nur A verschiebt das Layout
   setTimeout(() => aiInput.focus(), 100);
-  if (window.VerdTracker) window.VerdTracker.track('ai_bot_opened', {
-    scenario_id: getCurrentScenario()?.id || '',
-    auto_opened: autoOpen ? 'ja' : 'nein'
-  });
+  if (window.VerdTracker) window.VerdTracker.trackBotOpen();
 }
 function closeAiBot() {
+  // Variante A: nicht schließbar
+  if (window.VERDEA_VARIANT === 'A') return;
   aiBot.hidden = true;
-  aiFab.hidden = false;
-  document.body.classList.remove('bot-open');
-  if (window.VerdTracker) window.VerdTracker.track('ai_bot_closed', {
-    scenario_id: getCurrentScenario()?.id || '',
-    messages_so_far: aiMessageCount
-  });
+  if (window.VERDEA_VARIANT === 'B') aiFab.hidden = false;
+  if (window.VerdTracker) window.VerdTracker.trackBotClose();
 }
+
+// Variante B: kleineres Fenster-Styling überschreiben
+function applyVariantBotStyle() {
+  if (window.VERDEA_VARIANT === 'B') {
+    // Popup-Größe: 10–15% größer als zuvor
+    aiBot.style.width = '340px';
+    aiBot.style.height = 'clamp(420px, 65vh, 600px)';
+    aiBot.style.top = 'auto';
+    aiBot.style.bottom = '80px';
+    aiBot.style.right = '16px';
+    aiBot.style.borderRadius = '16px';
+    aiBot.style.boxShadow = '0 8px 40px rgba(44,95,46,0.22)';
+    aiBot.style.border = '1px solid var(--color-border)';
+    // Kompakter Header
+    const hdr = aiBot.querySelector('.ai-bot__header');
+    if (hdr) {
+      hdr.style.cssText = 'background:var(--color-green);padding:10px 14px;height:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:none;';
+    }
+    const avatar = aiBot.querySelector('.ai-bot__avatar');
+    if (avatar) avatar.style.cssText = 'width:28px;height:28px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+    const title = aiBot.querySelector('.ai-bot__title');
+    if (title) title.style.cssText = 'color:#fff;font-size:13.5px;';
+    const sub = aiBot.querySelector('.ai-bot__sub');
+    if (sub) sub.style.display = 'none';
+    const closeBtn = aiBot.querySelector('.ai-bot__close');
+    if (closeBtn) closeBtn.style.cssText = 'background:rgba(255,255,255,0.18);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;margin-left:auto;cursor:pointer;border:none;flex-shrink:0;';
+    // Suggestion-Chips deutlich kleiner
+    const sugg = aiBot.querySelector('.ai-bot__suggestions');
+    if (sugg) sugg.style.cssText = 'padding:6px 10px;gap:5px;background:var(--color-surface);border-top:1px solid var(--color-border);display:flex;flex-wrap:wrap;flex-shrink:0;';
+    // Dynamisch: alle ai-suggestion im Popup verkleinern (auch nach Reload via MutationObserver)
+    const shrinkChips = () => {
+      aiBot.querySelectorAll('.ai-suggestion').forEach(ch => {
+        ch.style.cssText = 'padding:4px 9px;font-size:10.5px;font-weight:500;background:var(--color-green-pale);color:var(--color-green);border-radius:100px;cursor:pointer;border:1px solid transparent;font-family:inherit;';
+      });
+    };
+    shrinkChips();
+    // Observer für nachträglich hinzugefügte Chips
+    if (!aiBot._chipObserver) {
+      aiBot._chipObserver = new MutationObserver(shrinkChips);
+      aiBot._chipObserver.observe(aiBot, { childList: true, subtree: true });
+    }
+  }
+}
+
+// Variante C: Öffnen-Button auf Bild, Chat-Panel darunter
+let _variantCEmbedded = false;
+function embedBotInDetail() {
+  if (window.VERDEA_VARIANT !== 'C') return;
+  aiBot.hidden = true;
+  aiFab.hidden = true;
+
+  const detailContent = document.getElementById('productDetailContent');
+  if (!detailContent) return;
+
+  const gallery = detailContent.querySelector('.detail-gallery');
+  const galleryMain = detailContent.querySelector('.detail-gallery__main');
+  if (!gallery || !galleryMain) return;
+
+  // Öffnen-Button auf dem Bild (oben rechts), falls noch nicht da
+  if (!document.getElementById('variantCOpenBtn')) {
+    const openBtn = document.createElement('button');
+    openBtn.id = 'variantCOpenBtn';
+    openBtn.type = 'button';
+    openBtn.className = 'variant-c-open-btn';
+    openBtn.innerHTML = `
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      KI-Berater fragen
+    `;
+    openBtn.addEventListener('click', () => {
+      if (window.VerdTracker) window.VerdTracker.trackBotOpenSource('pdp');
+      openVariantCChat();
+    });
+    galleryMain.appendChild(openBtn);
+  }
+}
+
+function openVariantCChat() {
+  const detailContent = document.getElementById('productDetailContent');
+  if (!detailContent) return;
+  const gallery = detailContent.querySelector('.detail-gallery');
+  const galleryMain = detailContent.querySelector('.detail-gallery__main');
+  if (!gallery || !galleryMain) return;
+
+  // Öffnen-Button ausblenden
+  const openBtn = document.getElementById('variantCOpenBtn');
+  if (openBtn) openBtn.hidden = true;
+
+  // Sticky entfernen, Bild verkleinern
+  gallery.classList.add('variant-c-bot-open');
+
+  // Chat-Panel erzeugen (falls noch nicht da)
+  let embed = document.getElementById('variantCEmbed');
+  if (!embed) {
+    embed = document.createElement('div');
+    embed.id = 'variantCEmbed';
+    embed.className = 'variant-c-embed';
+    embed.innerHTML = `
+      <div class="variant-c-embed__header">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fff;line-height:1.2;">KI-Berater</div>
+          <div style="font-size:10.5px;color:rgba(255,255,255,0.8);margin-top:1px;">Online · sofort verfügbar</div>
+        </div>
+        <button id="variantCEmbedClose" type="button" aria-label="Schließen" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;flex-shrink:0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="aiMessagesEmbed" style="flex:1;min-height:0;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px;background:var(--color-bg);"></div>
+      <div id="aiSuggestionsEmbed" style="padding:6px 10px;gap:5px;background:var(--color-surface);border-top:1px solid var(--color-border);display:flex;flex-wrap:wrap;flex-shrink:0;"></div>
+      <form id="aiFormEmbed" style="display:flex;gap:8px;padding:10px 12px 12px;background:var(--color-surface);border-top:1px solid var(--color-border);flex-shrink:0;">
+        <input type="text" class="ai-bot__input" id="aiInputEmbed" placeholder="Frag den KI-Berater …" autocomplete="off" />
+        <button type="submit" class="ai-bot__send" aria-label="Senden">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    `;
+    embed.querySelector('#aiFormEmbed').addEventListener('submit', e => {
+      e.preventDefault();
+      const inp = embed.querySelector('#aiInputEmbed');
+      aiInput.value = inp.value;
+      inp.value = '';
+      sendAiMessage();
+    });
+    embed.querySelector('#variantCEmbedClose').addEventListener('click', closeVariantCChat);
+  }
+
+  // Hinter das Bild einhängen (innerhalb der Gallery)
+  gallery.appendChild(embed);
+  embed.hidden = false;
+  _variantCEmbedded = true;
+
+  const embedMsgs = document.getElementById('aiMessagesEmbed');
+  const embedSugg = document.getElementById('aiSuggestionsEmbed');
+  const isFirstOpen = embedMsgs && embedMsgs.children.length === 0;
+
+  if (isFirstOpen) {
+    // Kontextfrage: möchte der Nutzer nur Infos zum aktuellen Produkt oder allgemeine Beratung?
+    const currentProduct = window._openDetailProductId
+      ? (getCurrentScenario()?.products || []).find(p => p.id === window._openDetailProductId)
+      : null;
+    const productName = currentProduct ? currentProduct.name : 'diesem Produkt';
+
+    const contextMsg = document.createElement('div');
+    contextMsg.className = 'ai-msg ai-msg--bot';
+    contextMsg.textContent = `Hallo! Möchten Sie Informationen speziell zu „${productName}", oder suchen Sie eine allgemeine Beratung über alle Produkte?`;
+    embedMsgs.appendChild(contextMsg);
+
+    // Zwei Kontext-Chips
+    if (embedSugg) {
+      embedSugg.innerHTML = '';
+      [
+        { label: `Nur zu „${productName}"`, msg: `Ich möchte Informationen speziell zu "${productName}".` },
+        { label: 'Allgemeine Beratung', msg: 'Ich suche eine allgemeine Beratung über alle Produkte.' },
+      ].forEach(({ label, msg }) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.style.cssText = 'padding:5px 10px;font-size:10.5px;font-weight:500;background:var(--color-green-pale);color:var(--color-green);border-radius:100px;cursor:pointer;border:1px solid transparent;font-family:inherit;';
+        chip.textContent = label;
+        chip.addEventListener('click', () => {
+          embedSugg.innerHTML = '';
+          aiInput.value = msg;
+          sendAiMessage();
+        });
+        embedSugg.appendChild(chip);
+      });
+    }
+  } else {
+    // Bei Wiedereröffnung: vorhandene Nachrichten + Suggestions übertragen
+    if (embedMsgs && aiMessagesEl) {
+      Array.from(aiMessagesEl.children).forEach(node => {
+        embedMsgs.appendChild(node.cloneNode(true));
+      });
+      embedMsgs.scrollTop = embedMsgs.scrollHeight;
+    }
+    if (embedSugg && aiSuggestions && embedSugg.children.length === 0) {
+      Array.from(aiSuggestions.children).forEach(node => {
+        const clone = node.cloneNode(true);
+        const text = clone.textContent.trim();
+        clone.style.cssText = 'padding:5px 10px;font-size:10.5px;font-weight:500;background:var(--color-green-pale);color:var(--color-green);border-radius:100px;cursor:pointer;border:1px solid transparent;font-family:inherit;';
+        clone.addEventListener('click', () => triggerAiMessage(text, 'embed_suggestion_chip'));
+        embedSugg.appendChild(clone);
+      });
+    }
+  }
+
+  setTimeout(() => embed.querySelector('#aiInputEmbed').focus(), 100);
+  if (window.VerdTracker) window.VerdTracker.trackBotOpen();
+}
+
+function closeVariantCChat() {
+  const gallery = document.querySelector('.detail-gallery');
+  if (gallery) gallery.classList.remove('variant-c-bot-open');
+  const embed = document.getElementById('variantCEmbed');
+  if (embed) embed.hidden = true;
+  const openBtn = document.getElementById('variantCOpenBtn');
+  if (openBtn) openBtn.hidden = false;
+  _variantCEmbedded = false;
+  if (window.VerdTracker) window.VerdTracker.trackBotClose();
+}
+
+function removeBotFromDetail() {
+  if (window.VERDEA_VARIANT !== 'C') return;
+  const embed = document.getElementById('variantCEmbed');
+  if (embed) embed.remove();
+  const openBtn = document.getElementById('variantCOpenBtn');
+  if (openBtn) openBtn.remove();
+  const gallery = document.querySelector('.detail-gallery');
+  if (gallery) gallery.classList.remove('variant-c-bot-open');
+  _variantCEmbedded = false;
+}
+
+// Initiale Variant-Konfiguration beim Szenariostart
+function initVariantBot() {
+  const variant = window.VERDEA_VARIANT;
+  if (variant === 'A') {
+    // Permanenter Bot — immer sichtbar, nicht schließbar
+    aiBot.hidden = false;
+    aiFab.hidden = true;
+    document.body.classList.add('bot-open');
+    // Close-Button ausblenden
+    const closeBtn = document.getElementById('aiBotClose');
+    if (closeBtn) closeBtn.style.display = 'none';
+    if (window.VerdTracker) window.VerdTracker.trackBotOpen();
+    setTimeout(() => aiInput.focus(), 100);
+  } else if (variant === 'B') {
+    // FAB zeigen, kleineres Fenster
+    aiFab.hidden = false;
+    aiBot.hidden = true;
+    applyVariantBotStyle();
+  } else if (variant === 'C') {
+    // Weder FAB noch Bot auf Hauptseite
+    aiFab.hidden = true;
+    aiBot.hidden = true;
+  }
+}
+
 aiFab.addEventListener('click', () => openAiBot(false));
 aiBotClose.addEventListener('click', closeAiBot);
 
-const AI_SUGGESTIONS = [
+// Initiale Suggestions — werden nach jeder KI-Antwort dynamisch ersetzt
+const INITIAL_AI_SUGGESTIONS = [
   'Welches empfiehlst du mir?',
   'Was ist der Unterschied?',
   'Welches ist nachhaltiger?',
-  'Welches lohnt sich am meisten?'
 ];
 
 function resetAiBot(scenario) {
   aiMessagesEl.innerHTML = '';
-  aiHistory = []; // Konversation pro Szenario zurücksetzen
+  aiHistory = [];           // Konversation pro Szenario zurücksetzen
   aiPending = false;
   aiInput.disabled = false;
-  appendAiMessage('bot', `Hallo! Ich helfe Ihnen bei der Auswahl in der Aufgabe „${scenario.title}". Stellen Sie mir gerne eine Frage — z. B. welches Produkt zu Ihnen passen würde.`);
+  appendAiMessage('bot', `Hallo! Frag mich gerne, was zu dir passen könnte — ich kenne alle Produkte hier.`);
+  renderSuggestions(INITIAL_AI_SUGGESTIONS);
+}
+
+// Aktualisiert die Suggestion-Chips (initial oder von der KI dynamisch geliefert)
+function renderSuggestions(list) {
   aiSuggestions.innerHTML = '';
-  AI_SUGGESTIONS.forEach(s => {
+  if (!Array.isArray(list)) return;
+  list.slice(0, 4).forEach(s => {
+    if (!s || typeof s !== 'string') return;
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'ai-suggestion';
     chip.textContent = s;
-    chip.addEventListener('click', () => { aiInput.value = s; sendAiMessage(); });
+    // Klick = direkter API-Trigger (nicht nur Input-Vorbelegung)
+    chip.addEventListener('click', () => triggerAiMessage(s, 'suggestion_chip'));
     aiSuggestions.appendChild(chip);
   });
+}
+
+// Schickt einen vorgegebenen Text an die KI (für Suggestion-Chips).
+// Setzt zuerst das Input-Feld zur Sichtbarkeit, dann ruft die normale Send-Pipeline.
+function triggerAiMessage(text, source) {
+  if (aiPending) return;
+  aiInput.value = text;
+  if (window.VerdTracker) window.VerdTracker.trackSuggestionUsed(currentScenarioIndex);
+  sendAiMessage();
 }
 function appendAiMessage(role, text) {
   const el = document.createElement('div');
@@ -946,7 +2143,31 @@ function appendAiMessage(role, text) {
   el.textContent = text;
   aiMessagesEl.appendChild(el);
   aiMessagesEl.scrollTop = aiMessagesEl.scrollHeight;
+  // Variante C: auch ins eingebettete Panel spiegeln
+  const embedMsgs = document.getElementById('aiMessagesEmbed');
+  if (embedMsgs) {
+    const elClone = el.cloneNode(true);
+    embedMsgs.appendChild(elClone);
+    embedMsgs.scrollTop = embedMsgs.scrollHeight;
+  }
 }
+function addProductLinkToLastBotMessage(productId, scenario) {
+  const product = scenario?.products?.find(p => p.id === productId);
+  if (!product) return;
+  const makeBtn = (container) => {
+    const lastMsg = container?.querySelector('.ai-msg--bot:last-child');
+    if (!lastMsg) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ai-product-link';
+    btn.textContent = `${product.name} ansehen →`;
+    btn.addEventListener('click', () => openDetail(product));
+    lastMsg.appendChild(btn);
+  };
+  makeBtn(aiMessagesEl);
+  makeBtn(document.getElementById('aiMessagesEmbed'));
+}
+
 function showTyping() {
   const el = document.createElement('div');
   el.className = 'ai-msg--typing';
@@ -1012,15 +2233,20 @@ async function sendAiMessage() {
   aiInput.disabled = true;
   aiInput.value = '';
   appendAiMessage('user', txt);
+  // Variante C: auch in eingebettetem Panel anzeigen
+  const _embedMsgs = document.getElementById('aiMessagesEmbed');
+  if (_embedMsgs) {
+    const _el = document.createElement('div');
+    _el.className = 'ai-msg ai-msg--user';
+    _el.textContent = txt;
+    _embedMsgs.appendChild(_el);
+    _embedMsgs.scrollTop = _embedMsgs.scrollHeight;
+  }
   aiMessageCount++;
 
   const sc = getCurrentScenario();
 
-  if (window.VerdTracker) window.VerdTracker.track('ai_message_sent', {
-    scenario_id: sc?.id || '',
-    message: txt,
-    message_index: aiMessageCount,
-  });
+  if (window.VerdTracker) window.VerdTracker.trackUserMessage(txt, currentScenarioIndex);
 
   showTyping();
 
@@ -1029,6 +2255,8 @@ async function sendAiMessage() {
 
   let reply = '';
   let serverRecommendation = null;
+  let serverSuggestions = null;
+  let serverSellType = null;
   let usedFallback = false;
 
   try {
@@ -1050,6 +2278,12 @@ async function sendAiMessage() {
     serverRecommendation = (data && typeof data.recommendedProduct === 'string')
       ? data.recommendedProduct
       : null;
+    serverSuggestions = (data && Array.isArray(data.suggestions))
+      ? data.suggestions
+      : null;
+    serverSellType = (data && (data.sellType === 'up' || data.sellType === 'cross'))
+      ? data.sellType
+      : null;
     if (!reply) throw new Error('Leere Antwort');
   } catch (err) {
     console.error('[AI] API-Fehler, nutze lokalen Fallback:', err);
@@ -1064,19 +2298,47 @@ async function sendAiMessage() {
 
   removeTyping();
   appendAiMessage('bot', reply);
+  // Variante C: auch in eingebettetem Panel anzeigen
+  const embedMessages = document.getElementById('aiMessagesEmbed');
+  if (embedMessages) {
+    const el = document.createElement('div');
+    el.className = 'ai-msg ai-msg--bot';
+    el.textContent = reply;
+    embedMessages.appendChild(el);
+    embedMessages.scrollTop = embedMessages.scrollHeight;
+  }
 
-  if (window.VerdTracker) window.VerdTracker.track('ai_reply_shown', {
-    scenario_id: sc?.id || '',
-    reply,
-    recommended_product_id: identifyRecommendedProduct(reply, sc, serverRecommendation),
-    server_recommendation_raw: serverRecommendation || '',
-    used_fallback: usedFallback ? 'ja' : 'nein',
-    message_index: aiMessageCount,
-  });
+  // Dynamische Suggestions aktualisieren — wenn die KI welche zurückgegeben hat
+  if (serverSuggestions && serverSuggestions.length > 0) {
+    renderSuggestions(serverSuggestions);
+    // Auch im Embed-Panel
+    const embedSugg = document.getElementById('aiSuggestionsEmbed');
+    if (embedSugg) {
+      embedSugg.innerHTML = '';
+      serverSuggestions.slice(0, 4).forEach(s => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.style.cssText = 'padding:5px 10px;font-size:10.5px;font-weight:500;background:var(--color-green-pale);color:var(--color-green);border-radius:100px;cursor:pointer;border:1px solid transparent;font-family:inherit;';
+        chip.textContent = s;
+        chip.addEventListener('click', () => triggerAiMessage(s, 'embed_suggestion_chip'));
+        embedSugg.appendChild(chip);
+      });
+    }
+  }
+
+  const recommendedProductId = identifyRecommendedProduct(reply, sc, serverRecommendation);
+  if (window.VerdTracker) window.VerdTracker.trackAiReply(reply, currentScenarioIndex, recommendedProductId, serverSellType);
+  if (recommendedProductId && sc) addProductLinkToLastBotMessage(recommendedProductId, sc);
 
   aiPending = false;
   aiInput.disabled = false;
-  aiInput.focus();
+  // Fokus ins Embed-Input falls offen, sonst normales Input
+  const embedInput = document.getElementById('aiInputEmbed');
+  if (embedInput && document.getElementById('variantCEmbed')) {
+    embedInput.focus();
+  } else {
+    aiInput.focus();
+  }
 }
 
 // AI Stub — wird später durch echten API-Call ersetzt (window.VERDEA_AI_API_KEY)
@@ -1101,66 +2363,125 @@ function generateAiReply(scenario, userMessage) {
 
 // ============== FINAL SURVEY ==============
 const SURVEY_QUESTIONS = [
-  { id: 'ai_helpful', type: 'scale', title: 'Wie hilfreich war der KI-Berater bei Ihrer Entscheidung?', sub: '1 = gar nicht hilfreich · 5 = sehr hilfreich' },
-  { id: 'ai_trust', type: 'scale', title: 'Wie sehr haben Sie der KI-Empfehlung vertraut?', sub: '1 = gar nicht · 5 = sehr stark' },
-  { id: 'ai_influence', type: 'scale', title: 'Wie stark hat die KI Ihre Auswahl beeinflusst?', sub: '1 = gar nicht · 5 = sehr stark' },
-  { id: 'decision_confidence', type: 'scale', title: 'Wie sicher fühlen Sie sich bei Ihren Entscheidungen?', sub: '1 = unsicher · 5 = sehr sicher' },
-  { id: 'realism', type: 'scale', title: 'Wie realistisch wirkten die Kaufsituationen?', sub: '1 = unrealistisch · 5 = sehr realistisch' },
-  { id: 'feedback', type: 'textarea', title: 'Möchten Sie uns noch etwas mitteilen?', sub: 'Optional. Anregungen, Kritik oder Beobachtungen.', optional: true },
+  { id: 'chatbot_seen', type: 'radio', title: 'Haben Sie den KI-Chatbot auf der Website gesehen?', options: ['Ja', 'Nein', 'Unsicher'] },
+  { id: 'chatbot_visibility', type: 'scale5', title: 'Wie gut sichtbar war die Platzierung des Chatbots?', sub: '1 = sehr schlecht · 5 = sehr gut' },
+  { id: 'chatbot_used', type: 'radio', title: 'Haben Sie den KI-Chatbot verwendet?', options: ['Ja', 'Nein'], skipGroupIfNo: ['chatbot_recognizable', 'chatbot_purpose_clear', 'chatbot_helpful', 'chatbot_influenced', 'chatbot_perception'] },
+  { id: 'chatbot_recognizable', type: 'scale5', title: 'Der Chatbot war für mich klar als solcher erkennbar.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'chatbot_purpose_clear', type: 'scale5', title: 'Es war mir klar, dass der Chatbot bei der Kaufentscheidung hilft.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'chatbot_helpful', type: 'scale5', title: 'Der Chatbot konnte meine Fragen gut beantworten.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'chatbot_influenced', type: 'scale5', title: 'Wie stark hat der Chatbot Ihre Entscheidung beeinflusst?', sub: '1 = gar nicht · 5 = sehr stark' },
+  { id: 'chatbot_perception', type: 'radio', title: 'Wie haben Sie den Chatbot wahrgenommen?', options: ['Subjektiv — er wollte mir das teuerste Produkt empfehlen', 'Objektiv — er wollte das für mich beste Produkt finden', 'Weiß nicht'] },
+  { id: 'ai_usage_freq', type: 'radio', title: 'Wie oft nutzt du KI-Chatbots im Alltag?', options: ['Täglich', 'Wöchentlich', 'Monatlich', 'Jährlich', 'Nie'] },
+  { id: 'ai_confidence', type: 'scale5', title: 'Ich bin im Umgang mit KI-Chatbots sehr sicher.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'ai_trust', type: 'scale5', title: 'Inwiefern traust du den Antworten von KI-Chatbots?', sub: '1 = gar nicht · 5 = vollständig' },
+  { id: 'decision_confidence', type: 'scale5', title: 'Wie sicher fühlst du dich bei deinen Kaufentscheidungen?', sub: '1 = sehr unsicher · 5 = sehr sicher' },
+  { id: 'realism', type: 'scale5', title: 'Wie realistisch wirkten die Kaufsituationen auf dich?', sub: '1 = unrealistisch · 5 = sehr realistisch' },
+  { id: 'feedback', type: 'textarea', title: 'Möchtest du noch etwas mitteilen?', sub: 'Optional — Anregungen, Kritik oder Beobachtungen.', optional: true },
 ];
 let surveyStep = 0;
 const surveyAnswers = {};
+// IDs der Fragen die wegen skipGroupIfNo übersprungen werden
+let _surveySkippedIds = [];
+
+// Berechnet die sichtbare (nicht übersprungene) Frageliste
+function getActiveSurveyQuestions() {
+  return SURVEY_QUESTIONS.filter(q => !_surveySkippedIds.includes(q.id));
+}
 
 function startSurvey() {
   surveyStep = 0;
+  _surveySkippedIds = [];
   showGate(gateSurvey);
-  if (window.VerdTracker) window.VerdTracker.track('survey_started', { all_choices: JSON.stringify(allChoices) });
   renderSurvey();
 }
+
 function renderSurvey() {
-  const q = SURVEY_QUESTIONS[surveyStep];
-  document.getElementById('surveyBar').style.width = `${Math.round((surveyStep / SURVEY_QUESTIONS.length) * 100)}%`;
-  document.getElementById('surveyStepLabel').textContent = `Frage ${surveyStep + 1} von ${SURVEY_QUESTIONS.length}`;
+  const activeQs = getActiveSurveyQuestions();
+  const q = activeQs[surveyStep];
+  if (!q) { completeSurvey(); return; }
+
+  document.getElementById('surveyBar').style.width = `${Math.round((surveyStep / activeQs.length) * 100)}%`;
+  document.getElementById('surveyStepLabel').textContent = `Frage ${surveyStep + 1} von ${activeQs.length}`;
+
   const c = document.getElementById('surveyContent');
   let html = `<h3 class="survey-question__title">${q.title}</h3>`;
   if (q.sub) html += `<p class="survey-question__sub">${q.sub}</p>`;
-  if (q.type === 'scale') {
+
+  if (q.type === 'scale' || q.type === 'scale5') {
     html += '<div class="survey-scale">';
     for (let i = 1; i <= 5; i++) html += `<label><input type="radio" name="surveyAns" value="${i}"><span>${i}</span></label>`;
+    html += '</div>';
+  } else if (q.type === 'radio') {
+    html += '<div class="survey-pills">';
+    q.options.forEach(opt => {
+      html += `<label class="survey-pill"><input type="radio" name="surveyAns" value="${opt}"><span>${opt}</span></label>`;
+    });
     html += '</div>';
   } else if (q.type === 'textarea') {
     html += `<textarea class="survey-textarea" name="surveyAns" placeholder="Optional …"></textarea>`;
   }
+
   c.innerHTML = html;
+
+  // Gespeicherten Wert wiederherstellen
   const saved = surveyAnswers[q.id];
   if (saved !== undefined) {
-    if (q.type === 'scale') { const r = c.querySelector(`input[value="${saved}"]`); if (r) r.checked = true; }
-    else { c.querySelector('textarea').value = saved; }
+    if (q.type === 'scale' || q.type === 'scale5' || q.type === 'radio') {
+      const r = c.querySelector(`input[value="${CSS.escape ? CSS.escape(saved) : saved}"]`)
+             || Array.from(c.querySelectorAll('input[name="surveyAns"]')).find(el => el.value === saved);
+      if (r) r.checked = true;
+    } else if (q.type === 'textarea') {
+      const ta = c.querySelector('textarea');
+      if (ta) ta.value = saved;
+    }
   }
+
   document.getElementById('surveyBack').style.visibility = surveyStep === 0 ? 'hidden' : 'visible';
-  document.getElementById('surveyNext').textContent = surveyStep === SURVEY_QUESTIONS.length - 1 ? 'Absenden' : 'Weiter →';
+  document.getElementById('surveyNext').textContent = surveyStep === activeQs.length - 1 ? 'Weiter →' : 'Weiter →';
 }
+
 document.getElementById('surveyBack').addEventListener('click', () => {
   if (surveyStep > 0) { surveyStep--; renderSurvey(); }
 });
+
 document.getElementById('surveyNext').addEventListener('click', () => {
-  const q = SURVEY_QUESTIONS[surveyStep];
+  const activeQs = getActiveSurveyQuestions();
+  const q = activeQs[surveyStep];
+  if (!q) return;
+
   let val = '';
-  if (q.type === 'scale') val = document.querySelector('input[name="surveyAns"]:checked')?.value || '';
-  else val = document.querySelector('textarea[name="surveyAns"]')?.value.trim() || '';
+  if (q.type === 'scale' || q.type === 'scale5' || q.type === 'radio') {
+    val = document.querySelector('input[name="surveyAns"]:checked')?.value || '';
+  } else if (q.type === 'textarea') {
+    val = document.querySelector('textarea[name="surveyAns"]')?.value.trim() || '';
+  }
+
   if (!val && !q.optional) { showToast('Bitte beantworten Sie diese Frage.'); return; }
+
   surveyAnswers[q.id] = val;
-  if (window.VerdTracker) window.VerdTracker.track('survey_answered', { question_id: q.id, answer: val, step: surveyStep + 1 });
-  if (surveyStep + 1 < SURVEY_QUESTIONS.length) { surveyStep++; renderSurvey(); }
-  else { completeSurvey(); }
+  if (window.VerdTracker) window.VerdTracker.trackSurveyAnswer(q.id, val);
+
+  // skipGroupIfNo — wenn "Nein" gewählt, Skip-Liste aktualisieren
+  if (q.skipGroupIfNo && val === 'Nein') {
+    _surveySkippedIds = [...new Set([..._surveySkippedIds, ...q.skipGroupIfNo])];
+  } else if (q.skipGroupIfNo && val !== 'Nein') {
+    // Wenn zurück und jetzt "Ja" — Skip aufheben
+    _surveySkippedIds = _surveySkippedIds.filter(id => !q.skipGroupIfNo.includes(id));
+  }
+
+  const newActiveQs = getActiveSurveyQuestions();
+  if (surveyStep + 1 < newActiveQs.length) {
+    surveyStep++;
+    renderSurvey();
+  } else {
+    completeSurvey();
+  }
 });
+
 function completeSurvey() {
-  if (window.VerdTracker) window.VerdTracker.track('survey_completed', {
-    answers: JSON.stringify(surveyAnswers),
-    all_choices: JSON.stringify(allChoices),
-    demographics: JSON.stringify(allDemographics),
-  });
-  showGate(gateThanks);
+  // Tracking-Flush ohne complete() — das kommt erst nach der Demografie
+  if (window.VerdTracker) window.VerdTracker.flush();
+  showGate(gateDemographics);
 }
 
 // ===== INIT =====
@@ -1168,3 +2489,8 @@ renderProducts();
 // Hide AI fab + banner until study really starts
 aiFab.hidden = true;
 taskBanner.hidden = true;
+
+// VerdTracker initialisieren (nach DOM-Ready — Variante ist bereits gesetzt)
+if (window.VerdTracker) {
+  window.VerdTracker.init(window.VERDEA_VARIANT || 'A');
+}
