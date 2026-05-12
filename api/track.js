@@ -9,7 +9,7 @@ const ALLOWED_ORIGIN_PATTERNS = [
   /^http:\/\/127\.0\.0\.1(:\d+)?(\/|$)/,
 ];
 
-const GAS_URL = process.env.GAS_TRACKER_URL;
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyoWirqY_79VZ9V3kFnE-68qV83CEHHWbDSO0DlMhopb_dmKb0FkIawoPzU2v_fdRLW/exec';
 
 export default async function handler(req, res) {
   // CORS-Header damit der Browser die Antwort akzeptiert
@@ -30,10 +30,6 @@ export default async function handler(req, res) {
   if (!originAllowed) {
     console.warn('Blocked origin:', origin || '(empty)');
     return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  if (!GAS_URL) {
-    return res.status(500).json({ error: 'GAS_TRACKER_URL nicht konfiguriert' });
   }
 
   try {
