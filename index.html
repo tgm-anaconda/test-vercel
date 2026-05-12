@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VERDEA — Studie zur KI-Beratung</title>
+  <title>VERDEA — Nutzerstudie</title>
   <style> /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -11,6 +11,7 @@
   --color-bg: #f7f5f0;
   --color-surface: #ffffff;
   --color-green: #2c5f2e;
+  --task-banner-bg: #1a3d5c;   /* Dunkles Blau für Task-Banner — höherer Kontrast */
   --color-green-mid: #4a7c4e;
   --color-green-light: #7aab7d;
   --color-green-pale: #e8f0e8;
@@ -31,6 +32,16 @@
   --transition: 0.25s ease;
   --header-h: 56px;
   --top-bar-h: 34px;
+  /* Höhe des Bot-Headers — matcht den Page-Header (Top-Bar + Nav) */
+  --bot-header-green-h: var(--top-bar-h);                                /* 34 px grünes Band oben */
+  --bot-header-h: calc(var(--header-h) + var(--top-bar-h));              /* 90 px gesamt */
+}
+/* Wenn das Aufgaben-Banner aktiv ist, rückt der Page-Header 48 px tiefer →
+   der Bot-Header muss seine grüne Zone entsprechend mit-ansetzen, damit die
+   Kanten zwischen Page (links) und Bot (rechts) auf gleicher Höhe abschließen. */
+body.has-task-banner {
+  --bot-header-green-h: calc(48px + var(--top-bar-h));                   /* 82 px grün (48 Banner + 34 Top-Bar) */
+  --bot-header-h: calc(var(--header-h) + var(--top-bar-h) + 48px);       /* 138 px gesamt */
 }
 
 html { scroll-behavior: smooth; }
@@ -92,7 +103,8 @@ ul { list-style: none; }
 
 .header__top {
   background: var(--color-green); color: #fff;
-  text-align: center; font-size: 12px; letter-spacing: .04em; padding: 8px;
+  text-align: center; font-size: 12px; letter-spacing: .04em; padding: 0 8px;
+  height: 34px; display: flex; align-items: center; justify-content: center;
 }
 .header__nav {
   display: flex; align-items: center; justify-content: space-between;
@@ -198,7 +210,7 @@ ul { list-style: none; }
 .trust-bar { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 28px 0; }
 .trust-bar__grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; }
 .trust-item { display: flex; align-items: center; gap: 14px; }
-.trust-item__icon { font-size: 28px; flex-shrink: 0; }
+.trust-item__icon { font-size: 28px; flex-shrink: 0; color: var(--color-green); display: inline-flex; align-items: center; }
 .trust-item strong { display: block; font-size: 14px; font-weight: 600; color: var(--color-dark); }
 .trust-item p { font-size: 12.5px; color: var(--color-muted); margin: 0; }
 
@@ -280,6 +292,20 @@ ul { list-style: none; }
 }
 .product-card:hover .product-card__quick-add { transform: translateY(0); }
 
+.product-card__chat-btn {
+  position: absolute; top: 12px; left: 12px; z-index: 4;
+  background: var(--color-green); color: #fff;
+  border: none; border-radius: 8px; cursor: pointer;
+  padding: 7px 12px 7px 10px;
+  font-size: 12px; font-weight: 600; letter-spacing: .03em;
+  display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.22);
+  transition: background var(--transition), transform var(--transition);
+  line-height: 1;
+}
+.product-card__chat-btn:hover { background: var(--color-green-mid); transform: scale(1.06); }
+.product-card__chat-btn svg { flex-shrink: 0; }
+
 .product-card__info { padding: 16px; }
 .product-card__brand { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-green-mid); margin-bottom: 4px; }
 .product-card__name { font-size: 14.5px; font-weight: 600; color: var(--color-dark); margin-bottom: 4px; line-height: 1.35; }
@@ -348,18 +374,78 @@ body.has-task-banner .detail-gallery {
 
 .detail-desc { font-size: 15px; color: var(--color-mid); line-height: 1.85; margin-bottom: 24px; }
 
-/* Ingredient List in Detail */
-.detail-ingredients { margin-bottom: 24px; }
-.detail-ingredients__title { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-dark); margin-bottom: 12px; }
+/* ===== Ingredient List in Detail (redesigned, professional) ===== */
+.detail-ingredients {
+  margin-bottom: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 8px 20px;
+}
+.detail-ingredients__title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-green);
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+}
 .ingredient-row {
-  display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--color-border);
 }
 .ingredient-row:last-child { border-bottom: none; }
-.ingredient-row__name { flex: 1; font-size: 14px; font-weight: 500; }
-.ingredient-row__sub { font-size: 12px; color: var(--color-muted); }
-.ingredient-row__amount { font-size: 13px; font-weight: 600; color: var(--color-green); white-space: nowrap; }
-.ingredient-row__origin { font-size: 12px; color: var(--color-muted); }
+.ingredient-row__main { min-width: 0; }
+.ingredient-row__name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin-bottom: 3px;
+  line-height: 1.4;
+}
+.ingredient-row__sub {
+  font-size: 12.5px;
+  color: var(--color-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+.ingredient-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.ingredient-row__amount {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-green);
+  background: var(--color-green-pale);
+  padding: 5px 12px;
+  border-radius: 100px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.ingredient-row__origin {
+  font-size: 12.5px;
+  color: var(--color-mid);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.ingredient-row__amount:empty,
+.ingredient-row__origin:empty { display: none; }
+@media (max-width: 480px) {
+  .ingredient-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .ingredient-row__meta { justify-content: flex-start; }
+}
 
 .detail-options { margin-bottom: 24px; }
 .detail-options__label { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
@@ -383,8 +469,32 @@ body.has-task-banner .detail-gallery {
 .detail-tab-content { display: none; }
 .detail-tab-content.active { display: block; }
 
-.detail-feature { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 14px; color: var(--color-mid); }
-.detail-feature svg { flex-shrink: 0; color: var(--color-green); margin-top: 2px; }
+/* Usage / Pflege / Hinweise — als kleine grüne Karten statt Border-Liste */
+.detail-feature {
+  display: flex; align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--color-green-xpale);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--color-mid);
+  line-height: 1.65;
+  transition: border-color var(--transition);
+}
+.detail-feature:hover { border-color: var(--color-green-light); }
+.detail-feature svg {
+  flex-shrink: 0;
+  color: var(--color-green);
+  margin-top: 3px;
+}
+.detail-feature strong {
+  color: var(--color-dark);
+  font-weight: 700;
+  margin-right: 4px;
+}
+.detail-feature:last-child { margin-bottom: 0; }
 
 .detail-faq { margin-top: 4px; }
 .faq-item { border-bottom: 1px solid var(--color-border); }
@@ -397,7 +507,7 @@ body.has-task-banner .detail-gallery {
 .faq-item.open .faq-question svg { transform: rotate(180deg); }
 .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
 .faq-answer p { padding: 0 0 14px; font-size: 13.5px; color: var(--color-muted); line-height: 1.8; }
-.faq-item.open .faq-answer { max-height: 200px; }
+.faq-item.open .faq-answer { max-height: 600px; }
 
 /* ===== TRANSPARENCY ===== */
 .transparency { background: var(--color-surface); padding: 80px 0; }
@@ -415,7 +525,7 @@ body.has-task-banner .detail-gallery {
 .ingredient-card--sm { opacity: .7; }
 .ingredient-card--muted { opacity: .45; }
 .ingredient-card__header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.ingredient-card__emoji { font-size: 24px; }
+.ingredient-card__emoji { font-size: 24px; color: var(--color-green); display: inline-flex; align-items: center; }
 .ingredient-card__header strong { font-size: 14px; font-weight: 600; display: block; }
 .ingredient-card__header small { font-size: 11px; color: var(--color-muted); font-style: italic; }
 .ingredient-origin { margin-left: auto; font-size: 12px; color: var(--color-muted); white-space: nowrap; }
@@ -435,7 +545,7 @@ body.has-task-banner .detail-gallery {
 /* ===== NEWSLETTER ===== */
 .newsletter { padding: 80px 0; background: var(--color-bg); }
 .newsletter__inner { max-width: 560px; margin: 0 auto; text-align: center; }
-.newsletter__icon { font-size: 40px; margin-bottom: 16px; }
+.newsletter__icon { font-size: 40px; margin-bottom: 16px; color: var(--color-green); display: inline-flex; align-items: center; justify-content: center; }
 .newsletter__title { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 10px; }
 .newsletter__sub { color: var(--color-muted); font-size: 14.5px; margin-bottom: 28px; }
 .newsletter__form { display: flex; gap: 8px; }
@@ -469,7 +579,7 @@ body.has-task-banner .detail-gallery {
 .about-img-placeholder {
   background: var(--color-green-xpale); border-radius: var(--radius-lg); aspect-ratio: 3/4;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-size: 80px; gap: 16px;
+  color: var(--color-green); gap: 16px;
 }
 .about-img-placeholder p { font-size: 14px; color: var(--color-muted); }
 
@@ -478,7 +588,7 @@ body.has-task-banner .detail-gallery {
 .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
 .value-card { background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: var(--radius-lg); padding: 32px 28px; transition: all var(--transition); }
 .value-card:hover { border-color: var(--color-green); box-shadow: var(--shadow-md); }
-.value-card__icon { font-size: 36px; margin-bottom: 16px; }
+.value-card__icon { font-size: 36px; margin-bottom: 16px; color: var(--color-green); display: inline-flex; align-items: center; }
 .value-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
 .value-card p { font-size: 14px; color: var(--color-muted); line-height: 1.8; }
 
@@ -486,7 +596,7 @@ body.has-task-banner .detail-gallery {
 .about-certs h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; margin-bottom: 12px; }
 .certs-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
 .cert-item { background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: var(--radius-lg); padding: 28px 24px; text-align: center; }
-.cert-item__badge { font-size: 36px; margin-bottom: 12px; }
+.cert-item__badge { font-size: 36px; margin-bottom: 12px; color: var(--color-green); display: inline-flex; align-items: center; justify-content: center; }
 .cert-item strong { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
 .cert-item p { font-size: 13px; color: var(--color-muted); line-height: 1.7; }
 
@@ -518,7 +628,8 @@ body.has-task-banner .detail-gallery {
 .cart-item__emoji { width: 68px; height: 80px; background: var(--color-green-xpale); border-radius: var(--radius); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; }
 .cart-item__info { flex: 1; }
 .cart-item__brand { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-green-mid); }
-.cart-item__name { font-size: 13.5px; font-weight: 500; margin: 3px 0 6px; }
+.cart-item__name { font-size: 13.5px; font-weight: 500; margin: 3px 0 2px; }
+.cart-item__option { font-size: 11.5px; color: var(--color-muted); margin-bottom: 6px; line-height: 1.3; }
 .cart-item__price { font-size: 14px; font-weight: 700; color: var(--color-green); }
 .cart-item__remove { font-size: 11px; color: var(--color-muted); text-decoration: underline; cursor: pointer; margin-left: 10px; }
 .cart-item__remove:hover { color: var(--color-red); }
@@ -560,30 +671,95 @@ body.has-task-banner .detail-gallery {
   .trust-bar__grid { grid-template-columns: repeat(2,1fr); }
 }
 @media (max-width: 768px) {
-  .container { padding: 0 20px; }
-  .header__nav { padding: 0 20px; }
+  .container { padding: 0 16px; }
+  .header__nav { padding: 0 16px; }
   .nav__left { display: none; }
   .header__logo { position: static; transform: none; }
-  .categories__grid { grid-template-columns: repeat(2,1fr); }
-  .products-grid { grid-template-columns: repeat(2,1fr); gap: 14px; }
-  .stats-grid { grid-template-columns: repeat(2,1fr); }
-  .footer__grid { grid-template-columns: 1fr 1fr; }
-  .footer__brand { grid-column: 1 / -1; }
-  .about-story { grid-template-columns: 1fr; }
-  .values-grid { grid-template-columns: 1fr; }
-  .certs-grid { grid-template-columns: repeat(2,1fr); }
-  .team-grid { grid-template-columns: repeat(2,1fr); }
+  .nav__right { gap: 12px; }
+
+  /* Produkt-Grid: IMMER 2 Spalten auf Mobile (auch auf sehr kleinen Phones).
+     So sieht der User mit einem Blick mehrere Produkte. */
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .product-card__name { font-size: 13px; }
+  .product-card__tagline { font-size: 11px; }
+  .product-card__info { padding: 12px; }
+  .product-card__brand { font-size: 9.5px; }
+  .product-card__price { font-size: 14px; }
+  .product-card__unit { font-size: 10px; }
+  .product-card__quick-add { font-size: 10px; padding: 9px; }
+
+  /* Hero etwas kompakter */
+  .hero { min-height: 480px; }
+  .hero__sub { font-size: 14px; margin-bottom: 26px; }
+  .hero__cert-row { gap: 6px; margin-bottom: 18px; }
+  .cert-pill { font-size: 11px; padding: 4px 10px; }
+  .hero__actions { flex-direction: column; align-items: stretch; }
+
+  /* Brand-Intro: 1 Spalte, kleiner Kreis */
+  .brand-intro { padding: 56px 0; }
+  .brand-intro__inner { grid-template-columns: 1fr; gap: 32px; }
+  .brand-intro__circle { width: 140px; height: 140px; }
+  .brand-intro__circle svg { width: 64px; height: 64px; }
+  .brand-intro__pills { font-size: 11px; }
+
+  /* Sektion-Padding reduzieren */
+  .trust-bar { padding: 20px 0; }
+  .trust-item__icon { font-size: 22px; }
+  .trust-bar__grid { gap: 16px; grid-template-columns: repeat(2, 1fr); }
+  .products-section { padding: 0 0 56px; }
+  .transparency, .stats-section, .newsletter { padding: 56px 0; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .stat-number { font-size: 36px; }
+
+  /* Filter-Tabs: kompakter, ggf. horizontal scrollen */
+  .filter-tabs { padding: 3px; gap: 2px; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .filter-tab { padding: 7px 12px; font-size: 11.5px; white-space: nowrap; flex-shrink: 0; }
+  .section-title { font-size: 24px; }
+  .section-header { flex-direction: column; gap: 14px; }
+
+  /* Detail-Seite */
+  .product-detail__inner { padding: 28px 16px 60px; }
+  .product-detail__content { grid-template-columns: 1fr; gap: 24px; }
+  .detail-gallery { position: static; }
+  .detail-gallery__main { aspect-ratio: 1; max-height: 360px; }
+  .detail-info__name { font-size: 26px; }
+  .detail-price__main { font-size: 24px; }
+  .detail-actions { flex-direction: column; gap: 8px; }
+
+  /* About-Page */
+  .about-page__inner { padding: 24px 16px 60px; }
+  .about-story { grid-template-columns: 1fr; gap: 32px; }
+  .values-grid { grid-template-columns: 1fr; gap: 16px; }
+  .certs-grid { grid-template-columns: repeat(2, 1fr); }
+  .team-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Newsletter, Footer, Hero-Actions */
   .newsletter__form { flex-direction: column; }
-  .hero__actions { flex-direction: column; align-items: center; }
-  .footer__bottom { flex-direction: column; gap: 10px; text-align: center; }
-  .cookie-bar { flex-direction: column; gap: 14px; padding: 16px 20px; }
-  .section-header { flex-direction: column; }
+  .footer__grid { grid-template-columns: 1fr 1fr; gap: 28px; padding-bottom: 32px; }
+  .footer__brand { grid-column: 1 / -1; }
+  .footer__bottom { flex-direction: column; gap: 10px; text-align: center; padding: 18px 0; }
+  .cookie-bar { flex-direction: column; gap: 14px; padding: 14px 16px; }
+
+  /* Task-Banner */
+  .task-banner__inner { padding: 8px 16px; gap: 10px; }
+  .task-banner__step { font-size: 10px; padding: 3px 8px; }
+  .task-banner__text { font-size: 12px; min-width: 0; }
+  .task-banner__help { font-size: 10.5px; padding: 4px 10px; }
+
+  /* Gate-Cards (Welcome/Demographics) */
+  .gate-card { padding: 28px 20px; }
+  .gate-card__title { font-size: 24px; }
+  .gate-card__sub { font-size: 14.5px; }
+  .gate-list li { padding: 12px 14px; }
+  .form-radio span { padding: 10px 16px; font-size: 13px; }
+
+  /* Body bekommt Bottom-Padding wenn Bot offen — damit User unter Bot scrollen kann */
+  body.bot-open { padding-bottom: 26vh; }
 }
-@media (max-width: 480px) {
-  .products-grid { grid-template-columns: 1fr; }
-  .footer__grid { grid-template-columns: 1fr; }
-  .certs-grid { grid-template-columns: 1fr; }
-  .team-grid { grid-template-columns: 1fr; }
+@media (max-width: 380px) {
+  /* Sehr schmale Phones: weniger aggressiv aber trotzdem 2 Spalten */
+  .products-grid { gap: 8px; }
+  .product-card__info { padding: 10px; }
 }
 
 /* ===== STUDY GATES (Welcome / Demographics / Task Intro / Survey / Thanks) ===== */
@@ -611,7 +787,7 @@ body.has-task-banner .detail-gallery {
 }
 @keyframes gateSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .gate-card__hero { text-align: center; margin-bottom: 32px; }
-.gate-card__leaf { font-size: 56px; display: block; margin-bottom: 12px; }
+.gate-card__leaf { display: inline-flex; margin-bottom: 12px; color: var(--color-green); }
 .gate-card__title { font-family: var(--font-serif); font-size: clamp(28px, 4vw, 42px); font-weight: 500; line-height: 1.15; color: var(--color-dark); margin-bottom: 14px; }
 .gate-card__title--sm { font-size: clamp(22px, 3vw, 30px); }
 .gate-card__sub { font-size: 16px; color: var(--color-mid); max-width: 560px; margin: 0 auto 12px; }
@@ -620,7 +796,7 @@ body.has-task-banner .detail-gallery {
 
 .gate-list { display: grid; gap: 14px; margin: 28px 0; list-style: none; }
 .gate-list li { display: flex; gap: 14px; align-items: flex-start; padding: 14px 18px; background: var(--color-green-pale); border-radius: var(--radius); }
-.gate-list li > span:first-child { font-size: 22px; flex-shrink: 0; line-height: 1; }
+.gate-list__icon { flex-shrink: 0; color: var(--color-green); display: inline-flex; align-items: center; padding-top: 2px; }
 .gate-list li strong { display: block; color: var(--color-dark); margin-bottom: 2px; font-weight: 600; font-size: 15px; }
 .gate-list li span:not(:first-child) { font-size: 14px; color: var(--color-mid); }
 
@@ -674,13 +850,79 @@ body.has-task-banner .detail-gallery {
 .survey-textarea:focus { border-color: var(--color-green); }
 .survey-actions { display: flex; justify-content: space-between; margin-top: 32px; }
 
+/* ===== SURVEY PILLS (radio-Fragen) ===== */
+.survey-pills { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.survey-pill { display: block; cursor: pointer; }
+.survey-pill input { position: absolute; opacity: 0; pointer-events: none; }
+.survey-pill span {
+  display: block; padding: 13px 20px;
+  border: 2px solid var(--color-border); border-radius: var(--radius);
+  background: #fafbfa; color: var(--color-mid);
+  font-size: 15px; font-weight: 500;
+  cursor: pointer; transition: all var(--transition);
+}
+.survey-pill input:checked + span { background: var(--color-green); color: #fff; border-color: var(--color-green); }
+.survey-pill span:hover { border-color: var(--color-green-mid); }
+
+/* ===== VARIANTE C — Button auf Bild, Chat darunter ===== */
+
+/* Öffnen-Button oben-links auf dem Produktbild */
+.variant-c-open-btn {
+  position: absolute;
+  top: 14px; left: 14px;
+  z-index: 10;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--color-green);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  padding: 11px 18px 11px 14px;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(44,95,46,0.4);
+  transition: background var(--transition), transform var(--transition);
+}
+.variant-c-open-btn:hover { background: #234e25; transform: scale(1.04); }
+.variant-c-open-btn[hidden] { display: none; }
+
+/* Chat-Panel unterhalb des Bildes, leicht überlappend */
+.variant-c-embed {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  margin-top: -28px;   /* überlappt das Bild leicht */
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  box-shadow: 0 8px 32px rgba(44,95,46,0.14);
+  z-index: 5;
+}
+.variant-c-embed[hidden] { display: none; }
+.variant-c-embed__header {
+  background: var(--color-green);
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+/* Gallery: kein Sticky mehr wenn Bot-Chat offen */
+.detail-gallery.variant-c-bot-open {
+  position: static;
+}
+/* Bildgröße reduzieren wenn Chat offen, damit alles sichtbar bleibt */
+.detail-gallery.variant-c-bot-open .detail-gallery__main {
+  aspect-ratio: unset;
+  height: 240px;
+}
+
 /* Thank-you icon */
 .thanks-icon { width: 88px; height: 88px; border-radius: 50%; background: var(--color-green); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 44px; margin: 0 auto 24px; }
 
 /* ===== TASK BANNER (sticky during scenarios) ===== */
 .task-banner {
   position: fixed; top: 0; left: 0; right: 0; z-index: 800;
-  background: linear-gradient(135deg, #234e25 0%, #4a7c4e 100%);
+  background: var(--task-banner-bg);   /* Dunkles Blau — hoher Kontrast */
   color: #fff;
   box-shadow: 0 4px 20px rgba(44,95,46,0.25);
   animation: taskSlideDown 0.4s ease;
@@ -803,8 +1045,9 @@ body.has-task-banner .about-page { padding-top: calc(var(--header-h) + var(--top
   top: 0; right: 0; bottom: 0;
   width: 420px; max-width: 100vw;
   background: var(--color-surface);
+  border: none;
   border-left: 1px solid var(--color-border);
-  box-shadow: -16px 0 48px rgba(44,95,46,0.16);
+  box-shadow: -6px 0 24px rgba(44,95,46,0.07);
   display: flex; flex-direction: column;
   overflow: hidden;
   animation: botSlideIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -818,78 +1061,88 @@ body.has-task-banner .about-page { padding-top: calc(var(--header-h) + var(--top
 
 /* Layout-Shift wenn Bot offen — gilt erst ab 1024 px (Desktop/Laptop) */
 @media (min-width: 1024px) {
-  /* Fixe Top-Elemente: Header und Banner nehmen nur die linke Spalte ein */
+  /* Header & Task-Banner enden am Bot-Rand; header__top Höhe ist jetzt exakt 34px (gefixt),
+     damit der Gradient im Bot-Header pixelgenau passt. */
   body.bot-open .header,
   body.bot-open .task-banner { right: 420px; }
-  /* Inline-Inhalte (Main, Detail, About, Footer) bekommen rechtes Padding,
-     damit ihr Inhalt zentriert in der linken Spalte sitzt */
   body.bot-open main,
   body.bot-open .product-detail,
   body.bot-open .about-page,
   body.bot-open .footer { padding-right: 420px; }
-  /* Cart-Drawer, Search-Overlay, Gate-Overlays bleiben unangetastet —
-     sie überdecken den Bot bei Bedarf (Cart per Slide-in, Search/Gates fullscreen). */
 }
 
 /* Wenn Detail oder About offen ist, wird der Hauptinhalt komplett ausgeblendet —
    die User scrollt eine echte Seite, kein Overlay. */
 body.viewing-overlay #mainContent { display: none; }
 
-/* Bot-Header */
+/* Bot-Header — spiegelt Page-Header (Top-Bar grün + Nav weiß) */
 .ai-bot__header {
-  background: linear-gradient(135deg, var(--color-green) 0%, var(--color-green-mid) 100%);
-  padding: 22px 24px;
-  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(to bottom,
+    var(--color-green) 0,
+    var(--color-green) var(--bot-header-green-h),
+    var(--color-surface) var(--bot-header-green-h));
+  height: var(--bot-header-h);
+  padding: var(--bot-header-green-h) 18px 0;
+  display: flex; align-items: center; gap: 12px;
   position: relative;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  box-sizing: border-box;
 }
-.ai-bot__header::after {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at top right, rgba(200,169,110,0.18) 0%, transparent 60%);
-  pointer-events: none;
+/* Mit Task-Banner: Gradient spiegelt blau (Banner) + grün (Top-Bar) + weiß (Nav) */
+body.has-task-banner .ai-bot__header {
+  background: linear-gradient(to bottom,
+    var(--task-banner-bg) 0,
+    var(--task-banner-bg) 48px,
+    var(--color-green) 48px,
+    var(--color-green) var(--bot-header-green-h),
+    var(--color-surface) var(--bot-header-green-h));
 }
+
+/* Avatar/Title/Sub/Close stehen jetzt im weißen 56 px-Bereich des Bot-Headers */
 .ai-bot__avatar {
-  width: 48px; height: 48px;
+  width: 40px; height: 40px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.18);
+  background: var(--color-green-pale);
+  color: var(--color-green);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; flex-shrink: 0;
-  border: 2px solid rgba(255,255,255,0.28);
+  font-size: 22px; flex-shrink: 0;
+  border: 1px solid var(--color-green-light);
 }
 .ai-bot__title {
   font-family: var(--font-serif);
   font-weight: 600;
-  font-size: 19px;
-  color: #fff;
-  line-height: 1.2;
+  font-size: 16.5px;
+  color: var(--color-dark);
+  line-height: 1.15;
 }
 .ai-bot__sub {
-  font-size: 12px;
-  color: rgba(255,255,255,0.85);
+  font-size: 11.5px;
+  color: var(--color-mid);
   display: flex; align-items: center; gap: 6px;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 .ai-bot__dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--color-accent);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--color-green);
   animation: dotPulse 1.6s ease-out infinite;
 }
 @keyframes dotPulse {
-  0% { box-shadow: 0 0 0 0 rgba(200,169,110,0.7); }
-  100% { box-shadow: 0 0 0 10px rgba(200,169,110,0); }
+  0% { box-shadow: 0 0 0 0 rgba(44,95,46,0.45); }
+  100% { box-shadow: 0 0 0 8px rgba(44,95,46,0); }
 }
 .ai-bot__close {
-  background: rgba(255,255,255,0.15);
-  color: #fff;
+  background: var(--color-green-pale);
+  color: var(--color-green);
   border: none;
   border-radius: 50%;
-  width: 36px; height: 36px;
+  width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
   margin-left: auto;
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background var(--transition), color var(--transition);
 }
-.ai-bot__close:hover { background: rgba(255,255,255,0.28); }
+.ai-bot__close:hover { background: var(--color-green); color: #fff; }
 
 /* Bot-Inhalt */
 .ai-bot__intro {
@@ -938,6 +1191,14 @@ body.viewing-overlay #mainContent { display: none; }
   align-self: flex-end;
   border-bottom-right-radius: 4px;
 }
+.ai-product-link {
+  display: inline-block; margin-top: 10px;
+  padding: 6px 14px; background: var(--color-green); color: #fff;
+  border: none; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit; letter-spacing: .02em;
+  transition: background var(--transition);
+}
+.ai-product-link:hover { background: var(--color-green-mid); }
 .ai-msg--typing {
   display: flex; gap: 5px;
   align-self: flex-start;
@@ -1015,17 +1276,32 @@ body.viewing-overlay #mainContent { display: none; }
 }
 .ai-bot__send:hover { background: #234e25; transform: scale(1.05); }
 
-/* Mobile/Tablet: Bot wird Slide-up vom unteren Rand, KEIN Layout-Shift */
+/* ====================================================================
+   AI-BOT MOBILE — sauber unten als Slide-up Panel
+   • ≤ 768px (Phone): max 25 % der Bildschirmhöhe, full-width, KANTEN ANSCHLIESSEN
+   • 769–1023px (Tablet): immer noch unten, etwas mehr Höhe
+   • ≥ 1024px (Desktop): Side-Dock rechts (siehe oben in der CSS)
+   ==================================================================== */
 @media (max-width: 1023px) {
   .ai-bot {
+    /* explizit ALLE Edges setzen damit kein Spalt entsteht (war im Screenshot 2 das Problem) */
+    position: fixed;
     top: auto;
-    height: 75vh;
-    width: 100%;
-    border-left: none;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    max-width: 100vw;
+    /* Höhe: Tablet kriegt 50vh, Phone 25vh — siehe Phone-Override darunter */
+    height: 50vh;
+    max-height: 50vh;
+    border: none;
     border-top: 1px solid var(--color-border);
     border-top-left-radius: var(--radius-lg);
     border-top-right-radius: var(--radius-lg);
-    box-shadow: 0 -16px 48px rgba(44,95,46,0.18);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: 0 -8px 32px rgba(44,95,46,0.2);
     animation: botSlideUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   @keyframes botSlideUp {
@@ -1034,9 +1310,60 @@ body.viewing-overlay #mainContent { display: none; }
   }
   .ai-fab__label { display: none; }
 }
-@media (max-width: 480px) {
-  .ai-fab { right: 16px; bottom: 16px; width: 64px; height: 64px; }
-  .ai-fab__icon { font-size: 28px; }
+
+/* Phone-spezifisch: Bot min. 300 px, max. 45 vh — Input ist IMMER sichtbar.
+   KEIN max-height in vh, weil max-height < min-height den min-height aushebelt. */
+@media (max-width: 768px) {
+  /* MOBILE-BOT — kompaktes Stacking damit der Input IMMER sichtbar ist
+     Reihenfolge im Panel:
+       Header   (~44 px)   ── Avatar + Titel + Close-Button
+       Messages (flex-1)   ── Chat-Verlauf, scrollt
+       Suggest  (~36 px)   ── horizontal scrollbare Chips
+       Input    (~52 px)   ── Eingabe + Send-Button
+     Welcome-Intro wird auf Mobile KOMPLETT AUSGEBLENDET (bot-internal Greeting reicht)
+  */
+  .ai-bot {
+    /* clamp(min, preferred, max): mindestens 300px, idealerweise 40dvh,
+       maximal 420px — dvh bezieht die iOS-Safari-Adressleiste korrekt ein */
+    height: clamp(300px, 40dvh, 420px) !important;
+    max-height: none !important;
+    min-height: 300px;
+  }
+  .ai-bot__intro { display: none !important; }   /* spart Platz für Messages/Input */
+  /* Auf Mobile sitzt der Bot UNTEN — die Page-Header-Alignment-Logik ist irrelevant.
+     Daher: kompakter solider grüner Header mit hellem Text. */
+  .ai-bot__header {
+    background: var(--color-green);
+    height: 44px;
+    padding: 0 12px;
+    gap: 10px;
+    border-bottom: none;
+  }
+  .ai-bot__avatar {
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    font-size: 16px;
+  }
+  .ai-bot__title { font-size: 13.5px; color: #fff; line-height: 1.1; }
+  .ai-bot__sub { font-size: 10.5px; color: rgba(255,255,255,0.85); margin-top: 1px; }
+  .ai-bot__dot { background: var(--color-accent); }
+  .ai-bot__close { width: 30px; height: 30px; background: rgba(255,255,255,0.15); color: #fff; }
+  .ai-bot__close:hover { background: rgba(255,255,255,0.28); color: #fff; }
+  .ai-bot__messages { padding: 10px 12px; gap: 8px; flex: 1; min-height: 0; }
+  .ai-msg { font-size: 13.5px; padding: 9px 12px; line-height: 1.45; max-width: 92%; }
+  /* Suggestions: horizontal scrollend statt umbrechend → spart Höhe */
+  .ai-bot__suggestions { padding: 6px 12px; gap: 6px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ai-suggestion { font-size: 11.5px; padding: 5px 10px; flex-shrink: 0; white-space: nowrap; }
+  .ai-bot__input-row { padding: 8px 12px 10px; gap: 8px; }
+  .ai-bot__input { padding: 9px 14px; font-size: 13.5px; }
+  .ai-bot__send { width: 36px; height: 36px; }
+
+  /* FAB kompakter */
+  .ai-fab { right: 16px; bottom: 16px; width: 56px; height: 56px; }
+  .ai-fab__icon { font-size: 24px; }
+  .ai-fab svg { width: 26px !important; height: 26px !important; }
 }
 
 /* =============================================================================
@@ -1073,6 +1400,179 @@ body.viewing-overlay #mainContent { display: none; }
   width: 100%; height: 100%; object-fit: cover; display: block;
 }
 .detail-gallery__emoji { font-size: 120px; }
+
+/* ====================================================================
+   PHASE 2: BRAND-INTRO (ersetzt frühere Kategorien-Sektion)
+   ==================================================================== */
+.brand-intro {
+  padding: 80px 0;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.brand-intro__inner {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 60px;
+  align-items: center;
+}
+.brand-intro__visual {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 24px;
+}
+.brand-intro__circle {
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-green-pale) 0%, var(--color-green-xpale) 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-green);
+  box-shadow: 0 20px 50px rgba(44,95,46,0.12);
+}
+.brand-intro__pills {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+.brand-intro__pills span {
+  background: var(--color-green-pale); color: var(--color-green);
+  padding: 6px 14px; border-radius: 100px;
+  font-size: 12.5px; font-weight: 600;
+}
+.brand-intro__text .section-title {
+  margin-bottom: 18px;
+  line-height: 1.2;
+}
+.brand-intro__text p {
+  color: var(--color-mid);
+  font-size: 15.5px;
+  line-height: 1.85;
+  margin-bottom: 14px;
+}
+.brand-intro__text p:last-child { margin-bottom: 0; }
+.brand-intro__text strong { color: var(--color-green); font-weight: 700; }
+
+/* ====================================================================
+   PHASE 2: CROSS-SELL CARD (volle Breite, abgesetzt mit "Häufig kombiniert")
+   ==================================================================== */
+.product-card.product-card--cross-sell {
+  grid-column: 1 / -1;
+  display: grid;
+  /* Label-Zeile oben (volle Breite) + darunter Bild|Info nebeneinander */
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "label label"
+    "img   info";
+  gap: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-green);
+  margin-top: 28px;
+  /* Sanfter Hintergrund-Akzent unten — wirkt wie eine "kuratierte Empfehlung" */
+  background-image: linear-gradient(180deg, var(--color-surface) 0%, var(--color-green-xpale) 100%);
+}
+/* Label im Layout (statt aus dem Card herausstehend) */
+.product-card--cross-sell::before {
+  grid-area: label;
+  content: 'Häufig kombiniert mit';
+  background: var(--color-green);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 24px;
+}
+.product-card--cross-sell .product-card__img-wrap {
+  grid-area: img;
+  aspect-ratio: 1;
+  min-height: 200px;
+}
+.product-card--cross-sell .product-card__info {
+  grid-area: info;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 24px 28px;
+}
+.product-card--cross-sell .product-card__name {
+  font-size: 19px;
+  margin-bottom: 6px;
+}
+.product-card--cross-sell .product-card__tagline {
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+/* Hover etwas dezenter als bei normalen Karten — Cross-Sell ist Vorschlag, nicht Hauptangebot */
+.product-card--cross-sell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(44,95,46,0.10);
+  border-left-color: #234e25;
+}
+
+/* ====================================================================
+   PIKTOGRAMME (Inline-SVG)
+   ==================================================================== */
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  /* Farbe wird vom Eltern-Element via currentColor übernommen */
+}
+/* Inline-Icons in Text bekommen leichten rechten Abstand */
+.icon-inline { margin-right: 6px; }
+
+/* ====================================================================
+   FLAGGEN — kleine farbige Mini-Flaggen als Hintergrundbilder (SVG)
+   Größe ist im Verhältnis 18 × 12 px (ähnlich Emoji-Flaggenproportion).
+   ==================================================================== */
+.flag {
+  display: inline-block;
+  width: 18px; height: 12px;
+  vertical-align: -2px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+/* Deutschland: Schwarz/Rot/Gold horizontal */
+.flag-de { background-image: linear-gradient(to bottom, #000 0 33.33%, #DD0000 33.33% 66.66%, #FFCE00 66.66% 100%); }
+/* Indien: Safran/Weiß/Grün horizontal (Mini — kein Chakra) */
+.flag-in { background-image: linear-gradient(to bottom, #FF9933 0 33.33%, #FFFFFF 33.33% 66.66%, #138808 66.66% 100%); }
+/* Japan: Weiß mit rotem Punkt */
+.flag-jp { background-image: radial-gradient(circle at 50% 50%, #BC002D 0 22%, #FFFFFF 22% 100%); }
+/* Island: Blau mit weiß-rotem Kreuz */
+.flag-is { background-image: linear-gradient(to right, transparent 0 33%, #FFFFFF 33% 47%, #D72828 36% 44%, #FFFFFF 47% 53%, transparent 53% 100%), linear-gradient(to bottom, transparent 0 33%, #FFFFFF 33% 47%, #D72828 36% 44%, #FFFFFF 47% 53%, transparent 53% 100%), #003897; }
+/* Philippinen: Blau oben/Rot unten + weißes Dreieck links (vereinfacht) */
+.flag-ph { background-image: linear-gradient(to right, #FFFFFF 0 25%, transparent 25% 100%), linear-gradient(to bottom, #0038A8 0 50%, #CE1126 50% 100%); }
+/* Belgien: Schwarz/Gelb/Rot vertikal */
+.flag-be { background-image: linear-gradient(to right, #000 0 33.33%, #FAE042 33.33% 66.66%, #ED2939 66.66% 100%); }
+/* Dänemark: Rot mit weißem Kreuz */
+.flag-dk { background-image: linear-gradient(to right, transparent 0 30%, #FFFFFF 30% 42%, transparent 42% 100%), linear-gradient(to bottom, transparent 0 38%, #FFFFFF 38% 54%, transparent 54% 100%), #C8102E; }
+/* Österreich: Rot/Weiß/Rot horizontal */
+.flag-at { background-image: linear-gradient(to bottom, #ED2939 0 33.33%, #FFFFFF 33.33% 66.66%, #ED2939 66.66% 100%); }
+/* Italien: Grün/Weiß/Rot vertikal */
+.flag-it { background-image: linear-gradient(to right, #009246 0 33.33%, #FFFFFF 33.33% 66.66%, #CE2B37 66.66% 100%); }
+/* EU: Blau (vereinfacht) */
+.flag-eu { background-color: #003399; background-image: radial-gradient(circle at 50% 50%, #FFCC00 0 14%, transparent 14% 100%); }
+/* Globe / weltweit */
+.flag-globe { background-color: var(--color-green-pale); background-image: linear-gradient(135deg, var(--color-green-light) 0%, var(--color-green) 100%); }
+
+/* ====================================================================
+   PHASE 2: Mobile-Anpassungen
+   ==================================================================== */
+@media (max-width: 768px) {
+  .brand-intro__inner { grid-template-columns: 1fr; gap: 40px; }
+  .brand-intro__circle { width: 160px; height: 160px; font-size: 72px; }
+  .product-card.product-card--cross-sell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "label"
+      "img"
+      "info";
+  }
+  .product-card--cross-sell .product-card__info {
+    padding: 20px 24px;
+  }
+}
 </style>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1085,22 +1585,24 @@ body.viewing-overlay #mainContent { display: none; }
     <div class="task-banner__inner">
       <div class="task-banner__step" id="taskBannerStep">Aufgabe 1 von 3</div>
       <div class="task-banner__text" id="taskBannerText">…</div>
-      <button class="task-banner__help" id="taskBannerHelp" type="button">ℹ️ Anweisung erneut anzeigen</button>
+      <button class="task-banner__help" id="taskBannerHelp" type="button">
+        <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        Anweisung erneut anzeigen
+      </button>
     </div>
   </div>
 
   <!-- HEADER -->
   <header class="header" id="header">
     <div class="header__top">
-      <span>🌱 Kostenloser Versand ab 60 € · 100% Bio-zertifiziert · 30 Tage Rückgabe</span>
+      <span>
+        <svg class="icon icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+        Kostenloser Versand ab 60 € · 100 % Bio-zertifiziert · 30 Tage Rückgabe
+      </span>
     </div>
     <nav class="header__nav">
-      <div class="nav__left">
-        <a href="#" class="nav__link" data-category="all">Alle</a>
-        <a href="#" class="nav__link" data-category="vitamine">Vitamine</a>
-        <a href="#" class="nav__link" data-category="adaptogen">Adaptogene</a>
-        <a href="#" class="nav__link" data-category="darm">Darm & Immun</a>
-        <a href="#" class="nav__link" data-category="beauty">Beauty</a>
+      <div class="nav__left" id="headerNavTabs">
+        <!-- wird dynamisch von renderScenarioTabs() in script.js gefüllt -->
       </div>
       <a href="#" class="header__logo" id="logoHome">VERDEA</a>
       <div class="nav__right">
@@ -1132,18 +1634,27 @@ body.viewing-overlay #mainContent { display: none; }
     <section class="hero" id="heroSection">
       <div class="hero__bg"></div>
       <div class="hero__visual">
-        <div class="hero__leaf hero__leaf--1">🌿</div>
-        <div class="hero__leaf hero__leaf--2">🍃</div>
-        <div class="hero__leaf hero__leaf--3">✨</div>
+        <div class="hero__leaf hero__leaf--1"><svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg></div>
+        <div class="hero__leaf hero__leaf--2"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22c1.25-1.25 2.5-2.5 3.5-4 2-3 2.5-6 2.5-9 2 1 4 3 4 6 1-1 2-3 2-5 2 1.5 3 4 2 7 1-0.5 2-1.5 2-3 1 2 1 4 0 6"/></svg></div>
+        <div class="hero__leaf hero__leaf--3"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
       </div>
       <div class="hero__content">
         <div class="hero__cert-row">
-          <span class="cert-pill">🌱 Bio-zertifiziert</span>
-          <span class="cert-pill">🐇 Vegan</span>
-          <span class="cert-pill">🔬 Laborgeprüft</span>
+          <span class="cert-pill">
+            <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+            Nachhaltig
+          </span>
+          <span class="cert-pill">
+            <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1h-1a1 1 0 0 0-1 1v3"/></svg>
+            Transparent
+          </span>
+          <span class="cert-pill">
+            <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.45 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            Hand-kuratiert
+          </span>
         </div>
-        <h1 class="hero__title">Natur trifft<br/><em>Wissenschaft</em></h1>
-        <p class="hero__sub">Premium-Nahrungsergänzung aus kontrolliert biologischem Anbau. Transparent in Inhaltsstoffen, kompromisslos in Qualität.</p>
+        <h1 class="hero__title">VERDEA —<br/><em>Lifestyle für ein gutes Leben</em></h1>
+        <p class="hero__sub">Wir kuratieren Produkte und Erlebnisse rund um Gesundheit & Nachhaltigkeit. Wissenschaftlich fundiert, ehrlich erklärt — vom Vitamin bis zum Festival.</p>
         <div class="hero__actions">
           <button class="btn btn--white hero__cta" id="heroCta">Produkte entdecken</button>
           <button class="btn btn--ghost-white" id="heroAbout">Unsere Geschichte</button>
@@ -1159,61 +1670,73 @@ body.viewing-overlay #mainContent { display: none; }
       <div class="container">
         <div class="trust-bar__grid">
           <div class="trust-item">
-            <span class="trust-item__icon">🧪</span>
+            <span class="trust-item__icon">
+              <svg class="icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+            </span>
             <div>
               <strong>Laborgeprüft</strong>
               <p>Unabhängige Analyse jeder Charge</p>
             </div>
           </div>
           <div class="trust-item">
-            <span class="trust-item__icon">🌍</span>
+            <span class="trust-item__icon">
+              <svg class="icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            </span>
             <div>
               <strong>Klimaneutral</strong>
-              <p>100% CO₂-kompensiert</p>
+              <p>100 % CO₂-kompensiert</p>
             </div>
           </div>
           <div class="trust-item">
-            <span class="trust-item__icon">📦</span>
+            <span class="trust-item__icon">
+              <svg class="icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </span>
             <div>
               <strong>Plastikfrei</strong>
               <p>Verpackung aus Recyclingmaterial</p>
             </div>
           </div>
           <div class="trust-item">
-            <span class="trust-item__icon">🤝</span>
+            <span class="trust-item__icon">
+              <svg class="icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>
+            </span>
             <div>
               <strong>Faire Lieferkette</strong>
-              <p>Direkte Partnerschaften mit Bauern</p>
+              <p>Direkte Partnerschaften mit Produzenten</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CATEGORIES -->
-    <section class="categories">
+    <!-- BRAND-INTRO (ersetzt frühere Kategorien-Sektion) -->
+    <section class="brand-intro">
       <div class="container">
-        <h2 class="section-title centered">Was möchten Sie verbessern?</h2>
-        <div class="categories__grid">
-          <div class="category-card" data-category="vitamine">
-            <div class="category-card__icon">☀️</div>
-            <h3>Vitamine & Mineralien</h3>
-            <p>Grundversorgung für Energie, Immunsystem und Knochen</p>
+        <div class="brand-intro__inner">
+          <div class="brand-intro__visual">
+            <div class="brand-intro__circle">
+              <svg class="icon" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+            </div>
+            <div class="brand-intro__pills">
+              <span>
+                <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+                Nachhaltigkeit
+              </span>
+              <span>
+                <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1h-1a1 1 0 0 0-1 1v3"/></svg>
+                Wissenschaft
+              </span>
+              <span>
+                <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.45 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                Bewusstsein
+              </span>
+            </div>
           </div>
-          <div class="category-card" data-category="adaptogen">
-            <div class="category-card__icon">🌿</div>
-            <h3>Adaptogene & Stress</h3>
-            <p>Natürliche Balance und mentale Resilienz</p>
-          </div>
-          <div class="category-card" data-category="darm">
-            <div class="category-card__icon">🦠</div>
-            <h3>Darm & Immunsystem</h3>
-            <p>Probiotika und Präbiotika für ein gesundes Mikrobiom</p>
-          </div>
-          <div class="category-card" data-category="beauty">
-            <div class="category-card__icon">✨</div>
-            <h3>Beauty & Regeneration</h3>
-            <p>Kollagen, Antioxidantien und Hautpflege von innen</p>
+          <div class="brand-intro__text">
+            <p class="section-label">Was VERDEA ausmacht</p>
+            <h2 class="section-title">Gesundheit, Bewusstsein und Erlebnis — vereint in einer Marke</h2>
+            <p>Wir sind ein kleines Team in München, das Produkte rund um Gesundheit und Nachhaltigkeit kuratiert: <strong>Nahrungsergänzung</strong>, die wirklich wirkt. <strong>Alltagshelfer</strong>, die durchdacht sind. <strong>Erlebnisse</strong>, die man nicht vergisst.</p>
+            <p>Jedes Produkt erklärt sich selbst. Jede Charge ist transparent. Jeder Schritt nachvollziehbar.</p>
           </div>
         </div>
       </div>
@@ -1225,14 +1748,10 @@ body.viewing-overlay #mainContent { display: none; }
         <div class="section-header">
           <div>
             <h2 class="section-title" id="sectionTitle">Unsere Produkte</h2>
-            <p class="section-sub">Jedes Produkt enthält eine transparente Auflistung aller Inhaltsstoffe und deren Herkunft.</p>
+            <p class="section-sub" id="sectionSub">Jedes Produkt enthält eine transparente Auflistung aller Inhaltsstoffe und deren Herkunft.</p>
           </div>
           <div class="filter-tabs" id="filterTabs">
-            <button class="filter-tab active" data-category="all">Alle</button>
-            <button class="filter-tab" data-category="vitamine">Vitamine</button>
-            <button class="filter-tab" data-category="adaptogen">Adaptogene</button>
-            <button class="filter-tab" data-category="darm">Darm & Immun</button>
-            <button class="filter-tab" data-category="beauty">Beauty</button>
+            <!-- wird dynamisch von renderScenarioTabs() in script.js gefüllt -->
           </div>
         </div>
         <div class="products-grid" id="productsGrid"></div>
@@ -1258,12 +1777,14 @@ body.viewing-overlay #mainContent { display: none; }
           <div class="transparency__visual">
             <div class="ingredient-card">
               <div class="ingredient-card__header">
-                <span class="ingredient-card__emoji">🌿</span>
+                <span class="ingredient-card__emoji">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+                </span>
                 <div>
                   <strong>Ashwagandha</strong>
                   <small>Withania somnifera</small>
                 </div>
-                <span class="ingredient-origin">🇮🇳 Indien</span>
+                <span class="ingredient-origin"><span class="flag flag-in" aria-label="Indien"></span> Indien</span>
               </div>
               <div class="ingredient-bar">
                 <div class="ingredient-bar__fill" style="width:75%"></div>
@@ -1272,12 +1793,14 @@ body.viewing-overlay #mainContent { display: none; }
             </div>
             <div class="ingredient-card ingredient-card--sm">
               <div class="ingredient-card__header">
-                <span class="ingredient-card__emoji">⚫</span>
+                <span class="ingredient-card__emoji">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
+                </span>
                 <div>
                   <strong>Piperin</strong>
                   <small>Piper nigrum</small>
                 </div>
-                <span class="ingredient-origin">🇮🇳 Kerala</span>
+                <span class="ingredient-origin"><span class="flag flag-in" aria-label="Indien"></span> Kerala</span>
               </div>
               <div class="ingredient-bar">
                 <div class="ingredient-bar__fill" style="width:12%"></div>
@@ -1286,19 +1809,24 @@ body.viewing-overlay #mainContent { display: none; }
             </div>
             <div class="ingredient-card ingredient-card--sm ingredient-card--muted">
               <div class="ingredient-card__header">
-                <span class="ingredient-card__emoji">💊</span>
+                <span class="ingredient-card__emoji">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                </span>
                 <div>
                   <strong>HPMC-Kapsel</strong>
                   <small>Hydroxypropylmethylcellulose</small>
                 </div>
-                <span class="ingredient-origin">🌱 Pflanzlich</span>
+                <span class="ingredient-origin">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-green);vertical-align:-3px;margin-right:4px"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+                  Pflanzlich
+                </span>
               </div>
             </div>
             <div class="cert-badges">
-              <span class="cert-badge">🌱 Bio-DE-003</span>
-              <span class="cert-badge">🐇 Vegan</span>
-              <span class="cert-badge">🔬 GMP</span>
-              <span class="cert-badge">🌍 CO₂ neutral</span>
+              <span class="cert-badge">Bio-DE-003</span>
+              <span class="cert-badge">Vegan</span>
+              <span class="cert-badge">GMP</span>
+              <span class="cert-badge">CO₂ neutral</span>
             </div>
           </div>
         </div>
@@ -1333,7 +1861,9 @@ body.viewing-overlay #mainContent { display: none; }
     <section class="newsletter">
       <div class="container">
         <div class="newsletter__inner">
-          <div class="newsletter__icon">🌿</div>
+          <div class="newsletter__icon">
+            <svg class="icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </div>
           <h3 class="newsletter__title">Wissen, das wirkt</h3>
           <p class="newsletter__sub">Monatlicher Newsletter mit wissenschaftlich fundierten Tipps zu Nahrungsergänzung, Ernährung und einem nachhaltigen Lebensstil.</p>
           <form class="newsletter__form" id="newsletterForm">
@@ -1383,7 +1913,9 @@ body.viewing-overlay #mainContent { display: none; }
         </div>
         <div class="about-story__image">
           <div class="about-img-placeholder">
-            <span>🌿</span>
+            <span>
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+            </span>
             <p>Dr. Lena Wirth, Gründerin</p>
           </div>
         </div>
@@ -1394,17 +1926,23 @@ body.viewing-overlay #mainContent { display: none; }
         <h2 class="centered">Unsere drei Säulen</h2>
         <div class="values-grid">
           <div class="value-card">
-            <div class="value-card__icon">🔬</div>
+            <div class="value-card__icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1h-1a1 1 0 0 0-1 1v3"/></svg>
+            </div>
             <h3>Wissenschaft</h3>
             <p>Alle Formulierungen basieren auf peer-reviewed Studien. Wir arbeiten mit Forschern der TU München und der Charité zusammen, um sicherzustellen, dass unsere Dosierungen tatsächlich wirksam sind.</p>
           </div>
           <div class="value-card">
-            <div class="value-card__icon">🌍</div>
+            <div class="value-card__icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            </div>
             <h3>Nachhaltigkeit</h3>
-            <p>Von der Farm bis zur Apotheke: Wir messen und kompensieren jeden CO₂-Footprint. Unsere Verpackungen bestehen zu 100% aus recyceltem Papier und pflanzlichen Tinten. Kein Plastik.</p>
+            <p>Von der Farm bis zur Apotheke: Wir messen und kompensieren jeden CO₂-Footprint. Unsere Verpackungen bestehen zu 100 % aus recyceltem Papier und pflanzlichen Tinten. Kein Plastik.</p>
           </div>
           <div class="value-card">
-            <div class="value-card__icon">💚</div>
+            <div class="value-card__icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.45 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </div>
             <h3>Transparenz</h3>
             <p>Jede Charge hat ein öffentlich einsehbares Zertifikat. Sie können auf unserer Website jederzeit nachschauen, was in Ihren Kapseln steckt und woher es kommt. Keine Geheimnisse.</p>
           </div>
@@ -1417,32 +1955,44 @@ body.viewing-overlay #mainContent { display: none; }
         <p class="centered" style="color:var(--color-muted);max-width:560px;margin:0 auto 40px">Wir halten uns nicht nur an gesetzliche Mindeststandards — wir übertreffen sie.</p>
         <div class="certs-grid">
           <div class="cert-item">
-            <div class="cert-item__badge">🌱</div>
+            <div class="cert-item__badge">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+            </div>
             <strong>EU Bio-Zertifizierung</strong>
             <p>DE-ÖKO-003<br/>Alle Rohstoffe bio-zertifiziert</p>
           </div>
           <div class="cert-item">
-            <div class="cert-item__badge">🏭</div>
+            <div class="cert-item__badge">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></svg>
+            </div>
             <strong>GMP-zertifiziert</strong>
             <p>Good Manufacturing<br/>Practice nach ISO 22000</p>
           </div>
           <div class="cert-item">
-            <div class="cert-item__badge">🐇</div>
+            <div class="cert-item__badge">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.45 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </div>
             <strong>Vegan Society</strong>
-            <p>Tierversuchsfrei &<br/>100% pflanzlich</p>
+            <p>Tierversuchsfrei &amp;<br/>100 % pflanzlich</p>
           </div>
           <div class="cert-item">
-            <div class="cert-item__badge">🔬</div>
+            <div class="cert-item__badge">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+            </div>
             <strong>Laboranalyse</strong>
             <p>Externe Prüfung jeder<br/>Charge durch SGS Deutschland</p>
           </div>
           <div class="cert-item">
-            <div class="cert-item__badge">🌍</div>
+            <div class="cert-item__badge">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            </div>
             <strong>Climate Partner</strong>
             <p>Klimaneutrales Unternehmen<br/>seit 2021</p>
           </div>
           <div class="cert-item">
-            <div class="cert-item__badge">♻️</div>
+            <div class="cert-item__badge">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"/><path d="m14 16-3 3 3 3"/><path d="M8.293 13.596 7.196 9.5 3.1 10.598"/><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"/><path d="m13.378 9.633 4.096 1.098 1.097-4.096"/></svg>
+            </div>
             <strong>Plastikfrei</strong>
             <p>100% recycelbare<br/>Verpackung</p>
           </div>
@@ -1454,25 +2004,25 @@ body.viewing-overlay #mainContent { display: none; }
         <h2 class="centered">Das Team hinter VERDEA</h2>
         <div class="team-grid">
           <div class="team-card">
-            <div class="team-avatar">👩‍🔬</div>
+            <div class="team-avatar"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M17 6a3 3 0 0 1 0 4"/></svg></div>
             <strong>Dr. Lena Wirth</strong>
             <span>Gründerin & CEO · Biochemie</span>
             <p>"Ich will, dass jeder Mensch weiß, was er schluckt."</p>
           </div>
           <div class="team-card">
-            <div class="team-avatar">👨‍⚕️</div>
+            <div class="team-avatar"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M9 11v4M11 13h4"/></svg></div>
             <strong>Dr. Markus Berger</strong>
             <span>Wissenschaftlicher Leiter</span>
             <p>"Dosierungen müssen wirksam sein — nicht marketingfreundlich."</p>
           </div>
           <div class="team-card">
-            <div class="team-avatar">👩‍🌾</div>
+            <div class="team-avatar"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 1.36 1.36 0 0 1-.1.36"/></svg></div>
             <strong>Sofia Reyes</strong>
             <span>Supply Chain & Nachhaltigkeit</span>
             <p>"Jede Farm, die wir besuchen, wird zur Partnerschaft."</p>
           </div>
           <div class="team-card">
-            <div class="team-avatar">👨‍💻</div>
+            <div class="team-avatar"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><rect x="9" y="13" width="6" height="4" rx="1"/></svg></div>
             <strong>Tim Hoffmann</strong>
             <span>Produktentwicklung</span>
             <p>"Weniger Produkte, aber die richtigen — das ist unser Weg."</p>
@@ -1504,8 +2054,14 @@ body.viewing-overlay #mainContent { display: none; }
     </div>
     <div class="cart-drawer__footer" id="cartFooter" style="display:none">
       <div class="cart-trust">
-        <span>🔒 Sichere Zahlung</span>
-        <span>📦 Versand in 1–2 Tagen</span>
+        <span>
+          <svg class="icon icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Sichere Zahlung
+        </span>
+        <span>
+          <svg class="icon icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          Versand in 1–2 Tagen
+        </span>
       </div>
       <div class="cart-total">
         <span>Gesamt (inkl. MwSt.)</span>
@@ -1521,12 +2077,12 @@ body.viewing-overlay #mainContent { display: none; }
       <div class="footer__grid">
         <div class="footer__brand">
           <span class="footer__logo">VERDEA</span>
-          <p>Premium-Nahrungsergänzung aus kontrolliert biologischem Anbau. Transparent, nachhaltig, wirksam.</p>
+          <p>Lifestyle-Marke für Gesundheit & Nachhaltigkeit. Wissenschaftlich fundiert, ehrlich kuratiert.</p>
           <div class="footer__certs">
-            <span>🌱 Bio</span>
-            <span>🐇 Vegan</span>
-            <span>🔬 GMP</span>
-            <span>🌍 CO₂ neutral</span>
+            <span>Bio</span>
+            <span>Vegan</span>
+            <span>GMP</span>
+            <span>CO₂ neutral</span>
           </div>
         </div>
         <div class="footer__col">
@@ -1573,13 +2129,17 @@ body.viewing-overlay #mainContent { display: none; }
   <button class="ai-fab" id="aiFab" type="button" aria-label="KI-Berater öffnen">
     <span class="ai-fab__pulse"></span>
     <span class="ai-fab__label">Berater fragen</span>
-    <span class="ai-fab__icon">🌿</span>
+    <span class="ai-fab__icon">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </span>
     <span class="ai-fab__badge">KI</span>
   </button>
 
   <aside class="ai-bot" id="aiBot" hidden>
     <header class="ai-bot__header">
-      <div class="ai-bot__avatar">🌿</div>
+      <div class="ai-bot__avatar">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+      </div>
       <div>
         <div class="ai-bot__title">Ihr persönlicher Berater</div>
         <div class="ai-bot__sub"><span class="ai-bot__dot"></span> Online · KI-gestützt · sofort verfügbar</div>
@@ -1588,10 +2148,6 @@ body.viewing-overlay #mainContent { display: none; }
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </header>
-    <div class="ai-bot__intro">
-      <strong>Willkommen</strong>
-      Ich kenne alle Produkte und helfe Ihnen, die passende Wahl zu treffen. Stellen Sie mir gern eine Frage — wie zu Inhalten, Preis oder Nachhaltigkeit.
-    </div>
     <div class="ai-bot__messages" id="aiMessages"></div>
     <div class="ai-bot__suggestions" id="aiSuggestions"></div>
     <form class="ai-bot__input-row" id="aiForm">
@@ -1606,17 +2162,39 @@ body.viewing-overlay #mainContent { display: none; }
   <div class="gate-overlay active" id="gateWelcome">
     <div class="gate-card">
       <div class="gate-card__hero">
-        <span class="gate-card__leaf">🌿</span>
+        <span class="gate-card__leaf">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.62 23.36 23.36 0 0 1-1.69 7.5 7 7 0 0 1-7.81 9.07Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+        </span>
         <p class="section-label">Willkommen zur Studie</p>
-        <h1 class="gate-card__title">Wie beeinflusst KI-Beratung<br/>Kaufentscheidungen?</h1>
-        <p class="gate-card__sub">Schön, dass Sie teilnehmen. Diese Studie untersucht, wie sich Empfehlungen einer KI auf Kaufentscheidungen auswirken. Sie dauert ca. <strong>8–12 Minuten</strong>.</p>
+        <h1 class="gate-card__title">Studie: Website-Optimierung<br/>im E-Commerce</h1>
+        <p class="gate-card__sub">Schön, dass Sie teilnehmen. Wir untersuchen, wie Nutzerinnen und Nutzer Online-Shops erleben und Kaufentscheidungen treffen. Sie dauert ca. <strong>8–12 Minuten</strong>.</p>
       </div>
 
       <ul class="gate-list">
-        <li><span>📋</span><div><strong>Kurze Befragung zu Ihrer Person</strong><span>Alter, Geschlecht, Einkommen — vollständig anonymisiert.</span></div></li>
-        <li><span>🛒</span><div><strong>3 Aufgaben auf der Website</strong><span>In jedem Szenario wählen Sie ein Produkt aus. Nutzen Sie die Website wie einen echten Online-Shop.</span></div></li>
-        <li><span>🤖</span><div><strong>Ein KI-Berater steht bereit</strong><span>Sie dürfen die KI nutzen — müssen aber nicht. Beide Wege sind interessant für unsere Forschung.</span></div></li>
-        <li><span>💬</span><div><strong>Abschlussfragen</strong><span>Wenige Fragen zu Ihrem Eindruck der KI-Beratung.</span></div></li>
+        <li>
+          <span class="gate-list__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6"/><path d="M9 10h6"/></svg>
+          </span>
+          <div><strong>Kurze Befragung zu Ihrer Person</strong><span>Alter, Geschlecht, Einkommen — vollständig anonymisiert.</span></div>
+        </li>
+        <li>
+          <span class="gate-list__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          </span>
+          <div><strong>3 Aufgaben auf der Website</strong><span>In jedem Szenario wählen Sie ein Produkt aus. Nutzen Sie die Website wie einen echten Online-Shop.</span></div>
+        </li>
+        <li>
+          <span class="gate-list__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </span>
+          <div><strong>Alle Website-Funktionen nutzen</strong><span>Erkunden Sie den Shop frei — nutzen Sie alles, was Ihnen hilfreich erscheint.</span></div>
+        </li>
+        <li>
+          <span class="gate-list__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </span>
+          <div><strong>Abschlussfragen</strong><span>Wenige Fragen zu Ihrer Erfahrung mit dem Shop.</span></div>
+        </li>
       </ul>
 
       <div class="gate-consent">
@@ -1699,7 +2277,7 @@ body.viewing-overlay #mainContent { display: none; }
         <p class="form-error" id="demoError"></p>
 
         <div style="display:flex; justify-content: flex-end;">
-          <button type="submit" class="btn btn--green">Weiter zu Aufgabe 1 →</button>
+          <button type="submit" class="btn btn--green">Studie abschließen →</button>
         </div>
       </form>
     </div>
@@ -1712,7 +2290,11 @@ body.viewing-overlay #mainContent { display: none; }
       <h2 class="gate-card__title gate-card__title--sm" id="taskIntroTitle">…</h2>
       <p class="task-intro-text" id="taskIntroText">…</p>
       <div class="task-intro-tip">
-        <strong>💡 Tipp:</strong> Sie können den Online-Shop frei erkunden, Produkte vergleichen, die „Über uns"-Seite besuchen — und den KI-Berater unten rechts fragen. Wenn Sie sich entschieden haben: legen Sie das Produkt in den Warenkorb und gehen Sie zur Kasse.
+        <strong>
+          <svg class="icon icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-green);"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+          Tipp:
+        </strong>
+        Sie können den Online-Shop frei erkunden, Produkte vergleichen, die „Über uns"-Seite besuchen — und den KI-Berater unten rechts fragen. Wenn Sie sich entschieden haben: legen Sie das Produkt in den Warenkorb und gehen Sie zur Kasse.
       </div>
       <div class="gate-card__cta">
         <button class="btn btn--green btn--lg" id="taskIntroStart">Aufgabe starten →</button>
