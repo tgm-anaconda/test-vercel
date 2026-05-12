@@ -102,24 +102,52 @@ export default async function handler(req, res) {
     }
 
     // RECOMMENDATION-Marker extrahieren — KI markiert ihre Produktempfehlung explizit.
-    // Beispiel: "… ich empfehle … RECOMMENDATION: { "product": "Pure D3 Premium" }"
     let recommendedProduct = null;
-    const match = fullText.match(/RECOMMENDATION:\s*(\{[^}]*\})/);
-    if (match) {
+    const recMatch = fullText.match(/RECOMMENDATION:\s*(\{[^}]*\})/);
+    if (recMatch) {
       try {
-        const parsed = JSON.parse(match[1]);
+        const parsed = JSON.parse(recMatch[1]);
         if (parsed && typeof parsed.product === 'string') {
           recommendedProduct = parsed.product.trim();
         }
-      } catch (_) {
-        // Marker fehlerhaft — egal, wir nutzen dann den Fallback im Frontend
-      }
+      } catch (_) {}
     }
 
-    // Marker aus der dem User angezeigten Antwort entfernen
-    const reply = fullText.replace(/RECOMMENDATION:\s*\{[^}]*\}/g, '').trim();
+    // SUGGESTIONS-Marker extrahieren — KI gibt 3 dynamische Folgefragen zurück
+    let suggestions = null;
+    const sugMatch = fullText.match(/SUGGESTIONS:\s*(\[[^\]]*\])/);
+    if (sugMatch) {
+      try {
+        const parsed = JSON.parse(sugMatch[1]);
+        if (Array.isArray(parsed)) {
+          suggestions = parsed
+            .filter(s => typeof s === 'string' && s.trim().length > 0)
+            .slice(0, 4)
+            .map(s => s.trim());
+        }
+      } catch (_) {}
+    }
 
-    return res.status(200).json({ reply, recommendedProduct });
+    // SELL_TYPE-Marker extrahieren — ab 3. Nutzer-Nachricht: up oder cross
+    let sellType = null;
+    const sellMatch = fullText.match(/SELL_TYPE:\s*(\{[^}]*\})/);
+    if (sellMatch) {
+      try {
+        const parsed = JSON.parse(sellMatch[1]);
+        if (parsed && (parsed.type === 'up' || parsed.type === 'cross')) {
+          sellType = parsed.type;
+        }
+      } catch (_) {}
+    }
+
+    // Alle drei Marker aus der User-sichtbaren Antwort entfernen
+    const reply = fullText
+      .replace(/RECOMMENDATION:\s*\{[^}]*\}/g, '')
+      .replace(/SUGGESTIONS:\s*\[[^\]]*\]/g, '')
+      .replace(/SELL_TYPE:\s*\{[^}]*\}/g, '')
+      .trim();
+
+    return res.status(200).json({ reply, recommendedProduct, suggestions, sellType });
   } catch (err) {
     console.error('handler-Fehler:', err);
     return res.status(500).json({ error: err.message || 'Interner Server-Fehler' });
@@ -132,28 +160,56 @@ function buildSystemPrompt(ctx) {
   const base = `Du bist ein natürlicher, freundlicher KI-Berater auf einer Online-Shop-Website.
 
 ZIEL
-Führe ein echtes Gespräch — nicht wie ein Formular.
+Führe ein echtes Gespräch — nicht wie ein Formular. Personalisiere deine Empfehlung
+basierend auf dem, was der Nutzer dir über sich erzählt (Bedürfnisse, Lifestyle, Werte).
 
 REGELN
-- Stelle maximal 2 persönliche Rückfragen, eingebettet in ein natürliches Gespräch.
+- Stelle max. 2 persönliche Rückfragen, eingebettet in ein natürliches Gespräch.
 - Keine nummerierten Fragen, keine langen Listen.
 - Reagiere auf das, was der Nutzer sagt.
 - Halte Antworten kurz (1–3 Sätze).
-- Empfehle am Ende GENAU EIN Produkt aus der unten gelisteten Auswahl mit dem exakten Produktnamen.
+- Empfehle am Ende GENAU EIN Produkt aus der unten gelisteten Auswahl, mit dem exakten Produktnamen.
 - Erfinde keine Produkte und keine Eigenschaften, die nicht aufgelistet sind.
-- Wenn die Frage nichts mit der Produktwahl zu tun hat, leite freundlich zurück zur Aufgabe.
+
+WICHTIGE EMPFEHLUNGS-EINSCHRÄNKUNG (kritisch)
+- Du darfst NIEMALS das günstigste/billigste Produkt der Liste als Hauptempfehlung geben.
+- Empfehle stattdessen das Produkt, das am besten zur Person passt — solange es nicht das günstigste ist.
+- Falls Person explizit nach dem billigsten fragt, kläre den Nutzen ab und empfehle wenn möglich
+  trotzdem ein leicht höher-positioniertes Produkt mit klarer Begründung.
 
 ABLAUF
 1. Verstehe den Nutzer.
-2. Stelle ggf. Rückfragen (max. 2 insgesamt!).
-3. Empfehle dann GENAU EIN Produkt aus der Liste.
+2. Stelle ggf. 1–2 Rückfragen.
+3. Empfehle dann GENAU EIN Produkt (NIE das günstigste).
 
-WICHTIG — TECHNISCHER MARKER
-Wenn du eine Produktempfehlung gibst, schreibe IMMER ans ENDE deiner Antwort:
+═══════════════════════════════════════════════════════════════
+TECHNISCHE MARKER — IMMER am ENDE deiner Antwort, IMMER alle:
+═══════════════════════════════════════════════════════════════
 
-RECOMMENDATION: { "product": "EXAKTER_PRODUKTNAME_AUS_DER_LISTE" }
+1) Bei Produktempfehlung:
+RECOMMENDATION: { "product": "EXAKTER_PRODUKTNAME" }
 
-Der Marker wird technisch entfernt, bevor der Nutzer die Antwort sieht — er ist nur fürs Tracking.`;
+2) IMMER (auch ohne Empfehlung) — 3 dynamische Folgefragen passend zum aktuellen Gesprächskontext.
+Die Fragen sollen die Konversation natürlich weiterführen — nicht generisch sein,
+sondern auf das eingehen was gerade besprochen wurde:
+
+SUGGESTIONS: ["Frage 1?", "Frage 2?", "Frage 3?"]
+
+Beispiele für gute Folgefragen je Phase:
+- Anfang: ["Was sind die Unterschiede?", "Welches passt für Anfänger?", "Was kostet das?"]
+- Nach Rückfrage: ["Ich habe wenig Zeit — was empfiehlst du?", "Ist das vegan?", "Wie wirkt es?"]
+- Nach Empfehlung: ["Welche Mengen-Variante lohnt sich?", "Gibt es Alternativen?", "Wann sehe ich Effekte?"]
+
+AB DER 3. NUTZERNACHRICHT — SELL-ENTSCHEIDUNG:
+Analysiere den bisherigen Gesprächsverlauf:
+- Wenn Fragen produktspezifisch sind (Inhaltsstoffe, Dosierung, Preis eines Produkts, Vergleich ähnlicher Produkte): Empfehle im passenden Moment die größere Mengen-Variante (Up-Sell).
+- Wenn Fragen kategorisch sind (allgemeines Interesse an der Produktkategorie, "was sind Vitamine", Vergleich verschiedener Kategorien): Erwähne als Ergänzung das Cross-Sell-Produkt.
+Markiere deine Entscheidung IMMER (auch wenn du noch nicht empfiehlst):
+SELL_TYPE: {"type": "up"} oder SELL_TYPE: {"type": "cross"}
+
+Vor der 3. Nutzernachricht: KEIN SELL_TYPE-Marker.
+
+Alle Marker werden technisch entfernt — der User sieht nur deine Konversations-Antwort.`;
 
   if (!ctx || !Array.isArray(ctx.products) || ctx.products.length === 0) {
     return base;
