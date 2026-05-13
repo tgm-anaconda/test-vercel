@@ -1286,7 +1286,7 @@ function scrollToProducts() {
 heroCta.addEventListener('click', () => scrollToProducts());
 
 // ===== PRODUCT DETAIL =====
-function openDetail(p) {
+function openDetail(p, preSelectOptionIdx = 0) {
   window._openDetailProductId = p.id;
   if (window.VerdTracker) window.VerdTracker.trackPdpOpen(p.id, currentScenarioIndex);
 
@@ -1320,7 +1320,7 @@ function openDetail(p) {
       <div class="detail-options">
         <div class="detail-options__label">Menge wählen</div>
         <div class="detail-options__btns">
-          ${p.options.map((o, i) => `<button class="detail-option-btn ${i===0?'selected':''}" data-option-index="${i}">${o}</button>`).join('')}
+          ${p.options.map((o, i) => `<button class="detail-option-btn ${i===preSelectOptionIdx?'selected':''}" data-option-index="${i}">${o}</button>`).join('')}
         </div>
       </div>
 
@@ -1398,7 +1398,7 @@ function openDetail(p) {
   });
 
   // Option buttons — speichert gewählten Index und aktualisiert Preis live
-  let selectedOptionIndex = 0;
+  let selectedOptionIndex = preSelectOptionIdx;
   productDetailContent.querySelectorAll('.detail-option-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       productDetailContent.querySelectorAll('.detail-option-btn').forEach(b => b.classList.remove('selected'));
@@ -1411,6 +1411,12 @@ function openDetail(p) {
       }
     });
   });
+
+  // Preis für vorausgewählte Option direkt anzeigen
+  if (preSelectOptionIdx > 0 && p.optionDetails && p.optionDetails[preSelectOptionIdx]) {
+    const priceEl = productDetailContent.querySelector('.detail-price__main');
+    if (priceEl) priceEl.textContent = fmt(p.optionDetails[preSelectOptionIdx].price);
+  }
 
   // Tab switching + Tracking
   productDetailContent.querySelectorAll('.detail-tab-btn').forEach(btn => {
@@ -2152,17 +2158,39 @@ function appendAiMessage(role, text) {
     embedMsgs.scrollTop = embedMsgs.scrollHeight;
   }
 }
-function addProductLinkToLastBotMessage(productId, scenario) {
-  const product = scenario?.products?.find(p => p.id === productId);
-  if (!product) return;
+function addProductLinkToLastBotMessage(productId, scenario, sellType) {
+  if (!scenario) return;
+
+  let product = null;
+  let btnText = '';
+  let optionIdx = 0;
+
+  if (sellType === 'up' && productId) {
+    product = scenario.products.find(p => p.id === productId);
+    if (product) {
+      const upsellIdx = (product.optionDetails || []).findIndex(o => o.isUpsell);
+      optionIdx = upsellIdx >= 0 ? upsellIdx : 1;
+      const upsellOptLabel = product.options && product.options[optionIdx];
+      btnText = upsellOptLabel ? `Vorteilspack ansehen: ${upsellOptLabel} →` : `${product.name} (Vorteilspack) →`;
+    }
+  } else if (sellType === 'cross') {
+    product = scenario.products.find(p => p.role === 'cross-sell');
+    if (product) btnText = `Dazu passend: ${product.name} ansehen →`;
+  } else if (productId) {
+    product = scenario.products.find(p => p.id === productId);
+    if (product) btnText = `${product.name} ansehen →`;
+  }
+
+  if (!product || !btnText) return;
+
   const makeBtn = (container) => {
     const lastMsg = container?.querySelector('.ai-msg--bot:last-child');
     if (!lastMsg) return;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ai-product-link';
-    btn.textContent = `${product.name} ansehen →`;
-    btn.addEventListener('click', () => openDetail(product));
+    btn.textContent = btnText;
+    btn.addEventListener('click', () => openDetail(product, optionIdx));
     lastMsg.appendChild(btn);
   };
   makeBtn(aiMessagesEl);
@@ -2330,7 +2358,7 @@ async function sendAiMessage() {
 
   const recommendedProductId = identifyRecommendedProduct(reply, sc, serverRecommendation);
   if (window.VerdTracker) window.VerdTracker.trackAiReply(reply, currentScenarioIndex, recommendedProductId, serverSellType);
-  if (recommendedProductId && sc) addProductLinkToLastBotMessage(recommendedProductId, sc);
+  if ((recommendedProductId || serverSellType) && sc) addProductLinkToLastBotMessage(recommendedProductId, sc, serverSellType);
 
   aiPending = false;
   aiInput.disabled = false;
