@@ -82,7 +82,7 @@ export default async function handler(req, res) {
         model: 'gpt-4o-mini',
         messages,
         temperature: 0.7,
-        max_tokens: 350,
+        max_tokens: 500,
       }),
     });
 
@@ -113,19 +113,30 @@ export default async function handler(req, res) {
       } catch (_) {}
     }
 
-    // SUGGESTIONS-Marker extrahieren — KI gibt 3 dynamische Folgefragen zurück
+    // SUGGESTIONS-Marker extrahieren — robuste Extraktion auch bei mehrzeiligen Arrays
     let suggestions = null;
-    const sugMatch = fullText.match(/SUGGESTIONS:\s*(\[[^\]]*\])/);
-    if (sugMatch) {
-      try {
-        const parsed = JSON.parse(sugMatch[1]);
-        if (Array.isArray(parsed)) {
-          suggestions = parsed
-            .filter(s => typeof s === 'string' && s.trim().length > 0)
-            .slice(0, 4)
-            .map(s => s.trim());
+    const sugStart = fullText.indexOf('SUGGESTIONS:');
+    if (sugStart !== -1) {
+      const afterMarker = fullText.slice(sugStart + 'SUGGESTIONS:'.length).trimStart();
+      const bracketOpen = afterMarker.indexOf('[');
+      if (bracketOpen !== -1) {
+        let depth = 0, end = -1;
+        for (let i = bracketOpen; i < afterMarker.length; i++) {
+          if (afterMarker[i] === '[') depth++;
+          else if (afterMarker[i] === ']') { depth--; if (depth === 0) { end = i; break; } }
         }
-      } catch (_) {}
+        if (end !== -1) {
+          try {
+            const parsed = JSON.parse(afterMarker.slice(bracketOpen, end + 1));
+            if (Array.isArray(parsed)) {
+              suggestions = parsed
+                .filter(s => typeof s === 'string' && s.trim().length > 0)
+                .slice(0, 4)
+                .map(s => s.trim());
+            }
+          } catch (_) {}
+        }
+      }
     }
 
     // SELL_TYPE-Marker extrahieren — ab 3. Nutzer-Nachricht: up oder cross
@@ -140,12 +151,23 @@ export default async function handler(req, res) {
       } catch (_) {}
     }
 
-    // Alle drei Marker aus der User-sichtbaren Antwort entfernen
-    const reply = fullText
-      .replace(/RECOMMENDATION:\s*\{[^}]*\}/g, '')
-      .replace(/SUGGESTIONS:\s*\[[^\]]*\]/g, '')
-      .replace(/SELL_TYPE:\s*\{[^}]*\}/g, '')
-      .trim();
+    // Alle drei Marker aus der User-sichtbaren Antwort entfernen (bracket-matching, multiline-sicher)
+    const reply = [
+      ['RECOMMENDATION:', '{', '}'],
+      ['SUGGESTIONS:', '[', ']'],
+      ['SELL_TYPE:', '{', '}'],
+    ].reduce((text, [marker, open, close]) => {
+      const idx = text.indexOf(marker);
+      if (idx === -1) return text;
+      const after = text.slice(idx + marker.length).trimStart();
+      if (after[0] !== open) return text.slice(0, idx);
+      let depth = 0, end = -1;
+      for (let i = 0; i < after.length; i++) {
+        if (after[i] === open) depth++;
+        else if (after[i] === close) { depth--; if (depth === 0) { end = i; break; } }
+      }
+      return end === -1 ? text.slice(0, idx) : text.slice(0, idx) + after.slice(end + 1);
+    }, fullText).trim();
 
     return res.status(200).json({ reply, recommendedProduct, suggestions, sellType });
   } catch (err) {
@@ -183,40 +205,41 @@ ABLAUF
 3. Empfehle dann GENAU EIN Produkt (NIE das günstigste).
 
 ═══════════════════════════════════════════════════════════════
-TECHNISCHE MARKER — IMMER am ENDE deiner Antwort, IMMER alle:
+TECHNISCHE MARKER — PFLICHT am Ende jeder Antwort:
 ═══════════════════════════════════════════════════════════════
 
-1) Bei Produktempfehlung:
-RECOMMENDATION: { "product": "EXAKTER_PRODUKTNAME" }
+1) RECOMMENDATION — nur wenn du ein Produkt empfiehlst:
+RECOMMENDATION: { "product": "EXAKTER_PRODUKTNAME_AUS_DER_LISTE" }
 
-2) IMMER — 1 bis 3 Folgefragen, exakt passend zum aktuellen Gesprächsstand.
-Qualität vor Quantität: lieber 1 wirklich treffende Frage als 3 generische.
-Beziehe dich konkret auf das Gesagte — nie allgemeine Standardfragen wiederholen.
+2) SUGGESTIONS — IMMER, in jeder Antwort, ohne Ausnahme.
+Gib genau 2–3 kurze Folgefragen aus Nutzerperspektive.
+WICHTIG: Beziehe dich konkret auf das, was gerade besprochen wurde.
+Wiederhole NIEMALS Fragen aus früheren Turns.
+Format: einzeiliges JSON-Array, keine Zeilenumbrüche innerhalb:
+SUGGESTIONS: ["Konkrete Frage 1?", "Konkrete Frage 2?", "Konkrete Frage 3?"]
 
-SUGGESTIONS: ["Frage 1?"] oder ["Frage 1?", "Frage 2?"] oder ["Frage 1?", "Frage 2?", "Frage 3?"]
+Beispiele wie gute Chips klingen (nach Situation anpassen, NICHT kopieren):
+- Nach Frage zu Sport/Abnehmen: ["Wirkt das auch ohne Sport?", "Wie lange bis ich Effekte merke?", "Ist das auch vegan?"]
+- Nach Rückfrage des Bots: ["Ich nehme bereits Omega-3 — passt das?", "Gibt es etwas ohne Kapseln?"]
+- Nach Produktempfehlung: ["Lohnt sich der 2er-Pack?", "Wann am besten einnehmen?", "Gibt es Nebenwirkungen?"]
+- Nach Upsell-Erwähnung: ["Was spare ich beim Vorteilspack?", "Wie lange reicht ein 2er-Pack?"]
+- Nach Crosssell-Erwähnung: ["Wie kombiniere ich beides?", "Brauche ich wirklich beides?"]
 
-Gute Beispiele je Phase (anpassen, nicht kopieren):
-- Orientierung: ["Was unterscheidet die Varianten konkret?", "Welche passt für Einsteiger?"]
-- Nach persönlicher Info des Nutzers: ["Ich nehme schon Magnesium — passt das zusammen?", "Wie schnell wirkt es?"]
-- Nach Empfehlung: ["Lohnt sich der 2er-Pack?", "Wann sehe ich erste Effekte?"]
-- Nach Upsell-Erwähnung: ["Was spare ich mit dem Vorteilspack?", "Gibt es auch ein 3er-Pack?"]
-- Nach Crosssell-Erwähnung: ["Wie kombiniere ich beides am besten?", "Brauche ich wirklich beides?"]
+3) SELL_TYPE — NUR wenn userMessageCount >= 3 UND du aktiv verkaufst:
 
-SELL-LOGIK (greift ab Nachricht 3, nie früher):
-Der Wert "userMessageCount" im Kontext gibt an, wie viele Nachrichten der Nutzer bisher geschrieben hat.
+Wenn userMessageCount >= 3 und das Gespräch produktspezifisch ist (Inhaltsstoffe, Wirkung, Dosierung, Preis):
+→ UP-SELL: Füge einen natürlichen Satz ein, z.B.:
+  "Übrigens — [PRODUKTNAME] gibt es auch als günstigen 2er-Pack, das lohnt sich wenn du es länger nehmen möchtest."
+→ SELL_TYPE: {"type": "up"}
 
-Wenn userMessageCount >= 3:
-A) PRODUKTSPEZIFISCHES INTERESSE (Fragen zu Inhaltsstoffen, Dosierung, Vergleich ähnlicher Produkte, Preis eines konkreten Produkts):
-   → Betreibe Up-Sell: Erwähne aktiv, dass es die empfohlene Variante auch in einer größeren Packung/höherem Tier gibt oder dass ein Upgrade noch besser zu den Bedürfnissen passt. Benenne das teurere Produkt explizit mit Namen.
-   → Setze am Ende: SELL_TYPE: {"type": "up"}
+Wenn userMessageCount >= 3 und das Gespräch eher allgemein/kategorisch ist:
+→ CROSS-SELL: Füge einen natürlichen Satz ein, z.B.:
+  "Viele kombinieren das übrigens gerne mit [CROSS-SELL-NAME] — [ein kurzer Satz warum das Sinn ergibt]."
+→ SELL_TYPE: {"type": "cross"}
 
-B) KATEGORISCHES INTERESSE (allgemeines Interesse, Vergleich verschiedener Kategorien, "was empfiehlst du grundsätzlich"):
-   → Betreibe Cross-Sell: Erwähne das Ergänzungsprodukt (aus CROSS-SELL-PRODUKT unten) als sinnvolle Ergänzung in einem natürlichen Satz.
-   → Setze am Ende: SELL_TYPE: {"type": "cross"}
+Wenn userMessageCount < 3: WEDER Sell-Satz NOCH SELL_TYPE-Marker setzen.
 
-Wenn userMessageCount < 3: KEIN SELL_TYPE-Marker setzen.
-
-Alle Marker werden technisch entfernt — der User sieht nur deine Konversations-Antwort.`;
+Alle Marker werden technisch entfernt — der Nutzer sieht nur deine normale Antwort.`;
 
   if (!ctx || !Array.isArray(ctx.products) || ctx.products.length === 0) {
     return base;
