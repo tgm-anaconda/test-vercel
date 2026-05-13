@@ -2272,15 +2272,6 @@ async function sendAiMessage() {
   aiInput.disabled = true;
   aiInput.value = '';
   appendAiMessage('user', txt);
-  // Variante C: auch in eingebettetem Panel anzeigen
-  const _embedMsgs = document.getElementById('aiMessagesEmbed');
-  if (_embedMsgs) {
-    const _el = document.createElement('div');
-    _el.className = 'ai-msg ai-msg--user';
-    _el.textContent = txt;
-    _embedMsgs.appendChild(_el);
-    _embedMsgs.scrollTop = _embedMsgs.scrollHeight;
-  }
   aiMessageCount++;
 
   const sc = getCurrentScenario();
