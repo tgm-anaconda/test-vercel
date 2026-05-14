@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>VERDEA — Nutzerstudie</title>
   <style> /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -260,9 +260,19 @@ ul { list-style: none; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
 .product-card__img-wrap {
-  position: relative; overflow: hidden; background: var(--color-green-xpale);
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--color-green-xpale) 0%, #edf3ed 100%);
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
 }
+/* Skeleton-Shimmer solange Bild lädt */
+.product-card__img-wrap::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: imgShimmer 1.4s infinite;
+}
+.product-card__img-wrap:has(.product-card__img[src])::before { display: none; }
+@keyframes imgShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .product-card__emoji { font-size: 72px; transition: transform 0.5s ease; }
 .product-card:hover .product-card__emoji { transform: scale(1.1) rotate(-4deg); }
 
@@ -753,13 +763,50 @@ body.has-task-banner .detail-gallery {
   .gate-list li { padding: 12px 14px; }
   .form-radio span { padding: 10px 16px; font-size: 13px; }
 
-  /* Body bekommt Bottom-Padding wenn Bot offen — damit User unter Bot scrollen kann */
-  body.bot-open { padding-bottom: 26vh; }
+  /* Bottom-Padding wenn Bot offen — exakt die Bot-Höhe, damit nichts verdeckt bleibt */
+  body.bot-open { padding-bottom: var(--mobile-bot-h); }
 }
 @media (max-width: 380px) {
-  /* Sehr schmale Phones: weniger aggressiv aber trotzdem 2 Spalten */
+  :root { --mobile-bot-h: 300px; }
   .products-grid { gap: 8px; }
   .product-card__info { padding: 10px; }
+  .product-card__name { font-size: 12px; }
+  .product-card__price { font-size: 13px; }
+}
+
+/* ===== MOBILE ALLGEMEIN — Touch, Input-Zoom, Lesbarkeit ===== */
+@media (max-width: 768px) {
+  /* iOS: verhindert Auto-Zoom wenn Input-Schrift < 16px */
+  input, select, textarea { font-size: 16px !important; }
+
+  /* Touch-Targets: alle interaktiven Elemente mindestens 44px hoch */
+  .btn, .filter-tab, .detail-option-btn, .detail-tab-btn,
+  .task-banner__help, .survey-pill span, .form-radio span {
+    min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .survey-scale label span { min-height: 52px; }
+
+  /* Detail-Seite: mehr Luft unten wenn Bot offen */
+  .product-detail__inner { padding-bottom: calc(var(--mobile-bot-h) + 24px); }
+
+  /* Gate-Cards auf Mobile: weniger Padding, kein Überlaufen */
+  .gate-card { padding: 28px 18px 24px; max-height: 90vh; overflow-y: auto; }
+  .gate-card__title { font-size: 22px; }
+  .survey-scale { gap: 6px; }
+  .survey-scale label { min-width: 48px; }
+  .survey-scale label span { font-size: 16px; padding: 14px 0; }
+  .survey-actions { gap: 10px; }
+  .survey-actions .btn { flex: 1; text-align: center; justify-content: center; }
+
+  /* Tabs in Detail-Seite: scrollen statt umbrechen */
+  .detail-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  .detail-tab-btn { white-space: nowrap; flex-shrink: 0; padding: 10px 16px; }
+
+  /* Produktname auf Detail-Seite kleiner */
+  .detail-info__name { font-size: 22px; }
+  .detail-info__tagline { font-size: 14px; }
+  .detail-price__main { font-size: 22px; }
 }
 
 /* ===== STUDY GATES (Welcome / Demographics / Task Intro / Survey / Thanks) ===== */
@@ -1282,25 +1329,16 @@ body.has-task-banner .ai-bot__header {
    • 769–1023px (Tablet): immer noch unten, etwas mehr Höhe
    • ≥ 1024px (Desktop): Side-Dock rechts (siehe oben in der CSS)
    ==================================================================== */
+/* Tablet: Bot als Slide-up Panel, halbe Höhe */
 @media (max-width: 1023px) {
   .ai-bot {
-    /* explizit ALLE Edges setzen damit kein Spalt entsteht (war im Screenshot 2 das Problem) */
     position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100vw;
-    max-width: 100vw;
-    /* Höhe: Tablet kriegt 50vh, Phone 25vh — siehe Phone-Override darunter */
-    height: 50vh;
-    max-height: 50vh;
+    top: auto; bottom: 0; left: 0; right: 0;
+    width: 100%; max-width: 100%;
+    height: 50vh; max-height: 50vh;
     border: none;
     border-top: 1px solid var(--color-border);
-    border-top-left-radius: var(--radius-lg);
-    border-top-right-radius: var(--radius-lg);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow: 0 -8px 32px rgba(44,95,46,0.2);
     animation: botSlideUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -1311,59 +1349,41 @@ body.has-task-banner .ai-bot__header {
   .ai-fab__label { display: none; }
 }
 
-/* Phone-spezifisch: Bot min. 300 px, max. 45 vh — Input ist IMMER sichtbar.
-   KEIN max-height in vh, weil max-height < min-height den min-height aushebelt. */
+/* Phone: Bot mit fester stabiler Höhe — kein dvh (ändert sich beim Scrollen) */
 @media (max-width: 768px) {
-  /* MOBILE-BOT — kompaktes Stacking damit der Input IMMER sichtbar ist
-     Reihenfolge im Panel:
-       Header   (~44 px)   ── Avatar + Titel + Close-Button
-       Messages (flex-1)   ── Chat-Verlauf, scrollt
-       Suggest  (~36 px)   ── horizontal scrollbare Chips
-       Input    (~52 px)   ── Eingabe + Send-Button
-     Welcome-Intro wird auf Mobile KOMPLETT AUSGEBLENDET (bot-internal Greeting reicht)
-  */
+  :root { --mobile-bot-h: 320px; }
+
   .ai-bot {
-    /* clamp(min, preferred, max): mindestens 300px, idealerweise 40dvh,
-       maximal 420px — dvh bezieht die iOS-Safari-Adressleiste korrekt ein */
-    height: clamp(300px, 40dvh, 420px) !important;
-    max-height: none !important;
-    min-height: 300px;
+    height: var(--mobile-bot-h);
+    max-height: var(--mobile-bot-h);
+    min-height: var(--mobile-bot-h);
   }
-  .ai-bot__intro { display: none !important; }   /* spart Platz für Messages/Input */
-  /* Auf Mobile sitzt der Bot UNTEN — die Page-Header-Alignment-Logik ist irrelevant.
-     Daher: kompakter solider grüner Header mit hellem Text. */
+  .ai-bot__intro { display: none; }
   .ai-bot__header {
     background: var(--color-green);
-    height: 44px;
-    padding: 0 12px;
+    height: 46px; min-height: 46px;
+    padding: 0 14px;
     gap: 10px;
     border-bottom: none;
+    flex-shrink: 0;
   }
-  .ai-bot__avatar {
-    width: 28px; height: 28px;
-    background: rgba(255,255,255,0.18);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.3);
-    font-size: 16px;
-  }
-  .ai-bot__title { font-size: 13.5px; color: #fff; line-height: 1.1; }
-  .ai-bot__sub { font-size: 10.5px; color: rgba(255,255,255,0.85); margin-top: 1px; }
+  .ai-bot__avatar { width: 30px; height: 30px; background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-size: 17px; }
+  .ai-bot__title { font-size: 14px; color: #fff; line-height: 1.1; }
+  .ai-bot__sub { font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 1px; }
   .ai-bot__dot { background: var(--color-accent); }
-  .ai-bot__close { width: 30px; height: 30px; background: rgba(255,255,255,0.15); color: #fff; }
-  .ai-bot__close:hover { background: rgba(255,255,255,0.28); color: #fff; }
-  .ai-bot__messages { padding: 10px 12px; gap: 8px; flex: 1; min-height: 0; }
-  .ai-msg { font-size: 13.5px; padding: 9px 12px; line-height: 1.45; max-width: 92%; }
-  /* Suggestions: horizontal scrollend statt umbrechend → spart Höhe */
-  .ai-bot__suggestions { padding: 6px 12px; gap: 6px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .ai-suggestion { font-size: 11.5px; padding: 5px 10px; flex-shrink: 0; white-space: nowrap; }
-  .ai-bot__input-row { padding: 8px 12px 10px; gap: 8px; }
-  .ai-bot__input { padding: 9px 14px; font-size: 13.5px; }
-  .ai-bot__send { width: 36px; height: 36px; }
+  .ai-bot__close { width: 32px; height: 32px; min-width: 32px; background: rgba(255,255,255,0.15); color: #fff; }
+  .ai-bot__messages { padding: 10px 14px; gap: 8px; flex: 1; min-height: 0; overflow-y: auto; }
+  .ai-msg { font-size: 13.5px; padding: 9px 13px; line-height: 1.45; max-width: 92%; }
+  .ai-bot__suggestions { padding: 6px 12px; gap: 6px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0; }
+  .ai-suggestion { font-size: 11.5px; padding: 6px 11px; flex-shrink: 0; white-space: nowrap; min-height: 32px; display: inline-flex; align-items: center; }
+  .ai-bot__input-row { padding: 8px 12px 12px; gap: 8px; flex-shrink: 0; }
+  .ai-bot__input { padding: 10px 14px; font-size: 16px; } /* 16px verhindert iOS-Zoom beim Tippen */
+  .ai-bot__send { width: 40px; height: 40px; min-width: 40px; }
 
   /* FAB kompakter */
-  .ai-fab { right: 16px; bottom: 16px; width: 56px; height: 56px; }
-  .ai-fab__icon { font-size: 24px; }
-  .ai-fab svg { width: 26px !important; height: 26px !important; }
+  .ai-fab { right: 16px; bottom: 16px; width: 58px; height: 58px; }
+  .ai-fab__icon { font-size: 26px; }
+  .ai-fab svg { width: 26px; height: 26px; }
 }
 
 /* =============================================================================
