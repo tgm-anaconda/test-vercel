@@ -1848,18 +1848,20 @@ const aiForm = document.getElementById('aiForm');
 const aiInput = document.getElementById('aiInput');
 
 function openAiBot(autoOpen = false) {
-  // Variante A: ignorieren — ist immer offen
   if (window.VERDEA_VARIANT === 'A') return;
   aiBot.hidden = false;
   aiFab.hidden = true;
-  // Kein bot-open für B/C — B ist ein Popup, C ist embedded; nur A verschiebt das Layout
+  // Variant B auf Mobile: body.bot-open setzen damit Padding-Bottom greift
+  if (window.VERDEA_VARIANT === 'B' && window.innerWidth <= 768) {
+    document.body.classList.add('bot-open');
+  }
   setTimeout(() => aiInput.focus(), 100);
   if (window.VerdTracker) window.VerdTracker.trackBotOpen();
 }
 function closeAiBot() {
-  // Variante A: nicht schließbar
   if (window.VERDEA_VARIANT === 'A') return;
   aiBot.hidden = true;
+  document.body.classList.remove('bot-open');
   if (window.VERDEA_VARIANT === 'B') aiFab.hidden = false;
   if (window.VerdTracker) window.VerdTracker.trackBotClose();
 }
@@ -1867,7 +1869,9 @@ function closeAiBot() {
 // Variante B: kleineres Fenster-Styling überschreiben
 function applyVariantBotStyle() {
   if (window.VERDEA_VARIANT === 'B') {
-    // Popup-Größe: 10–15% größer als zuvor
+    // Auf Mobile: CSS übernimmt das Layout (full-width, slide-up) — kein Inline-Override
+    if (window.innerWidth <= 768) return;
+    // Desktop/Tablet: kleines Popup rechts unten
     aiBot.style.width = '340px';
     aiBot.style.height = 'clamp(420px, 65vh, 600px)';
     aiBot.style.top = 'auto';
