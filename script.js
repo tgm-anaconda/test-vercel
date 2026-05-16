@@ -2094,7 +2094,7 @@ function initVariantBot() {
     // Close-Button ausblenden
     const closeBtn = document.getElementById('aiBotClose');
     if (closeBtn) closeBtn.style.display = 'none';
-    // Auf Mobile: kompakte Höhe — beim Tippen expandiert auf 50% des sichtbaren Bereichs
+    // Auf Mobile: kompakte Höhe — beim Tippen wird Bot fullscreen + Scroll gesperrt
     if (window.innerWidth <= 768) {
       aiBot.classList.add('ai-bot--variantA-mobile');
       document.documentElement.style.setProperty('--mobile-bot-h', '170px');
@@ -2102,42 +2102,43 @@ function initVariantBot() {
       if (!aiInput._variantAListeners) {
         aiInput._variantAListeners = true;
 
-        // visualViewport API: gibt exakte sichtbare Höhe (ohne Keyboard) zurück
-        // Damit positionieren wir den Bot pixelgenau oberhalb des Keyboards
-        const vv = window.visualViewport;
-
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
           aiBot.classList.remove('ai-bot--variantA-mobile');
-          const visH = vv ? vv.height : window.innerHeight * 0.6;
-          const botH = Math.floor(visH * 0.5);
-          const offsetY = vv ? (window.innerHeight - vv.height - vv.offsetTop) : 0;
-          aiBot.style.height = botH + 'px';
-          aiBot.style.maxHeight = botH + 'px';
-          aiBot.style.minHeight = botH + 'px';
-          aiBot.style.bottom = offsetY + 'px'; // direkt über Keyboard, keine Lücke
-          document.documentElement.style.setProperty('--mobile-bot-h', botH + 'px');
+          // Fullscreen: deckt gesamten Bildschirm ab
+          aiBot.style.position = 'fixed';
+          aiBot.style.top = '0';
+          aiBot.style.left = '0';
+          aiBot.style.right = '0';
+          aiBot.style.bottom = '0';
+          aiBot.style.height = '100%';
+          aiBot.style.maxHeight = '100%';
+          aiBot.style.minHeight = '100%';
+          aiBot.style.zIndex = '1500';
+          // Scroll sperren
+          document.body.style.overflow = 'hidden';
+          document.documentElement.style.setProperty('--mobile-bot-h', '100vh');
         }
 
         function collapseBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+          aiBot.style.position = '';
+          aiBot.style.top = '';
+          aiBot.style.left = '';
+          aiBot.style.right = '';
+          aiBot.style.bottom = '';
           aiBot.style.height = '';
           aiBot.style.maxHeight = '';
           aiBot.style.minHeight = '';
-          aiBot.style.bottom = '0';
+          aiBot.style.zIndex = '';
+          // Scroll wieder freigeben
+          document.body.style.overflow = '';
           document.documentElement.style.setProperty('--mobile-bot-h', '170px');
           aiBot.classList.add('ai-bot--variantA-mobile');
         }
 
         aiInput.addEventListener('focus', expandBot);
         aiInput.addEventListener('blur', collapseBot);
-
-        // visualViewport resize: aktualisiert Position wenn Keyboard auf-/zufährt
-        if (vv) {
-          vv.addEventListener('resize', () => {
-            if (document.activeElement === aiInput) expandBot();
-          });
-        }
       }
     }
     if (window.VerdTracker) window.VerdTracker.trackBotOpen();
