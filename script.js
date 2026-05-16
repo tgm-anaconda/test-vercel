@@ -2103,29 +2103,44 @@ function initVariantBot() {
         aiInput._variantAListeners = true;
         let _keepExpanded = false;
 
+        // touchmove-Handler: Scroll außerhalb der Nachrichten sperren
+        function _blockScroll(e) {
+          if (e.target.closest && e.target.closest('.ai-bot__messages')) return;
+          e.preventDefault();
+        }
+
+        // Bot-Höhe = sichtbarer Bereich über dem Keyboard (visualViewport)
+        function _syncHeight() {
+          const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+          aiBot.style.height = h + 'px';
+          aiBot.style.maxHeight = h + 'px';
+          document.documentElement.style.setProperty('--mobile-bot-h', h + 'px');
+        }
+
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
           aiBot.classList.remove('ai-bot--variantA-mobile');
-          // 100dvh = dynamic viewport height — schrumpft automatisch wenn Keyboard öffnet (iOS 15.4+)
-          // Kein JS-Berechnen nötig, CSS macht es automatisch richtig
           aiBot.style.position = 'fixed';
           aiBot.style.top = '0';
           aiBot.style.left = '0';
           aiBot.style.right = '0';
           aiBot.style.bottom = 'auto';
-          aiBot.style.height = '100dvh';
-          aiBot.style.maxHeight = '100dvh';
           aiBot.style.zIndex = '1500';
-          // Scroll-Sperre: html + body overflow:hidden ist auf iOS zuverlässiger als position:fixed
-          document.documentElement.style.overflow = 'hidden';
-          document.documentElement.style.height = '100%';
-          document.body.style.overflow = 'hidden';
-          document.body.style.height = '100%';
-          document.documentElement.style.setProperty('--mobile-bot-h', '100dvh');
+          _syncHeight();
+          // visualViewport resize: Höhe live anpassen wenn Keyboard auf-/zufährt
+          if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', _syncHeight);
+          }
+          // touchmove sperren — nur Nachrichten-Scroll bleibt erlaubt
+          document.addEventListener('touchmove', _blockScroll, { passive: false });
         }
 
         function collapseBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+          if (window.visualViewport) {
+            window.visualViewport.removeEventListener('resize', _syncHeight);
+          }
+          document.removeEventListener('touchmove', _blockScroll);
           aiBot.style.position = '';
           aiBot.style.top = '';
           aiBot.style.left = '';
@@ -2134,10 +2149,6 @@ function initVariantBot() {
           aiBot.style.height = '';
           aiBot.style.maxHeight = '';
           aiBot.style.zIndex = '';
-          document.documentElement.style.overflow = '';
-          document.documentElement.style.height = '';
-          document.body.style.overflow = '';
-          document.body.style.height = '';
           document.documentElement.style.setProperty('--mobile-bot-h', '170px');
           aiBot.classList.add('ai-bot--variantA-mobile');
         }
