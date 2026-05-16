@@ -2101,11 +2101,11 @@ function initVariantBot() {
 
       if (!aiInput._variantAListeners) {
         aiInput._variantAListeners = true;
+        let _keepExpanded = false;
 
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
           aiBot.classList.remove('ai-bot--variantA-mobile');
-          // Fullscreen: deckt gesamten Bildschirm ab
           aiBot.style.position = 'fixed';
           aiBot.style.top = '0';
           aiBot.style.left = '0';
@@ -2113,10 +2113,14 @@ function initVariantBot() {
           aiBot.style.bottom = '0';
           aiBot.style.height = '100%';
           aiBot.style.maxHeight = '100%';
-          aiBot.style.minHeight = '100%';
           aiBot.style.zIndex = '1500';
-          // Scroll sperren
+          // iOS Scroll-Sperre: position:fixed auf body ist der einzige verlässliche Weg
+          const scrollY = window.scrollY;
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${scrollY}px`;
+          document.body.style.width = '100%';
           document.body.style.overflow = 'hidden';
+          document.body._lockedScrollY = scrollY;
           document.documentElement.style.setProperty('--mobile-bot-h', '100vh');
         }
 
@@ -2129,16 +2133,33 @@ function initVariantBot() {
           aiBot.style.bottom = '';
           aiBot.style.height = '';
           aiBot.style.maxHeight = '';
-          aiBot.style.minHeight = '';
           aiBot.style.zIndex = '';
-          // Scroll wieder freigeben
+          // iOS Scroll-Sperre aufheben + Scroll-Position wiederherstellen
+          const savedY = document.body._lockedScrollY || 0;
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
           document.body.style.overflow = '';
+          window.scrollTo(0, savedY);
           document.documentElement.style.setProperty('--mobile-bot-h', '170px');
           aiBot.classList.add('ai-bot--variantA-mobile');
         }
 
         aiInput.addEventListener('focus', expandBot);
-        aiInput.addEventListener('blur', collapseBot);
+
+        // blur: nur kollabieren wenn NICHT gerade Send/Chip angetippt wurde
+        aiInput.addEventListener('blur', () => {
+          if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+          if (_keepExpanded) { _keepExpanded = false; return; }
+          collapseBot();
+        });
+
+        // pointerdown auf Send-Button oder Suggestion-Chip → Flag setzen bevor blur feuert
+        aiBot.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('.ai-bot__send') || e.target.closest('.ai-suggestion')) {
+            _keepExpanded = true;
+          }
+        });
       }
     }
     if (window.VerdTracker) window.VerdTracker.trackBotOpen();
