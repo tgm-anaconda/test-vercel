@@ -1869,14 +1869,17 @@ function closeAiBot() {
 // Variante B: kleineres Fenster-Styling überschreiben
 function applyVariantBotStyle() {
   if (window.VERDEA_VARIANT === 'B') {
-    // Auf Mobile: CSS übernimmt das Layout (full-width, slide-up) — kein Inline-Override
-    if (window.innerWidth <= 768) return;
-    // Desktop/Tablet: kleines Popup rechts unten
-    aiBot.style.width = '340px';
-    aiBot.style.height = 'clamp(420px, 65vh, 600px)';
+    const isMobile = window.innerWidth <= 768;
+    // Popup-Breite: auf Mobile schmaler, aber NICHT full-width
+    const popupW = isMobile ? Math.min(310, window.innerWidth - 24) : 340;
+    const popupH = isMobile ? 360 : 'clamp(420px, 65vh, 600px)';
+    aiBot.style.width = popupW + 'px';
+    aiBot.style.height = typeof popupH === 'string' ? popupH : popupH + 'px';
+    if (isMobile) aiBot.style.maxHeight = popupH + 'px';
     aiBot.style.top = 'auto';
-    aiBot.style.bottom = '80px';
-    aiBot.style.right = '16px';
+    aiBot.style.bottom = isMobile ? '72px' : '80px';
+    aiBot.style.right = isMobile ? '12px' : '16px';
+    aiBot.style.left = 'auto';
     aiBot.style.borderRadius = '16px';
     aiBot.style.boxShadow = '0 8px 40px rgba(44,95,46,0.22)';
     aiBot.style.border = '1px solid var(--color-border)';
@@ -2091,6 +2094,11 @@ function initVariantBot() {
     // Close-Button ausblenden
     const closeBtn = document.getElementById('aiBotClose');
     if (closeBtn) closeBtn.style.display = 'none';
+    // Auf Mobile: kompakte Höhe (halbe Bildschirmhöhe)
+    if (window.innerWidth <= 768) {
+      aiBot.classList.add('ai-bot--variantA-mobile');
+      document.documentElement.style.setProperty('--mobile-bot-h', '170px');
+    }
     if (window.VerdTracker) window.VerdTracker.trackBotOpen();
     setTimeout(() => aiInput.focus(), 100);
   } else if (variant === 'B') {
