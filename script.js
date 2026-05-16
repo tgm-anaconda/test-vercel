@@ -1871,7 +1871,7 @@ function applyVariantBotStyle() {
   if (window.VERDEA_VARIANT === 'B') {
     const isMobile = window.innerWidth <= 768;
     // Popup-Breite: auf Mobile schmaler, aber NICHT full-width
-    const popupW = isMobile ? Math.min(310, window.innerWidth - 24) : 340;
+    const popupW = isMobile ? Math.min(400, window.innerWidth - 16) : 340;
     const popupH = isMobile ? 360 : 'clamp(420px, 65vh, 600px)';
     aiBot.style.width = popupW + 'px';
     aiBot.style.height = typeof popupH === 'string' ? popupH : popupH + 'px';
