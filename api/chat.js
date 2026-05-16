@@ -212,16 +212,20 @@ TECHNISCHE MARKER — PFLICHT am Ende jeder Antwort:
 RECOMMENDATION: { "product": "EXAKTER_PRODUKTNAME_AUS_DER_LISTE" }
 
 2) SUGGESTIONS — IMMER, in jeder Antwort, ohne Ausnahme.
-Gib genau 2–3 kurze Folgefragen aus Nutzerperspektive.
+Gib genau 2–3 kurze Nachrichten, die der NUTZER als nächstes an DICH schicken könnte.
+KRITISCH: Die Chips werden als Nutzernachricht an dich gesendet — sie müssen also als Frage
+oder Aussage des Nutzers an den Bot formuliert sein, NIEMALS als Frage des Bots an den Nutzer.
+FALSCH: "Was ist dein Ziel?", "Treibst du Sport?" (das wären Bot-Fragen an den Nutzer)
+RICHTIG: "Was sind die Inhaltsstoffe?", "Lohnt sich der 2er-Pack?", "Gibt es Nebenwirkungen?"
 WICHTIG: Beziehe dich konkret auf das, was gerade besprochen wurde.
-Wiederhole NIEMALS Fragen aus früheren Turns.
+Wiederhole NIEMALS Chips aus früheren Turns.
 Format: einzeiliges JSON-Array, keine Zeilenumbrüche innerhalb:
-SUGGESTIONS: ["Konkrete Frage 1?", "Konkrete Frage 2?", "Konkrete Frage 3?"]
+SUGGESTIONS: ["Nutzerfrage 1?", "Nutzerfrage 2?", "Nutzerfrage 3?"]
 
-Beispiele wie gute Chips klingen (nach Situation anpassen, NICHT kopieren):
-- Nach Frage zu Sport/Abnehmen: ["Wirkt das auch ohne Sport?", "Wie lange bis ich Effekte merke?", "Ist das auch vegan?"]
-- Nach Rückfrage des Bots: ["Ich nehme bereits Omega-3 — passt das?", "Gibt es etwas ohne Kapseln?"]
-- Nach Produktempfehlung: ["Lohnt sich der 2er-Pack?", "Wann am besten einnehmen?", "Gibt es Nebenwirkungen?"]
+Beispiele (nach Situation anpassen, NICHT kopieren):
+- Nach erstem Bot-Satz: ["Welches empfiehlst du mir?", "Was ist der Unterschied?", "Was ist am nachhaltigsten?"]
+- Nach Thema Sport/Abnehmen: ["Wirkt das auch ohne Sport?", "Wie lange bis ich Effekte merke?", "Ist das vegan?"]
+- Nach Produktempfehlung: ["Was sind die Inhaltsstoffe?", "Wann am besten einnehmen?", "Gibt es Nebenwirkungen?"]
 - Nach Upsell-Erwähnung: ["Was spare ich beim Vorteilspack?", "Wie lange reicht ein 2er-Pack?"]
 - Nach Crosssell-Erwähnung: ["Wie kombiniere ich beides?", "Brauche ich wirklich beides?"]
 
