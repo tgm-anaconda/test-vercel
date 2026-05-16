@@ -2109,10 +2109,9 @@ function initVariantBot() {
           e.preventDefault();
         }
 
-        // Setzt Bot-Höhe auf sichtbaren Bereich über dem Keyboard
-        function _applyHeight() {
-          const vv = window.visualViewport;
-          const h = vv ? vv.height : window.innerHeight;
+        // Höhe nach Keyboard-Öffnung auf sichtbaren Bereich korrigieren
+        function _fixHeight() {
+          const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
           aiBot.style.height = h + 'px';
           aiBot.style.maxHeight = h + 'px';
           document.documentElement.style.setProperty('--mobile-bot-h', h + 'px');
@@ -2122,57 +2121,44 @@ function initVariantBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
           aiBot.classList.remove('ai-bot--variantA-mobile');
 
-          // Seite einfrieren damit iOS sie nicht scrollt wenn Keyboard öffnet
-          const scrollY = window.scrollY;
-          document.body.style.position = 'fixed';
-          document.body.style.top = `-${scrollY}px`;
-          document.body.style.width = '100%';
-          document.body.style.overflow = 'hidden';
-          document.documentElement.style.overflow = 'hidden';
-          document.body._lockedScrollY = scrollY;
-
-          // Bot: fullscreen, top:0, Höhe zunächst voller Bildschirm
+          // Positionierung + neutraler Hintergrund (wie V36 — hat funktioniert)
           aiBot.style.position = 'fixed';
           aiBot.style.top = '0';
           aiBot.style.left = '0';
           aiBot.style.right = '0';
           aiBot.style.bottom = 'auto';
+          aiBot.style.height = '100dvh';
+          aiBot.style.maxHeight = '100dvh';
           aiBot.style.zIndex = '1500';
-          aiBot.style.height = window.innerHeight + 'px';
-          aiBot.style.maxHeight = window.innerHeight + 'px';
+          document.documentElement.style.overflow = 'hidden';
+          document.documentElement.style.height = '100%';
+          document.body.style.overflow = 'hidden';
+          document.body.style.height = '100%';
+          document.documentElement.style.setProperty('--mobile-bot-h', '100dvh');
 
-          // Wenn Keyboard offen ist: Höhe korrigieren
-          // window.resize feuert zuverlässiger als visualViewport.resize wenn body fixed ist
-          window.addEventListener('resize', _applyHeight);
-          if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', _applyHeight);
-          }
-          // Fallback: nach Keyboard-Animation nochmal setzen (iOS ~300ms)
-          setTimeout(_applyHeight, 350);
-
-          // Scroll komplett sperren via touchmove
+          // Scroll-Sperre via touchmove (wie V37 — hat funktioniert)
           document.addEventListener('touchmove', _blockScroll, { passive: false });
+
+          // Höhe nach Keyboard-Animation korrigieren
+          if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', _fixHeight);
+          }
+          setTimeout(_fixHeight, 350);
         }
 
         function collapseBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
 
-          window.removeEventListener('resize', _applyHeight);
           if (window.visualViewport) {
-            window.visualViewport.removeEventListener('resize', _applyHeight);
+            window.visualViewport.removeEventListener('resize', _fixHeight);
           }
           document.removeEventListener('touchmove', _blockScroll);
 
-          // Scroll wiederherstellen
-          const savedY = document.body._lockedScrollY || 0;
-          document.body.style.position = '';
-          document.body.style.top = '';
-          document.body.style.width = '';
-          document.body.style.overflow = '';
           document.documentElement.style.overflow = '';
-          window.scrollTo(0, savedY);
+          document.documentElement.style.height = '';
+          document.body.style.overflow = '';
+          document.body.style.height = '';
 
-          // Bot zurücksetzen
           aiBot.style.position = '';
           aiBot.style.top = '';
           aiBot.style.left = '';
