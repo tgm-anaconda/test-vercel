@@ -2103,15 +2103,18 @@ function initVariantBot() {
         aiInput._variantAListeners = true;
         let _keepExpanded = false;
 
-        // touchmove-Handler: Scroll außerhalb der Nachrichten sperren
+        // touchmove sperren — außer innerhalb der Nachrichtenarea
         function _blockScroll(e) {
           if (e.target.closest && e.target.closest('.ai-bot__messages')) return;
           e.preventDefault();
         }
 
-        // Bot-Höhe = sichtbarer Bereich über dem Keyboard (visualViewport)
+        // Höhe + Position des Bots an visualViewport anpassen (aktualisiert sich wenn Keyboard öffnet)
         function _syncHeight() {
-          const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+          const vv = window.visualViewport;
+          const h = vv ? vv.height : window.innerHeight;
+          const t = vv ? vv.offsetTop : 0;
+          aiBot.style.top = t + 'px';
           aiBot.style.height = h + 'px';
           aiBot.style.maxHeight = h + 'px';
           document.documentElement.style.setProperty('--mobile-bot-h', h + 'px');
@@ -2120,27 +2123,52 @@ function initVariantBot() {
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
           aiBot.classList.remove('ai-bot--variantA-mobile');
+
+          // 1) Seite einfrieren BEVOR Keyboard öffnet und iOS scrollt
+          const scrollY = window.scrollY;
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${scrollY}px`;
+          document.body.style.width = '100%';
+          document.body.style.overflow = 'hidden';
+          document.documentElement.style.overflow = 'hidden';
+          document.body._lockedScrollY = scrollY;
+
+          // 2) Bot positionieren
           aiBot.style.position = 'fixed';
-          aiBot.style.top = '0';
           aiBot.style.left = '0';
           aiBot.style.right = '0';
           aiBot.style.bottom = 'auto';
           aiBot.style.zIndex = '1500';
           _syncHeight();
-          // visualViewport resize: Höhe live anpassen wenn Keyboard auf-/zufährt
+
+          // 3) Höhe live aktualisieren wenn Keyboard aufgeht
           if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', _syncHeight);
           }
-          // touchmove sperren — nur Nachrichten-Scroll bleibt erlaubt
+
+          // 4) touchmove zusätzlich sperren
           document.addEventListener('touchmove', _blockScroll, { passive: false });
         }
 
         function collapseBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+
+          // Listener entfernen
           if (window.visualViewport) {
             window.visualViewport.removeEventListener('resize', _syncHeight);
           }
           document.removeEventListener('touchmove', _blockScroll);
+
+          // Seite wieder freigeben + Scroll-Position wiederherstellen
+          const savedY = document.body._lockedScrollY || 0;
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
+          document.body.style.overflow = '';
+          document.documentElement.style.overflow = '';
+          window.scrollTo(0, savedY);
+
+          // Bot zurücksetzen
           aiBot.style.position = '';
           aiBot.style.top = '';
           aiBot.style.left = '';
