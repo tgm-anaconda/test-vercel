@@ -2127,6 +2127,8 @@ function initVariantBot() {
           document.body.style.position = 'fixed';
           document.body.style.top = `-${scrollY}px`;
           document.body.style.width = '100%';
+          document.body.style.overflow = 'hidden';
+          document.documentElement.style.overflow = 'hidden';
           document.body._lockedScrollY = scrollY;
 
           // Bot: fullscreen, top:0, Höhe zunächst voller Bildschirm
@@ -2166,6 +2168,8 @@ function initVariantBot() {
           document.body.style.position = '';
           document.body.style.top = '';
           document.body.style.width = '';
+          document.body.style.overflow = '';
+          document.documentElement.style.overflow = '';
           window.scrollTo(0, savedY);
 
           // Bot zurücksetzen
