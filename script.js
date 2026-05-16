@@ -2133,13 +2133,19 @@ function initVariantBot() {
           aiBot.style.zIndex = '1500';
           aiBot.style.paddingBottom = '0';
 
-          // Neutraler Hintergrund: Seite hinter Bot unsichtbar machen
+          // Neutraler Hintergrund + stärkste iOS Scroll-Sperre
+          const scrollY = window.scrollY;
+          document.body._lockedScrollY = scrollY;
           document.documentElement.style.overflow = 'hidden';
           document.documentElement.style.height = '100%';
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${scrollY}px`;
+          document.body.style.left = '0';
+          document.body.style.right = '0';
           document.body.style.overflow = 'hidden';
           document.body.style.height = '100%';
 
-          // Scroll-Sperre
+          // Zusätzlich touchmove sperren (belt & suspenders)
           document.addEventListener('touchmove', _blockScroll, { passive: false });
 
           // Wenn Keyboard öffnet: padding-bottom = Keyboard-Höhe → Input bleibt sichtbar
@@ -2157,10 +2163,16 @@ function initVariantBot() {
           }
           document.removeEventListener('touchmove', _blockScroll);
 
+          const savedY = document.body._lockedScrollY || 0;
           document.documentElement.style.overflow = '';
           document.documentElement.style.height = '';
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
           document.body.style.overflow = '';
           document.body.style.height = '';
+          window.scrollTo(0, savedY);
 
           aiBot.style.position = '';
           aiBot.style.top = '';
