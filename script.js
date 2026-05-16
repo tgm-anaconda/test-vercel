@@ -2103,29 +2103,47 @@ function initVariantBot() {
         aiInput._variantAListeners = true;
         let _keepExpanded = false;
 
+        // Passt Bot-Höhe live an den sichtbaren Bereich an (Visual Viewport API)
+        // Wenn Keyboard offen: vv.height = Bildschirm minus Keyboard → Bot füllt genau diesen Bereich
+        function _syncBotToViewport() {
+          const vv = window.visualViewport;
+          const h = vv ? vv.height : window.innerHeight;
+          const t = vv ? vv.offsetTop : 0;
+          aiBot.style.height = h + 'px';
+          aiBot.style.maxHeight = h + 'px';
+          aiBot.style.top = t + 'px';
+          document.documentElement.style.setProperty('--mobile-bot-h', h + 'px');
+        }
+
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
           aiBot.classList.remove('ai-bot--variantA-mobile');
+          // Fullscreen über Visual Viewport
           aiBot.style.position = 'fixed';
-          aiBot.style.top = '0';
           aiBot.style.left = '0';
           aiBot.style.right = '0';
-          aiBot.style.bottom = '0';
-          aiBot.style.height = '100%';
-          aiBot.style.maxHeight = '100%';
+          aiBot.style.bottom = 'auto';
           aiBot.style.zIndex = '1500';
-          // iOS Scroll-Sperre: position:fixed auf body ist der einzige verlässliche Weg
+          _syncBotToViewport();
+          // iOS Scroll-Sperre
           const scrollY = window.scrollY;
           document.body.style.position = 'fixed';
           document.body.style.top = `-${scrollY}px`;
           document.body.style.width = '100%';
-          document.body.style.overflow = 'hidden';
           document.body._lockedScrollY = scrollY;
-          document.documentElement.style.setProperty('--mobile-bot-h', '100vh');
+          // Live-Updates wenn Keyboard auf-/zufährt
+          if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', _syncBotToViewport);
+            window.visualViewport.addEventListener('scroll', _syncBotToViewport);
+          }
         }
 
         function collapseBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+          if (window.visualViewport) {
+            window.visualViewport.removeEventListener('resize', _syncBotToViewport);
+            window.visualViewport.removeEventListener('scroll', _syncBotToViewport);
+          }
           aiBot.style.position = '';
           aiBot.style.top = '';
           aiBot.style.left = '';
@@ -2134,12 +2152,11 @@ function initVariantBot() {
           aiBot.style.height = '';
           aiBot.style.maxHeight = '';
           aiBot.style.zIndex = '';
-          // iOS Scroll-Sperre aufheben + Scroll-Position wiederherstellen
+          // iOS Scroll-Sperre aufheben
           const savedY = document.body._lockedScrollY || 0;
           document.body.style.position = '';
           document.body.style.top = '';
           document.body.style.width = '';
-          document.body.style.overflow = '';
           window.scrollTo(0, savedY);
           document.documentElement.style.setProperty('--mobile-bot-h', '170px');
           aiBot.classList.add('ai-bot--variantA-mobile');
