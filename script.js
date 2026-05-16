@@ -2094,33 +2094,55 @@ function initVariantBot() {
     // Close-Button ausblenden
     const closeBtn = document.getElementById('aiBotClose');
     if (closeBtn) closeBtn.style.display = 'none';
-    // Auf Mobile: kompakte Höhe — beim Tippen expandiert auf 50% des Bildschirms
+    // Auf Mobile: kompakte Höhe — beim Tippen expandiert auf 50% des sichtbaren Bereichs
     if (window.innerWidth <= 768) {
       aiBot.classList.add('ai-bot--variantA-mobile');
       document.documentElement.style.setProperty('--mobile-bot-h', '170px');
 
-      // Input-Fokus → Bot auf 50dvh ausklappen (Keyboard füllt Rest, keine Lücke)
-      aiInput.addEventListener('focus', () => {
-        if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
-        aiBot.style.height = '50dvh';
-        aiBot.style.maxHeight = '50dvh';
-        aiBot.style.minHeight = '50dvh';
-        document.documentElement.style.setProperty('--mobile-bot-h', '50dvh');
-        aiBot.classList.remove('ai-bot--variantA-mobile');
-      });
+      if (!aiInput._variantAListeners) {
+        aiInput._variantAListeners = true;
 
-      // Blur → zurück auf kompakte Höhe
-      aiInput.addEventListener('blur', () => {
-        if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
-        aiBot.style.height = '';
-        aiBot.style.maxHeight = '';
-        aiBot.style.minHeight = '';
-        document.documentElement.style.setProperty('--mobile-bot-h', '170px');
-        aiBot.classList.add('ai-bot--variantA-mobile');
-      });
+        // visualViewport API: gibt exakte sichtbare Höhe (ohne Keyboard) zurück
+        // Damit positionieren wir den Bot pixelgenau oberhalb des Keyboards
+        const vv = window.visualViewport;
+
+        function expandBot() {
+          if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+          aiBot.classList.remove('ai-bot--variantA-mobile');
+          const visH = vv ? vv.height : window.innerHeight * 0.6;
+          const botH = Math.floor(visH * 0.5);
+          const offsetY = vv ? (window.innerHeight - vv.height - vv.offsetTop) : 0;
+          aiBot.style.height = botH + 'px';
+          aiBot.style.maxHeight = botH + 'px';
+          aiBot.style.minHeight = botH + 'px';
+          aiBot.style.bottom = offsetY + 'px'; // direkt über Keyboard, keine Lücke
+          document.documentElement.style.setProperty('--mobile-bot-h', botH + 'px');
+        }
+
+        function collapseBot() {
+          if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+          aiBot.style.height = '';
+          aiBot.style.maxHeight = '';
+          aiBot.style.minHeight = '';
+          aiBot.style.bottom = '0';
+          document.documentElement.style.setProperty('--mobile-bot-h', '170px');
+          aiBot.classList.add('ai-bot--variantA-mobile');
+        }
+
+        aiInput.addEventListener('focus', expandBot);
+        aiInput.addEventListener('blur', collapseBot);
+
+        // visualViewport resize: aktualisiert Position wenn Keyboard auf-/zufährt
+        if (vv) {
+          vv.addEventListener('resize', () => {
+            if (document.activeElement === aiInput) expandBot();
+          });
+        }
+      }
     }
     if (window.VerdTracker) window.VerdTracker.trackBotOpen();
-    setTimeout(() => aiInput.focus(), 100);
+    // Kein auto-focus auf Mobile — würde Keyboard und Bot-Expand sofort triggern
+    if (window.innerWidth > 768) setTimeout(() => aiInput.focus(), 100);
   } else if (variant === 'B') {
     // FAB zeigen, kleineres Fenster
     aiFab.hidden = false;
