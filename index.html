@@ -750,11 +750,11 @@ body.has-task-banner .detail-gallery {
   .footer__bottom { flex-direction: column; gap: 10px; text-align: center; padding: 18px 0; }
   .cookie-bar { flex-direction: column; gap: 14px; padding: 14px 16px; }
 
-  /* Task-Banner */
-  .task-banner__inner { padding: 8px 16px; gap: 10px; }
-  .task-banner__step { font-size: 10px; padding: 3px 8px; }
-  .task-banner__text { font-size: 12px; min-width: 0; }
-  .task-banner__help { font-size: 10.5px; padding: 4px 10px; }
+  /* Task-Banner — einzeilig, kein Wrap auf Mobile */
+  .task-banner__inner { padding: 0 12px; gap: 8px; flex-wrap: nowrap; height: 48px; overflow: hidden; }
+  .task-banner__step { font-size: 10px; padding: 3px 8px; flex-shrink: 0; }
+  .task-banner__text { font-size: 12px; min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .task-banner__help { display: none; }
 
   /* Gate-Cards (Welcome/Demographics) */
   .gate-card { padding: 28px 20px; }
@@ -807,6 +807,18 @@ body.has-task-banner .detail-gallery {
   .detail-info__name { font-size: 22px; }
   .detail-info__tagline { font-size: 14px; }
   .detail-price__main { font-size: 22px; }
+
+  /* Variant A auf Mobile — kompaktes Bot-Panel (halbe Höhe) */
+  .ai-bot--variantA-mobile {
+    height: 170px !important; max-height: 170px !important; min-height: 170px !important;
+  }
+  .ai-bot--variantA-mobile .ai-bot__header { height: 38px; padding: 0 12px; }
+  .ai-bot--variantA-mobile .ai-bot__sub { display: none !important; }
+  .ai-bot--variantA-mobile .ai-bot__suggestions { display: none !important; }
+  .ai-bot--variantA-mobile .ai-msg { font-size: 12px; padding: 5px 9px; }
+  .ai-bot--variantA-mobile .ai-bot__messages { padding: 6px 10px; gap: 5px; }
+  .ai-bot--variantA-mobile .ai-bot__input-row { padding: 6px 10px; }
+  .ai-bot--variantA-mobile .ai-bot__input { font-size: 13px; }
 }
 
 /* ===== STUDY GATES (Welcome / Demographics / Task Intro / Survey / Thanks) ===== */
