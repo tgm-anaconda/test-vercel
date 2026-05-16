@@ -2109,48 +2109,51 @@ function initVariantBot() {
           e.preventDefault();
         }
 
-        // Höhe nach Keyboard-Öffnung auf sichtbaren Bereich korrigieren
-        function _fixHeight() {
-          const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-          aiBot.style.height = h + 'px';
-          aiBot.style.maxHeight = h + 'px';
-          document.documentElement.style.setProperty('--mobile-bot-h', h + 'px');
+        // Keyboard-Höhe als padding-bottom setzen → Input wird nach oben geschoben
+        function _applyKeyboardPadding() {
+          const vv = window.visualViewport;
+          const kbH = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
+          aiBot.style.paddingBottom = kbH + 'px';
         }
 
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
           aiBot.classList.remove('ai-bot--variantA-mobile');
 
-          // Positionierung + neutraler Hintergrund (wie V36 — hat funktioniert)
+          // Bot füllt gesamten Bildschirm — alle CSS-Constraints überschreiben
+          const h = window.innerHeight;
           aiBot.style.position = 'fixed';
           aiBot.style.top = '0';
           aiBot.style.left = '0';
           aiBot.style.right = '0';
           aiBot.style.bottom = 'auto';
-          aiBot.style.height = '100dvh';
-          aiBot.style.maxHeight = '100dvh';
+          aiBot.style.height = h + 'px';
+          aiBot.style.maxHeight = 'none';
+          aiBot.style.minHeight = '0';
           aiBot.style.zIndex = '1500';
+          aiBot.style.paddingBottom = '0';
+
+          // Neutraler Hintergrund: Seite hinter Bot unsichtbar machen
           document.documentElement.style.overflow = 'hidden';
           document.documentElement.style.height = '100%';
           document.body.style.overflow = 'hidden';
           document.body.style.height = '100%';
-          document.documentElement.style.setProperty('--mobile-bot-h', '100dvh');
 
-          // Scroll-Sperre via touchmove (wie V37 — hat funktioniert)
+          // Scroll-Sperre
           document.addEventListener('touchmove', _blockScroll, { passive: false });
 
-          // Höhe nach Keyboard-Animation korrigieren
+          // Wenn Keyboard öffnet: padding-bottom = Keyboard-Höhe → Input bleibt sichtbar
           if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', _fixHeight);
+            window.visualViewport.addEventListener('resize', _applyKeyboardPadding);
           }
-          setTimeout(_fixHeight, 350);
+          setTimeout(_applyKeyboardPadding, 350);
         }
 
         function collapseBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
 
           if (window.visualViewport) {
-            window.visualViewport.removeEventListener('resize', _fixHeight);
+            window.visualViewport.removeEventListener('resize', _applyKeyboardPadding);
           }
           document.removeEventListener('touchmove', _blockScroll);
 
@@ -2166,7 +2169,9 @@ function initVariantBot() {
           aiBot.style.bottom = '';
           aiBot.style.height = '';
           aiBot.style.maxHeight = '';
+          aiBot.style.minHeight = '';
           aiBot.style.zIndex = '';
+          aiBot.style.paddingBottom = '';
           document.documentElement.style.setProperty('--mobile-bot-h', '170px');
           aiBot.classList.add('ai-bot--variantA-mobile');
         }
