@@ -1463,7 +1463,8 @@ function openDetailWithBot(p) {
   openDetail(p);
   const v = window.VERDEA_VARIANT;
   if (v === 'A') {
-    setTimeout(() => { if (typeof aiInput !== 'undefined' && aiInput) aiInput.focus(); }, 200);
+    // Nur auf Desktop focus setzen — auf Mobile würde Keyboard ohne echten Tipp öffnen
+    if (window.innerWidth > 768) setTimeout(() => { if (typeof aiInput !== 'undefined' && aiInput) aiInput.focus(); }, 200);
   } else if (v === 'B') {
     setTimeout(() => openAiBot(false), 200);
   } else if (v === 'C') {
@@ -2101,26 +2102,52 @@ function initVariantBot() {
 
       if (!aiInput._variantAListeners) {
         aiInput._variantAListeners = true;
-        let _keepExpanded = false;
+
+        // Zwei stabile Zustände: kompakt (initial) → fullscreen (permanent, kein Zurück)
+        let _botIsExpanded = false;
 
         // touchmove sperren — ALLES außer Nachrichten-Bereich
         // { passive: false } ist Pflicht damit preventDefault() auf iOS wirkt
         function _blockScroll(e) {
           const msgs = document.querySelector('.ai-bot__messages');
-          // Nur innerhalb der Nachrichten-Area erlauben — und nur wenn dort wirklich Inhalt scrollbar ist
+          // Nachrichten-Bereich: scrollen erlauben wenn Inhalt scrollbar ist
           if (msgs && msgs.contains(e.target) && msgs.scrollHeight > msgs.clientHeight) return;
           e.preventDefault();
         }
 
-        // Keyboard-Höhe als padding-bottom setzen → Input wird nach oben geschoben
+        // Keyboard-Höhe als padding-bottom setzen → Input bleibt sichtbar
         function _applyKeyboardPadding() {
           const vv = window.visualViewport;
           const kbH = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
           aiBot.style.paddingBottom = kbH + 'px';
         }
 
+        function _attachKeyboardListener() {
+          if (window.visualViewport) {
+            window.visualViewport.removeEventListener('resize', _applyKeyboardPadding);
+            window.visualViewport.addEventListener('resize', _applyKeyboardPadding);
+          }
+          setTimeout(_applyKeyboardPadding, 350);
+        }
+
+        function _detachKeyboardListener() {
+          if (window.visualViewport) {
+            window.visualViewport.removeEventListener('resize', _applyKeyboardPadding);
+          }
+          // Keyboard geschlossen → padding zurücksetzen
+          aiBot.style.paddingBottom = '0';
+        }
+
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+
+          if (_botIsExpanded) {
+            // Bereits fullscreen — nur Keyboard-Padding neu anlegen
+            _attachKeyboardListener();
+            return;
+          }
+          _botIsExpanded = true;
+
           aiBot.classList.remove('ai-bot--variantA-mobile');
 
           // Bot füllt gesamten Bildschirm — alle CSS-Constraints überschreiben
@@ -2136,7 +2163,7 @@ function initVariantBot() {
           aiBot.style.zIndex = '1500';
           aiBot.style.paddingBottom = '0';
 
-          // Neutraler Hintergrund + stärkste iOS Scroll-Sperre
+          // Scroll-Sperre: body fixieren + touchmove blockieren
           const scrollY = window.scrollY;
           document.body._lockedScrollY = scrollY;
           document.documentElement.style.overflow = 'hidden';
@@ -2147,64 +2174,21 @@ function initVariantBot() {
           document.body.style.right = '0';
           document.body.style.overflow = 'hidden';
           document.body.style.height = '100%';
-
-          // Zusätzlich touchmove sperren (belt & suspenders)
           document.addEventListener('touchmove', _blockScroll, { passive: false });
 
-          // Wenn Keyboard öffnet: padding-bottom = Keyboard-Höhe → Input bleibt sichtbar
-          if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', _applyKeyboardPadding);
-          }
-          setTimeout(_applyKeyboardPadding, 350);
+          _attachKeyboardListener();
         }
 
-        function collapseBot() {
+        aiInput.addEventListener('focus', () => {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
-
-          if (window.visualViewport) {
-            window.visualViewport.removeEventListener('resize', _applyKeyboardPadding);
-          }
-          document.removeEventListener('touchmove', _blockScroll);
-
-          const savedY = document.body._lockedScrollY || 0;
-          document.documentElement.style.overflow = '';
-          document.documentElement.style.height = '';
-          document.body.style.position = '';
-          document.body.style.top = '';
-          document.body.style.left = '';
-          document.body.style.right = '';
-          document.body.style.overflow = '';
-          document.body.style.height = '';
-          window.scrollTo(0, savedY);
-
-          aiBot.style.position = '';
-          aiBot.style.top = '';
-          aiBot.style.left = '';
-          aiBot.style.right = '';
-          aiBot.style.bottom = '';
-          aiBot.style.height = '';
-          aiBot.style.maxHeight = '';
-          aiBot.style.minHeight = '';
-          aiBot.style.zIndex = '';
-          aiBot.style.paddingBottom = '';
-          document.documentElement.style.setProperty('--mobile-bot-h', '170px');
-          aiBot.classList.add('ai-bot--variantA-mobile');
-        }
-
-        aiInput.addEventListener('focus', expandBot);
-
-        // blur: nur kollabieren wenn NICHT gerade Send/Chip angetippt wurde
-        aiInput.addEventListener('blur', () => {
-          if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
-          if (_keepExpanded) { _keepExpanded = false; return; }
-          collapseBot();
+          expandBot();
         });
 
-        // pointerdown auf Send-Button oder Suggestion-Chip → Flag setzen bevor blur feuert
-        aiBot.addEventListener('pointerdown', (e) => {
-          if (e.target.closest('.ai-bot__send') || e.target.closest('.ai-suggestion')) {
-            _keepExpanded = true;
-          }
+        // blur: NICHT kollabieren — nur Keyboard-Padding entfernen wenn Keyboard zu
+        aiInput.addEventListener('blur', () => {
+          if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
+          if (!_botIsExpanded) return;
+          _detachKeyboardListener();
         });
       }
     }
@@ -2476,10 +2460,11 @@ async function sendAiMessage() {
   aiPending = false;
   aiInput.disabled = false;
   // Fokus ins Embed-Input falls offen, sonst normales Input
+  // Auf Mobile (Variant A) kein programmatischer focus — würde Keyboard ohne echten Tipp öffnen
   const embedInput = document.getElementById('aiInputEmbed');
   if (embedInput && document.getElementById('variantCEmbed')) {
     embedInput.focus();
-  } else {
+  } else if (window.innerWidth > 768) {
     aiInput.focus();
   }
 }
