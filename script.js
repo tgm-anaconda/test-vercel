@@ -2110,8 +2110,9 @@ function initVariantBot() {
         // { passive: false } ist Pflicht damit preventDefault() auf iOS wirkt
         function _blockScroll(e) {
           const msgs = document.querySelector('.ai-bot__messages');
-          // Nachrichten-Bereich: scrollen erlauben wenn Inhalt scrollbar ist
-          if (msgs && msgs.contains(e.target) && msgs.scrollHeight > msgs.clientHeight) return;
+          // Nachrichten-Bereich: Touch immer durchlassen — overflow-y:auto des Elements
+          // entscheidet selbst ob Inhalt scrollbar ist (kein Layout-Timing-Problem)
+          if (msgs && msgs.contains(e.target)) return;
           e.preventDefault();
         }
 
