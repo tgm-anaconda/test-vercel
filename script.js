@@ -2103,9 +2103,12 @@ function initVariantBot() {
         aiInput._variantAListeners = true;
         let _keepExpanded = false;
 
-        // touchmove außerhalb der Nachrichten sperren
+        // touchmove sperren — ALLES außer Nachrichten-Bereich
+        // { passive: false } ist Pflicht damit preventDefault() auf iOS wirkt
         function _blockScroll(e) {
-          if (e.target.closest && e.target.closest('.ai-bot__messages')) return;
+          const msgs = document.querySelector('.ai-bot__messages');
+          // Nur innerhalb der Nachrichten-Area erlauben — und nur wenn dort wirklich Inhalt scrollbar ist
+          if (msgs && msgs.contains(e.target) && msgs.scrollHeight > msgs.clientHeight) return;
           e.preventDefault();
         }
 
