@@ -2138,6 +2138,47 @@ function initVariantBot() {
           aiBot.style.paddingBottom = '0';
         }
 
+        const mobileCollapseBtn = document.getElementById('aiBotMobileCollapse');
+
+        function collapseBot() {
+          if (!_botIsExpanded) return;
+          _botIsExpanded = false;
+
+          _detachKeyboardListener();
+          document.removeEventListener('touchmove', _blockScroll);
+
+          // Scroll-Sperre aufheben + Scroll-Position wiederherstellen
+          const savedY = document.body._lockedScrollY || 0;
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.height = '';
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          document.body.style.overflow = '';
+          document.body.style.height = '';
+          window.scrollTo(0, savedY);
+
+          // Bot-Styles zurücksetzen → kompakte CSS-Klasse wieder aktiv
+          aiBot.style.position = '';
+          aiBot.style.top = '';
+          aiBot.style.left = '';
+          aiBot.style.right = '';
+          aiBot.style.bottom = '';
+          aiBot.style.height = '';
+          aiBot.style.maxHeight = '';
+          aiBot.style.minHeight = '';
+          aiBot.style.zIndex = '';
+          aiBot.style.paddingBottom = '';
+          aiBot.classList.add('ai-bot--variantA-mobile');
+
+          // X-Button wieder verstecken
+          if (mobileCollapseBtn) mobileCollapseBtn.style.display = 'none';
+
+          // Keyboard schließen falls noch offen
+          aiInput.blur();
+        }
+
         function expandBot() {
           if (window.VERDEA_VARIANT !== 'A' || window.innerWidth > 768) return;
 
@@ -2176,7 +2217,15 @@ function initVariantBot() {
           document.body.style.height = '100%';
           document.addEventListener('touchmove', _blockScroll, { passive: false });
 
+          // X-Button einblenden
+          if (mobileCollapseBtn) mobileCollapseBtn.style.display = 'flex';
+
           _attachKeyboardListener();
+        }
+
+        // X-Button: zurück in kompakte Ansicht
+        if (mobileCollapseBtn) {
+          mobileCollapseBtn.addEventListener('click', collapseBot);
         }
 
         aiInput.addEventListener('focus', () => {
