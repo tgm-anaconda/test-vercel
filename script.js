@@ -2110,9 +2110,7 @@ function initVariantBot() {
         // { passive: false } ist Pflicht damit preventDefault() auf iOS wirkt
         function _blockScroll(e) {
           const msgs = document.querySelector('.ai-bot__messages');
-          // Nachrichten-Bereich: Touch immer durchlassen — overflow-y:auto des Elements
-          // entscheidet selbst ob Inhalt scrollbar ist (kein Layout-Timing-Problem)
-          if (msgs && msgs.contains(e.target)) return;
+          if (msgs && msgs.contains(e.target) && msgs.scrollHeight > msgs.clientHeight) return;
           e.preventDefault();
         }
 
@@ -2128,7 +2126,10 @@ function initVariantBot() {
             window.visualViewport.removeEventListener('resize', _applyKeyboardPadding);
             window.visualViewport.addEventListener('resize', _applyKeyboardPadding);
           }
-          setTimeout(_applyKeyboardPadding, 350);
+          // iOS Tastatur-Animation ~250ms — mehrere Zeitpunkte für Zuverlässigkeit
+          setTimeout(_applyKeyboardPadding, 100);
+          setTimeout(_applyKeyboardPadding, 300);
+          setTimeout(_applyKeyboardPadding, 500);
         }
 
         function _detachKeyboardListener() {
