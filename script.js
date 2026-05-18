@@ -31,8 +31,6 @@
       bot_msg_count_ai: 0,
       bot_msg_avg_len_user: 0,
       bot_msg_total_len_user: 0,
-      bot_msg_avg_len_ai: 0,
-      bot_msg_total_len_ai: 0,
       bot_chat_duration_seconds: '',
       bot_first_or_pdp_first: 'keins',
       pdp_ids_viewed: '',
@@ -69,7 +67,7 @@
     _timestampStart: null,
     _studyStartMs: null,
     _completedAt: null,
-    _preStudy: {},
+
     _variant: null,
     _device: null,
     _scenarios: [emptyScenario(0), emptyScenario(1), emptyScenario(2)],
@@ -155,10 +153,6 @@
       const sc = this._scenarios[idx];
       if (!sc) return;
       sc.bot_msg_count_ai++;
-      const len = typeof text === 'string' ? text.length : 0;
-      sc._aiMsgLengths.push(len);
-      sc.bot_msg_total_len_ai = sc._aiMsgLengths.reduce((a, b) => a + b, 0);
-      sc.bot_msg_avg_len_ai = Math.round(sc.bot_msg_total_len_ai / sc._aiMsgLengths.length);
       const now = Date.now();
       if (!sc._botFirstMsgTime) sc._botFirstMsgTime = now;
       sc._botLastMsgTime = now;
@@ -270,14 +264,6 @@
       this._surveyAnswers['survey_' + questionId] = answer;
     },
 
-    setPreStudy(data) {
-      this._preStudy = {
-        pre_ai_usage_freq: data.ai_usage_freq || '',
-        pre_ai_confidence: data.ai_confidence || '',
-        pre_ai_trust: data.ai_trust || '',
-      };
-    },
-
     trackBotOpenSource(source) {
       const sc = this._currentScenario();
       if (sc && !sc.bot_open_source_c) sc.bot_open_source_c = source;
@@ -331,8 +317,6 @@
         p[prefix + 'bot_msg_count_ai'] = sc.bot_msg_count_ai;
         p[prefix + 'bot_msg_avg_len_user'] = sc.bot_msg_avg_len_user;
         p[prefix + 'bot_msg_total_len_user'] = sc.bot_msg_total_len_user;
-        p[prefix + 'bot_msg_avg_len_ai'] = sc.bot_msg_avg_len_ai;
-        p[prefix + 'bot_msg_total_len_ai'] = sc.bot_msg_total_len_ai;
         p[prefix + 'bot_chat_duration_seconds'] = sc.bot_chat_duration_seconds;
         p[prefix + 'bot_first_or_pdp_first'] = sc.bot_first_or_pdp_first;
         p[prefix + 'pdp_ids_viewed'] = sc.pdp_ids_viewed;
@@ -355,9 +339,6 @@
       p.total_duration_seconds = (this._completedAt && this._studyStartMs)
         ? Math.round((this._completedAt - this._studyStartMs) / 1000)
         : '';
-
-      // Pre-Study (KI-Nutzungsgewohnheiten, vor Szenarien erhoben)
-      Object.assign(p, this._preStudy);
 
       // Demographik
       Object.assign(p, this._demographics);
@@ -2549,20 +2530,75 @@ function generateAiReply(scenario, userMessage) {
 
 // ============== FINAL SURVEY ==============
 const SURVEY_QUESTIONS = [
-  { id: 'chatbot_seen', type: 'radio', title: 'Haben Sie den KI-Chatbot auf der Website gesehen?', options: ['Ja', 'Nein', 'Unsicher'] },
-  { id: 'chatbot_visibility', type: 'scale5', title: 'Wie gut sichtbar war die Platzierung des Chatbots?', sub: '1 = sehr schlecht · 5 = sehr gut' },
-  { id: 'chatbot_used', type: 'radio', title: 'Haben Sie den KI-Chatbot verwendet?', options: ['Ja', 'Nein'], skipGroupIfNo: ['chatbot_recognizable', 'chatbot_purpose_clear', 'chatbot_helpful', 'chatbot_influenced', 'chatbot_perception'] },
-  { id: 'chatbot_recognizable', type: 'scale5', title: 'Der Chatbot war für mich klar als solcher erkennbar.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'chatbot_purpose_clear', type: 'scale5', title: 'Es war mir klar, dass der Chatbot bei der Kaufentscheidung hilft.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'chatbot_helpful', type: 'scale5', title: 'Der Chatbot konnte meine Fragen gut beantworten.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'chatbot_influenced', type: 'scale5', title: 'Wie stark hat der Chatbot Ihre Entscheidung beeinflusst?', sub: '1 = gar nicht · 5 = sehr stark' },
-  { id: 'chatbot_perception', type: 'radio', title: 'Wie haben Sie den Chatbot wahrgenommen?', options: ['Subjektiv — er wollte mir das teuerste Produkt empfehlen', 'Objektiv — er wollte das für mich beste Produkt finden', 'Weiß nicht'] },
-  { id: 'ai_usage_freq', type: 'radio', title: 'Wie oft nutzt du KI-Chatbots im Alltag?', options: ['Täglich', 'Wöchentlich', 'Monatlich', 'Jährlich', 'Nie'] },
-  { id: 'ai_confidence', type: 'scale5', title: 'Ich bin im Umgang mit KI-Chatbots sehr sicher.', sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'ai_trust', type: 'scale5', title: 'Inwiefern traust du den Antworten von KI-Chatbots?', sub: '1 = gar nicht · 5 = vollständig' },
-  { id: 'decision_confidence', type: 'scale5', title: 'Wie sicher fühlst du dich bei deinen Kaufentscheidungen?', sub: '1 = sehr unsicher · 5 = sehr sicher' },
-  { id: 'realism', type: 'scale5', title: 'Wie realistisch wirkten die Kaufsituationen auf dich?', sub: '1 = unrealistisch · 5 = sehr realistisch' },
-  { id: 'feedback', type: 'textarea', title: 'Möchtest du noch etwas mitteilen?', sub: 'Optional — Anregungen, Kritik oder Beobachtungen.', optional: true },
+
+  // ── BLOCK 1: Produktvertrautheit (pro Szenario) ──────────────────────────
+  { id: 'product_familiarity_sc1', type: 'scale5',
+    title: 'Wie vertraut waren Sie vor der Studie mit Vitamin-D-Produkten und Nahrungsergänzungsmitteln?',
+    sub: '1 = gar nicht vertraut · 5 = sehr vertraut' },
+  { id: 'product_familiarity_sc2', type: 'scale5',
+    title: 'Wie vertraut waren Sie vor der Studie mit Tablettenboxen und Medikamenten-Organizern?',
+    sub: '1 = gar nicht vertraut · 5 = sehr vertraut' },
+  { id: 'product_familiarity_sc3', type: 'scale5',
+    title: 'Wie vertraut waren Sie vor der Studie mit Festival-Tickets und Event-Buchungen?',
+    sub: '1 = gar nicht vertraut · 5 = sehr vertraut' },
+
+  // ── BLOCK 2: Online-Kaufverhalten ────────────────────────────────────────
+  { id: 'online_shopping_freq', type: 'radio',
+    title: 'Wie oft kaufen Sie Produkte dieser Art online?',
+    options: ['Nie', 'Selten', 'Gelegentlich', 'Regelmäßig'] },
+  { id: 'real_purchase_intent', type: 'radio',
+    title: 'Hätten Sie eines der Produkte auch im echten Leben gekauft?',
+    options: ['Ja', 'Wahrscheinlich', 'Eher nicht', 'Nein'] },
+
+  // ── BLOCK 3: Chatbot-Wahrnehmung (mit Skip-Logik) ───────────────────────
+  // Wenn Nein → alle Chatbot-Fragen überspringen
+  { id: 'chatbot_seen', type: 'radio',
+    title: 'Haben Sie den KI-Chatbot auf der Website gesehen?',
+    options: ['Ja', 'Nein', 'Unsicher'],
+    skipGroupIfNo: ['chatbot_visibility', 'chatbot_used', 'chatbot_recognizable', 'chatbot_purpose_clear', 'chatbot_helpful', 'chatbot_influenced', 'chatbot_perception'] },
+  { id: 'chatbot_visibility', type: 'scale5',
+    title: 'Wie gut sichtbar war die Platzierung des Chatbots?',
+    sub: '1 = sehr schlecht · 5 = sehr gut' },
+  // Wenn Nein → Nutzungs-Detailfragen überspringen
+  { id: 'chatbot_used', type: 'radio',
+    title: 'Haben Sie den KI-Chatbot verwendet?',
+    options: ['Ja', 'Nein'],
+    skipGroupIfNo: ['chatbot_recognizable', 'chatbot_purpose_clear', 'chatbot_helpful', 'chatbot_influenced', 'chatbot_perception'] },
+  { id: 'chatbot_recognizable', type: 'scale5',
+    title: 'Der Chatbot war für mich klar als solcher erkennbar.',
+    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'chatbot_purpose_clear', type: 'scale5',
+    title: 'Es war mir klar, dass der Chatbot bei der Kaufentscheidung hilft.',
+    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'chatbot_helpful', type: 'scale5',
+    title: 'Der Chatbot konnte meine Fragen gut beantworten.',
+    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'chatbot_influenced', type: 'scale5',
+    title: 'Wie stark hat der Chatbot Ihre Entscheidung beeinflusst?',
+    sub: '1 = gar nicht · 5 = sehr stark' },
+  { id: 'chatbot_perception', type: 'radio',
+    title: 'Wie haben Sie den Chatbot wahrgenommen?',
+    options: ['Subjektiv — er wollte mir das teuerste Produkt empfehlen', 'Objektiv — er wollte das für mich beste Produkt finden', 'Weiß nicht'] },
+
+  // ── BLOCK 4: KI-Kompetenz & Entscheidungsverhalten ──────────────────────
+  { id: 'ai_usage_freq', type: 'radio',
+    title: 'Wie oft nutzt du KI-Chatbots im Alltag?',
+    options: ['Täglich', 'Wöchentlich', 'Monatlich', 'Jährlich', 'Nie'] },
+  { id: 'ai_confidence', type: 'scale5',
+    title: 'Ich bin im Umgang mit KI-Chatbots sehr sicher.',
+    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+  { id: 'ai_trust', type: 'scale5',
+    title: 'Inwiefern traust du den Antworten von KI-Chatbots?',
+    sub: '1 = gar nicht · 5 = vollständig' },
+  { id: 'decision_confidence', type: 'scale5',
+    title: 'Wie sicher fühlst du dich bei deinen Kaufentscheidungen?',
+    sub: '1 = sehr unsicher · 5 = sehr sicher' },
+
+  // ── BLOCK 5: Freitext ────────────────────────────────────────────────────
+  { id: 'feedback', type: 'textarea',
+    title: 'Möchtest du noch etwas mitteilen?',
+    sub: 'Optional — Anregungen, Kritik oder Beobachtungen.',
+    optional: true },
 ];
 let surveyStep = 0;
 const surveyAnswers = {};
