@@ -2533,7 +2533,7 @@ function buildSurveyQuestions() {
   const allChatbotDetailIds = [
     'chatbot_visibility', 'chatbot_recognizable', 'chatbot_helpful',
     'chatbot_disturbing', 'chatbot_supported_decision', 'chatbot_helped_find_best',
-    'chatbot_perception', 'chatbot_not_used_reason',
+    'chatbot_not_used_reason',
   ];
 
   const chatbotQs = [
@@ -2567,9 +2567,6 @@ function buildSurveyQuestions() {
       { id: 'chatbot_helped_find_best', type: 'scale5',
         title: 'Der Chatbot hat mir geholfen, das für mich beste Produkt zu finden.',
         sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-      { id: 'chatbot_perception', type: 'radio',
-        title: 'Wie hast du den Chatbot wahrgenommen?',
-        options: ['Subjektiv — er wollte mir das teuerste Produkt empfehlen', 'Objektiv — er wollte das für mich beste Produkt finden', 'Weiß nicht'] },
     ] : [
       // Chatbot wurde NICHT genutzt → nur Freitextfrage warum
       { id: 'chatbot_not_used_reason', type: 'textarea',
@@ -2581,36 +2578,19 @@ function buildSurveyQuestions() {
     // Block 1: Produktvertrautheit (randomisiert)
     ...productQs,
 
-    // Block 2: Online-Kaufverhalten
-    { id: 'online_shopping_freq', type: 'radio',
-      title: 'Wie oft kaufst du Produkte dieser Art online?',
-      options: ['Nie', 'Selten', 'Gelegentlich', 'Regelmäßig'] },
-    { id: 'real_purchase_intent', type: 'radio',
-      title: 'Hättest du eines der Produkte auch im echten Leben gekauft?',
-      options: ['Ja', 'Wahrscheinlich', 'Eher nicht', 'Nein'] },
-
-    // Block 3: Chatbot-Wahrnehmung
+    // Block 2: Chatbot-Wahrnehmung
     ...chatbotQs,
 
-    // Block 4: KI-Affinität & Entscheidungsverhalten
+    // Block 3: KI-Affinität
     { id: 'ai_usage_freq', type: 'radio',
-      title: 'Wie oft nutzt du KI-Chatbots (Arbeit, Uni, Privat)?',
+      title: 'Wie oft nutzt du KI-Chatbots (Arbeit, Universität, Schule, Privat)?',
       options: ['Täglich', 'Wöchentlich', 'Monatlich', 'Jährlich', 'Nie'] },
     { id: 'ai_confidence', type: 'scale5',
-      title: 'Wie sicher schätzt du dich im Umgang mit KI-Chatbots ein?',
+      title: 'Wie sicher schätzt du dich selbst im Umgang mit KI-Chatbots ein?',
       sub: '1 = sehr unsicher · 5 = sehr sicher' },
     { id: 'ai_trust', type: 'scale5',
       title: 'Inwiefern findest du die Antworten von KI-Chatbots vertrauenswürdig?',
       sub: '1 = sehr unvertrauenswürdig · 5 = sehr vertrauenswürdig' },
-    { id: 'decision_confidence', type: 'scale5',
-      title: 'Wie sicher hast du dich bei deinen Kaufentscheidungen in dieser Studie gefühlt?',
-      sub: '1 = sehr unsicher · 5 = sehr sicher' },
-
-    // Block 5: Freitext
-    { id: 'feedback', type: 'textarea',
-      title: 'Möchtest du noch etwas mitteilen?',
-      sub: 'Optional — Anregungen, Kritik oder Beobachtungen.',
-      optional: true },
   ];
 }
 let surveyStep = 0;
@@ -2627,7 +2607,11 @@ function startSurvey() {
   surveyStep = 0;
   _surveySkippedIds = [];
   // Produktreihenfolge randomisieren und tracken
-  _surveyProductOrder = [0, 1, 2].sort(() => Math.random() - 0.5);
+  _surveyProductOrder = [0, 1, 2];
+  for (let i = _surveyProductOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [_surveyProductOrder[i], _surveyProductOrder[j]] = [_surveyProductOrder[j], _surveyProductOrder[i]];
+  }
   const orderStr = _surveyProductOrder.map(i => `sc${i + 1}`).join(',');
   if (window.VerdTracker) {
     window.VerdTracker.trackSurveyAnswer('survey_product_order', orderStr);
