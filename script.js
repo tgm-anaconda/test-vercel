@@ -1690,8 +1690,8 @@ document.getElementById('demoForm').addEventListener('submit', e => {
     errEl.textContent = 'Bitte füllen Sie alle Felder aus.'; return;
   }
   const ageNum = Number(age);
-  if (isNaN(ageNum) || ageNum < 14 || ageNum > 99) {
-    errEl.textContent = 'Bitte geben Sie ein realistisches Alter ein.'; return;
+  if (!Number.isInteger(ageNum) || ageNum < 10 || ageNum > 99) {
+    errEl.textContent = 'Bitte gib dein Alter als zweistellige Zahl ein (z.B. 22).'; return;
   }
   errEl.textContent = '';
   if (window.VerdTracker) {
@@ -2500,8 +2500,16 @@ const SURVEY_PRODUCT_INFO = [
   { sc: 3, id: 'sc3', name: 'Festival-Tickets und Event-Buchungen' },
 ];
 
-// Reihenfolge der Produkte in der Umfrage (wird in startSurvey() randomisiert)
-let _surveyProductOrder = [0, 1, 2];
+// Reihenfolge der Produkte in der Umfrage — direkt beim Laden randomisiert,
+// in startSurvey() nochmals neu gewürfelt (für jede Sitzung)
+let _surveyProductOrder = (() => {
+  const arr = [0, 1, 2];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+})();
 
 // Baut die Fragenliste dynamisch — berücksichtigt randomisierte Produktreihenfolge
 // und ob der Chatbot laut Tracking tatsächlich genutzt wurde.
