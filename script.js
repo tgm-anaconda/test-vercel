@@ -28,7 +28,6 @@
       time_task_seconds: '',
       bot_used: false,
       bot_msg_count_user: 0,
-      bot_msg_count_ai: 0,
       bot_msg_avg_len_user: 0,
       bot_msg_total_len_user: 0,
       bot_chat_duration_seconds: '',
@@ -55,7 +54,6 @@
       _pdpOpenTimes: {}, // productId -> openTimestamp
       _pdpIdsArray: [],
       _userMsgLengths: [],
-      _aiMsgLengths: [],
       _chatLog: [], // [{role, text}]
       _pdpFirstTime: null,
       _botFirstTime: null,
@@ -76,6 +74,7 @@
     _surveyAnswers: {},
     _allChatLog: [], // Globaler Log über alle Szenarien
     _complete: false,
+    _surveyStartMs: null,
 
     init(variant) {
       this._sessionId = uuidv4();
@@ -100,8 +99,7 @@
         demo_age: data.age || '',
         demo_gender: data.gender || '',
         demo_income: data.income || '',
-        demo_education: data.education || '',
-        demo_ai_usage: data.ai_usage || '',
+        demo_occupation: data.occupation || '',
       };
     },
 
@@ -152,7 +150,6 @@
       const idx = scenarioIdx !== undefined ? scenarioIdx : this._currentScenarioIdx;
       const sc = this._scenarios[idx];
       if (!sc) return;
-      sc.bot_msg_count_ai++;
       const now = Date.now();
       if (!sc._botFirstMsgTime) sc._botFirstMsgTime = now;
       sc._botLastMsgTime = now;
@@ -178,13 +175,8 @@
       if (!sc._pdpIdsArray.includes(productId)) sc._pdpIdsArray.push(productId);
       if (!sc._pdpFirstTime) {
         sc._pdpFirstTime = Date.now();
-        // bot_first_or_pdp_first: pdp geöffnet vor oder nach bot
-        if (sc._botFirstTime_set) {
-          // Bot war schon offen gewesen — pdp danach
-          if (sc.bot_first_or_pdp_first === 'bot_zuerst') {
-            // bleibt
-          }
-        } else {
+        // bot_first_or_pdp_first: pdp zuerst geöffnet → nur setzen wenn Bot noch nicht war
+        if (!sc._botFirstTime_set) {
           sc.bot_first_or_pdp_first = 'pdp_zuerst';
         }
       }
@@ -277,7 +269,8 @@
 
     flush(reason) {
       const sc = this._currentScenarioIdx >= 0 ? this._scenarios[this._currentScenarioIdx] : null;
-      if (sc && !sc.abbruch_at) {
+      // Nur setzen wenn das Szenario NICHT abgeschlossen wurde — sonst kein Abbruch-Eintrag
+      if (sc && !sc.abbruch_at && !sc.task_completed) {
         sc.abbruch_at = reason || 'flush';
       }
       this._sendToSheets(false);
@@ -314,7 +307,6 @@
         p[prefix + 'time_task_seconds'] = sc.time_task_seconds;
         p[prefix + 'bot_used'] = sc.bot_used ? 'ja' : 'nein';
         p[prefix + 'bot_msg_count_user'] = sc.bot_msg_count_user;
-        p[prefix + 'bot_msg_count_ai'] = sc.bot_msg_count_ai;
         p[prefix + 'bot_msg_avg_len_user'] = sc.bot_msg_avg_len_user;
         p[prefix + 'bot_msg_total_len_user'] = sc.bot_msg_total_len_user;
         p[prefix + 'bot_chat_duration_seconds'] = sc.bot_chat_duration_seconds;
@@ -1074,11 +1066,8 @@ function icon(name, size = 16) {
 // ───────────────────────────────────────────────────────────────────────────
 let currentScenarioIndex = 0;
 let scenarioStartTime = 0;
-let aiMessageCount = 0;
 let aiHistory = []; // [{ role: 'user'|'assistant', content: string }, …] — Konversations-Historie für die API
 let aiPending = false; // True während ein Request läuft, verhindert Mehrfach-Submit
-const allChoices = [];
-const allDemographics = {};
 
 function getCurrentScenario() { return SCENARIOS[currentScenarioIndex]; }
 
@@ -1695,19 +1684,18 @@ document.getElementById('demoForm').addEventListener('submit', e => {
   const age = document.getElementById('demoAge').value;
   const gender = document.querySelector('input[name="gender"]:checked')?.value;
   const income = document.getElementById('demoIncome').value;
-  const education = document.getElementById('demoEducation').value;
-  const aiUsage = document.getElementById('demoAiUsage').value;
+  const occupation = document.getElementById('demoOccupation').value;
   const errEl = document.getElementById('demoError');
-  if (!age || !gender || !income || !education || !aiUsage) {
+  if (!age || !gender || !income || !occupation) {
     errEl.textContent = 'Bitte füllen Sie alle Felder aus.'; return;
   }
-  if (Number(age) < 14 || Number(age) > 99) {
+  const ageNum = Number(age);
+  if (isNaN(ageNum) || ageNum < 14 || ageNum > 99) {
     errEl.textContent = 'Bitte geben Sie ein realistisches Alter ein.'; return;
   }
   errEl.textContent = '';
-  Object.assign(allDemographics, { age, gender, income, education, ai_usage: aiUsage });
   if (window.VerdTracker) {
-    window.VerdTracker.setDemographics(allDemographics);
+    window.VerdTracker.setDemographics({ age, gender, income, occupation });
     window.VerdTracker.complete();
   }
   showGate(gateThanks);
@@ -1717,7 +1705,6 @@ document.getElementById('demoForm').addEventListener('submit', e => {
 function startScenario(idx) {
   currentScenarioIndex = idx;
   scenarioStartTime = Date.now();
-  aiMessageCount = 0;
   const sc = getCurrentScenario();
   if (window.VerdTracker) window.VerdTracker.startScenario(idx, sc.id);
 
@@ -1783,25 +1770,6 @@ checkoutBtn.addEventListener('click', () => {
   const mainChosen = cart.find(i => i.role === 'main') || cart[0];
   const crossSellInCart = cart.filter(i => i.role === 'cross-sell');
   const upsellInCart = cart.filter(i => i.isUpsell);
-  const choice = {
-    scenario_id: sc.id,
-    scenario_index: currentScenarioIndex + 1,
-    scenario_label: sc.label,
-    product_id: mainChosen.id,
-    product_name: mainChosen.name,
-    option_label: mainChosen.optionLabel || '',
-    is_upsell_chosen: !!mainChosen.isUpsell ? 'ja' : 'nein',
-    price: mainChosen.price,
-    quantity: mainChosen.qty,
-    cart_total: cart.reduce((s, i) => s + i.price * i.qty, 0),
-    cart_items: cart.map(i => `${i.id}[${i.optionLabel || 'std'}]×${i.qty}`).join(','),
-    cross_sell_count: crossSellInCart.length,
-    cross_sell_ids: crossSellInCart.map(i => i.id).join(','),
-    upsell_count: upsellInCart.length,
-    seconds_in_scenario: Math.round((Date.now() - scenarioStartTime) / 1000),
-    ai_messages_in_scenario: aiMessageCount,
-  };
-  allChoices.push(choice);
   if (window.VerdTracker) window.VerdTracker.trackCheckout(currentScenarioIndex, { mainChosen });
 
   closeCart();
@@ -1901,7 +1869,6 @@ function applyVariantBotStyle() {
 }
 
 // Variante C: Öffnen-Button auf Bild, Chat-Panel darunter
-let _variantCEmbedded = false;
 function embedBotInDetail() {
   if (window.VERDEA_VARIANT !== 'C') return;
   aiBot.hidden = true;
@@ -1987,7 +1954,6 @@ function openVariantCChat() {
   // Hinter das Bild einhängen (innerhalb der Gallery)
   gallery.appendChild(embed);
   embed.hidden = false;
-  _variantCEmbedded = true;
 
   const embedMsgs = document.getElementById('aiMessagesEmbed');
   const embedSugg = document.getElementById('aiSuggestionsEmbed');
@@ -2054,7 +2020,6 @@ function closeVariantCChat() {
   if (embed) embed.hidden = true;
   const openBtn = document.getElementById('variantCOpenBtn');
   if (openBtn) openBtn.hidden = false;
-  _variantCEmbedded = false;
   if (window.VerdTracker) window.VerdTracker.trackBotClose();
 }
 
@@ -2066,7 +2031,6 @@ function removeBotFromDetail() {
   if (openBtn) openBtn.remove();
   const gallery = document.querySelector('.detail-gallery');
   if (gallery) gallery.classList.remove('variant-c-bot-open');
-  _variantCEmbedded = false;
 }
 
 // Initiale Variant-Konfiguration beim Szenariostart
@@ -2417,7 +2381,6 @@ async function sendAiMessage() {
   aiInput.disabled = true;
   aiInput.value = '';
   appendAiMessage('user', txt);
-  aiMessageCount++;
 
   const sc = getCurrentScenario();
 
@@ -2529,77 +2492,127 @@ function generateAiReply(scenario, userMessage) {
 }
 
 // ============== FINAL SURVEY ==============
-const SURVEY_QUESTIONS = [
 
-  // ── BLOCK 1: Produktvertrautheit (pro Szenario) ──────────────────────────
-  { id: 'product_familiarity_sc1', type: 'scale5',
-    title: 'Wie vertraut waren Sie vor der Studie mit Vitamin-D-Produkten und Nahrungsergänzungsmitteln?',
-    sub: '1 = gar nicht vertraut · 5 = sehr vertraut' },
-  { id: 'product_familiarity_sc2', type: 'scale5',
-    title: 'Wie vertraut waren Sie vor der Studie mit Tablettenboxen und Medikamenten-Organizern?',
-    sub: '1 = gar nicht vertraut · 5 = sehr vertraut' },
-  { id: 'product_familiarity_sc3', type: 'scale5',
-    title: 'Wie vertraut waren Sie vor der Studie mit Festival-Tickets und Event-Buchungen?',
-    sub: '1 = gar nicht vertraut · 5 = sehr vertraut' },
-
-  // ── BLOCK 2: Online-Kaufverhalten ────────────────────────────────────────
-  { id: 'online_shopping_freq', type: 'radio',
-    title: 'Wie oft kaufen Sie Produkte dieser Art online?',
-    options: ['Nie', 'Selten', 'Gelegentlich', 'Regelmäßig'] },
-  { id: 'real_purchase_intent', type: 'radio',
-    title: 'Hätten Sie eines der Produkte auch im echten Leben gekauft?',
-    options: ['Ja', 'Wahrscheinlich', 'Eher nicht', 'Nein'] },
-
-  // ── BLOCK 3: Chatbot-Wahrnehmung (mit Skip-Logik) ───────────────────────
-  // Wenn Nein → alle Chatbot-Fragen überspringen
-  { id: 'chatbot_seen', type: 'radio',
-    title: 'Haben Sie den KI-Chatbot auf der Website gesehen?',
-    options: ['Ja', 'Nein', 'Unsicher'],
-    skipGroupIfNo: ['chatbot_visibility', 'chatbot_used', 'chatbot_recognizable', 'chatbot_purpose_clear', 'chatbot_helpful', 'chatbot_influenced', 'chatbot_perception'] },
-  { id: 'chatbot_visibility', type: 'scale5',
-    title: 'Wie gut sichtbar war die Platzierung des Chatbots?',
-    sub: '1 = sehr schlecht · 5 = sehr gut' },
-  // Wenn Nein → Nutzungs-Detailfragen überspringen
-  { id: 'chatbot_used', type: 'radio',
-    title: 'Haben Sie den KI-Chatbot verwendet?',
-    options: ['Ja', 'Nein'],
-    skipGroupIfNo: ['chatbot_recognizable', 'chatbot_purpose_clear', 'chatbot_helpful', 'chatbot_influenced', 'chatbot_perception'] },
-  { id: 'chatbot_recognizable', type: 'scale5',
-    title: 'Der Chatbot war für mich klar als solcher erkennbar.',
-    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'chatbot_purpose_clear', type: 'scale5',
-    title: 'Es war mir klar, dass der Chatbot bei der Kaufentscheidung hilft.',
-    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'chatbot_helpful', type: 'scale5',
-    title: 'Der Chatbot konnte meine Fragen gut beantworten.',
-    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'chatbot_influenced', type: 'scale5',
-    title: 'Wie stark hat der Chatbot Ihre Entscheidung beeinflusst?',
-    sub: '1 = gar nicht · 5 = sehr stark' },
-  { id: 'chatbot_perception', type: 'radio',
-    title: 'Wie haben Sie den Chatbot wahrgenommen?',
-    options: ['Subjektiv — er wollte mir das teuerste Produkt empfehlen', 'Objektiv — er wollte das für mich beste Produkt finden', 'Weiß nicht'] },
-
-  // ── BLOCK 4: KI-Kompetenz & Entscheidungsverhalten ──────────────────────
-  { id: 'ai_usage_freq', type: 'radio',
-    title: 'Wie oft nutzt du KI-Chatbots im Alltag?',
-    options: ['Täglich', 'Wöchentlich', 'Monatlich', 'Jährlich', 'Nie'] },
-  { id: 'ai_confidence', type: 'scale5',
-    title: 'Ich bin im Umgang mit KI-Chatbots sehr sicher.',
-    sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
-  { id: 'ai_trust', type: 'scale5',
-    title: 'Inwiefern traust du den Antworten von KI-Chatbots?',
-    sub: '1 = gar nicht · 5 = vollständig' },
-  { id: 'decision_confidence', type: 'scale5',
-    title: 'Wie sicher fühlst du dich bei deinen Kaufentscheidungen?',
-    sub: '1 = sehr unsicher · 5 = sehr sicher' },
-
-  // ── BLOCK 5: Freitext ────────────────────────────────────────────────────
-  { id: 'feedback', type: 'textarea',
-    title: 'Möchtest du noch etwas mitteilen?',
-    sub: 'Optional — Anregungen, Kritik oder Beobachtungen.',
-    optional: true },
+// Produkt-Metadaten für Vertrautheitsfragen — Index 0 = Szenario 1, usw.
+const SURVEY_PRODUCT_INFO = [
+  { sc: 1, id: 'sc1', name: 'Vitamin-D-Produkten und Nahrungsergänzungsmitteln' },
+  { sc: 2, id: 'sc2', name: 'Tablettenboxen und Medikamenten-Organizern' },
+  { sc: 3, id: 'sc3', name: 'Festival-Tickets und Event-Buchungen' },
 ];
+
+// Reihenfolge der Produkte in der Umfrage (wird in startSurvey() randomisiert)
+let _surveyProductOrder = [0, 1, 2];
+
+// Baut die Fragenliste dynamisch — berücksichtigt randomisierte Produktreihenfolge
+// und ob der Chatbot laut Tracking tatsächlich genutzt wurde.
+function buildSurveyQuestions() {
+  const botUsed = window.VerdTracker
+    ? window.VerdTracker._scenarios.some(sc => sc.bot_msg_count_user > 0)
+    : false;
+
+  // Block 1: Produktvertrautheit (randomisierte Reihenfolge)
+  const productQs = _surveyProductOrder.flatMap(idx => {
+    const p = SURVEY_PRODUCT_INFO[idx];
+    return [
+      {
+        id: `product_knowledge_${p.id}`,
+        type: 'radio',
+        title: `Wie würdest du dein Wissen über ${p.name} vor der Studie einschätzen?`,
+        options: ['Sehr gering', 'Gering', 'Mittel', 'Hoch', 'Sehr hoch'],
+      },
+      {
+        id: `product_purchased_${p.id}`,
+        type: 'radio',
+        title: `Hast du ${p.name} bereits selbst gekauft?`,
+        options: ['Nein', 'Ja, einmal', 'Ja, mehr als 5-mal', 'Ja, mehr als 10-mal'],
+      },
+    ];
+  });
+
+  // Block 3: Chatbot-Fragen — abhängig von tatsächlicher Nutzung (Tracking)
+  const allChatbotDetailIds = [
+    'chatbot_visibility', 'chatbot_recognizable', 'chatbot_helpful',
+    'chatbot_disturbing', 'chatbot_supported_decision', 'chatbot_helped_find_best',
+    'chatbot_perception', 'chatbot_not_used_reason',
+  ];
+
+  const chatbotQs = [
+    {
+      id: 'chatbot_seen',
+      type: 'radio',
+      title: 'Hast du den KI-Chatbot auf der Website gesehen?',
+      options: ['Ja', 'Nein'],
+      skipGroupIfNo: allChatbotDetailIds,
+    },
+    {
+      id: 'chatbot_visibility',
+      type: 'scale5',
+      title: 'Wie sichtbar fandest du die Platzierung des Chatbots?',
+      sub: '1 = sehr schlecht sichtbar · 5 = sehr gut sichtbar',
+    },
+    ...(botUsed ? [
+      // Chatbot wurde genutzt → Detailfragen zeigen
+      { id: 'chatbot_recognizable', type: 'scale5',
+        title: 'Der Chatbot war für mich klar als solcher erkennbar.',
+        sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+      { id: 'chatbot_helpful', type: 'scale5',
+        title: 'Wie gut konnte der Chatbot deine Fragen beantworten?',
+        sub: '1 = sehr schlecht · 5 = sehr gut' },
+      { id: 'chatbot_disturbing', type: 'scale5',
+        title: 'Der Chatbot hat mich während der Nutzung der Website gestört.',
+        sub: '1 = stimme gar nicht zu · 5 = stimme voll zu' },
+      { id: 'chatbot_supported_decision', type: 'scale5',
+        title: 'Der Chatbot hat mich in der Entscheidungsfindung unterstützt.',
+        sub: '1 = gar nicht · 5 = voll und ganz' },
+      { id: 'chatbot_helped_find_best', type: 'scale5',
+        title: 'Der Chatbot hat mir geholfen, das für mich beste Produkt zu finden.',
+        sub: '1 = trifft gar nicht zu · 5 = trifft voll zu' },
+      { id: 'chatbot_perception', type: 'radio',
+        title: 'Wie hast du den Chatbot wahrgenommen?',
+        options: ['Subjektiv — er wollte mir das teuerste Produkt empfehlen', 'Objektiv — er wollte das für mich beste Produkt finden', 'Weiß nicht'] },
+    ] : [
+      // Chatbot wurde NICHT genutzt → nur Freitextfrage warum
+      { id: 'chatbot_not_used_reason', type: 'textarea',
+        title: 'Warum hast du den Chatbot nicht genutzt?' },
+    ]),
+  ];
+
+  return [
+    // Block 1: Produktvertrautheit (randomisiert)
+    ...productQs,
+
+    // Block 2: Online-Kaufverhalten
+    { id: 'online_shopping_freq', type: 'radio',
+      title: 'Wie oft kaufst du Produkte dieser Art online?',
+      options: ['Nie', 'Selten', 'Gelegentlich', 'Regelmäßig'] },
+    { id: 'real_purchase_intent', type: 'radio',
+      title: 'Hättest du eines der Produkte auch im echten Leben gekauft?',
+      options: ['Ja', 'Wahrscheinlich', 'Eher nicht', 'Nein'] },
+
+    // Block 3: Chatbot-Wahrnehmung
+    ...chatbotQs,
+
+    // Block 4: KI-Affinität & Entscheidungsverhalten
+    { id: 'ai_usage_freq', type: 'radio',
+      title: 'Wie oft nutzt du KI-Chatbots (Arbeit, Uni, Privat)?',
+      options: ['Täglich', 'Wöchentlich', 'Monatlich', 'Jährlich', 'Nie'] },
+    { id: 'ai_confidence', type: 'scale5',
+      title: 'Wie sicher schätzt du dich im Umgang mit KI-Chatbots ein?',
+      sub: '1 = sehr unsicher · 5 = sehr sicher' },
+    { id: 'ai_trust', type: 'scale5',
+      title: 'Inwiefern findest du die Antworten von KI-Chatbots vertrauenswürdig?',
+      sub: '1 = sehr unvertrauenswürdig · 5 = sehr vertrauenswürdig' },
+    { id: 'decision_confidence', type: 'scale5',
+      title: 'Wie sicher hast du dich bei deinen Kaufentscheidungen in dieser Studie gefühlt?',
+      sub: '1 = sehr unsicher · 5 = sehr sicher' },
+
+    // Block 5: Freitext
+    { id: 'feedback', type: 'textarea',
+      title: 'Möchtest du noch etwas mitteilen?',
+      sub: 'Optional — Anregungen, Kritik oder Beobachtungen.',
+      optional: true },
+  ];
+}
 let surveyStep = 0;
 const surveyAnswers = {};
 // IDs der Fragen die wegen skipGroupIfNo übersprungen werden
@@ -2607,12 +2620,19 @@ let _surveySkippedIds = [];
 
 // Berechnet die sichtbare (nicht übersprungene) Frageliste
 function getActiveSurveyQuestions() {
-  return SURVEY_QUESTIONS.filter(q => !_surveySkippedIds.includes(q.id));
+  return buildSurveyQuestions().filter(q => !_surveySkippedIds.includes(q.id));
 }
 
 function startSurvey() {
   surveyStep = 0;
   _surveySkippedIds = [];
+  // Produktreihenfolge randomisieren und tracken
+  _surveyProductOrder = [0, 1, 2].sort(() => Math.random() - 0.5);
+  const orderStr = _surveyProductOrder.map(i => `sc${i + 1}`).join(',');
+  if (window.VerdTracker) {
+    window.VerdTracker.trackSurveyAnswer('survey_product_order', orderStr);
+    window.VerdTracker._surveyStartMs = Date.now();
+  }
   showGate(gateSurvey);
   renderSurvey();
 }
@@ -2659,7 +2679,7 @@ function renderSurvey() {
   }
 
   document.getElementById('surveyBack').style.visibility = surveyStep === 0 ? 'hidden' : 'visible';
-  document.getElementById('surveyNext').textContent = surveyStep === activeQs.length - 1 ? 'Weiter →' : 'Weiter →';
+  document.getElementById('surveyNext').textContent = surveyStep === activeQs.length - 1 ? 'Abschließen →' : 'Weiter →';
 }
 
 document.getElementById('surveyBack').addEventListener('click', () => {
@@ -2701,6 +2721,11 @@ document.getElementById('surveyNext').addEventListener('click', () => {
 });
 
 function completeSurvey() {
+  // Umfragedauer tracken
+  if (window.VerdTracker && window.VerdTracker._surveyStartMs) {
+    const dur = Math.round((Date.now() - window.VerdTracker._surveyStartMs) / 1000);
+    window.VerdTracker.trackSurveyAnswer('survey_duration_seconds', dur);
+  }
   // Tracking-Flush ohne complete() — das kommt erst nach der Demografie
   if (window.VerdTracker) window.VerdTracker.flush();
   showGate(gateDemographics);
