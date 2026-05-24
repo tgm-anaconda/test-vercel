@@ -9,7 +9,7 @@ const ALLOWED_ORIGIN_PATTERNS = [
   /^http:\/\/127\.0\.0\.1(:\d+)?(\/|$)/,
 ];
 
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyCpVWjN3UKMsh1OLv8FprGln5flGG6qNGs-i37XR-CAXZkGdGrYBGp5wMowCzP_p4/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby7Pmnbrc3xZyU7i8SskPKELqWCUI4pxKYnA6V8YWcu2Ct0A07n3YaPiOsKK8Ez2h8/exec';
 
 export default async function handler(req, res) {
   // CORS-Header damit der Browser die Antwort akzeptiert
