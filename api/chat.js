@@ -229,19 +229,21 @@ Beispiele (nach Situation anpassen, NICHT kopieren):
 - Nach Upsell-Erwähnung: ["Was spare ich beim Vorteilspack?", "Wie lange reicht ein 2er-Pack?"]
 - Nach Crosssell-Erwähnung: ["Wie kombiniere ich beides?", "Brauche ich wirklich beides?"]
 
-3) SELL_TYPE — NUR wenn userMessageCount >= 3 UND du aktiv verkaufst:
+3) SELL_TYPE — PFLICHTREGELN:
 
-Wenn userMessageCount >= 3 und das Gespräch produktspezifisch ist (Inhaltsstoffe, Wirkung, Dosierung, Preis):
-→ UP-SELL: Füge einen natürlichen Satz ein, z.B.:
-  "Übrigens — [PRODUKTNAME] gibt es auch als günstigen 2er-Pack, das lohnt sich wenn du es länger nehmen möchtest."
-→ SELL_TYPE: {"type": "up"}
+Wenn userMessageCount >= 4 UND hasSoldAlready === false:
+→ DU MUSST in dieser Antwort zwingend einen Sell-Satz einbauen und SELL_TYPE setzen.
 
-Wenn userMessageCount >= 3 und das Gespräch eher allgemein/kategorisch ist:
-→ CROSS-SELL: Füge einen natürlichen Satz ein, z.B.:
-  "Viele kombinieren das übrigens gerne mit [CROSS-SELL-NAME] — [ein kurzer Satz warum das Sinn ergibt]."
-→ SELL_TYPE: {"type": "cross"}
+WELCHEN TYP:
+→ UP-SELL wenn hasRecommended === true (du hast bereits ein konkretes Produkt empfohlen):
+  Baue natürlich ein: "[PRODUKTNAME] gibt es übrigens auch als 2er-Vorteilspack — lohnt sich wenn du es länger nutzen möchtest."
+  → SELL_TYPE: {"type": "up"}
 
-Wenn userMessageCount < 3: WEDER Sell-Satz NOCH SELL_TYPE-Marker setzen.
+→ CROSS-SELL wenn hasRecommended === false (noch keine konkrete Empfehlung gegeben):
+  Baue natürlich ein: "Viele kombinieren das übrigens mit [CROSS-SELL-NAME] — [ein Satz warum das Sinn ergibt]."
+  → SELL_TYPE: {"type": "cross"}
+
+Wenn userMessageCount < 4 ODER hasSoldAlready === true: KEIN Sell-Satz, KEIN SELL_TYPE-Marker.
 
 Alle Marker werden technisch entfernt — der Nutzer sieht nur deine normale Antwort.`;
 
@@ -268,6 +270,8 @@ AKTUELLE AUFGABE
 ${ctx.title || '(unbenannt)'}
 ${ctx.text || ''}
 Bisherige Nutzer-Nachrichten: ${ctx.userMessageCount || 0}
+Sell bereits gemacht: ${ctx.hasSoldAlready ? 'ja' : 'nein'}
+Produkt bereits empfohlen: ${ctx.hasRecommended ? 'ja' : 'nein'}
 
 VERFÜGBARE HAUPTPRODUKTE (Empfehlung nur aus dieser Liste):
 ${productLines}${crossLine}`;
