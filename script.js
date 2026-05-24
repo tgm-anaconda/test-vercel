@@ -1692,7 +1692,7 @@ welcomeStart.addEventListener('click', () => {
   if (window.VerdTracker) {
     window.VerdTracker._studyStartMs = Date.now();
     const scOrderStr = _scenarioOrder.map(i => ['sc1','sc2','sc3'][i]).join(',');
-    window.VerdTracker.trackSurveyAnswer('scenario_order', scOrderStr);
+    window.VerdTracker._surveyAnswers['scenario_order'] = scOrderStr;
   }
   startScenario(0);
 });
