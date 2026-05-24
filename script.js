@@ -1019,6 +1019,21 @@ function buildScenarios() {
 
 const SCENARIOS = buildScenarios();
 
+// Reihenfolge der Szenarien — bei jedem Seitenaufruf neu randomisiert (Fisher-Yates).
+// currentScenarioIndex = Display-Position (0/1/2)
+// _scenarioOrder[currentScenarioIndex] = echter Szenario-Index (0=Vitamine, 1=Tablettenschachtel, 2=Event)
+let _scenarioOrder = (() => {
+  const arr = [0, 1, 2];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+})();
+
+// Gibt den echten Szenario-Index für Tracker-Calls zurück
+function getActualScenarioIdx() { return _scenarioOrder[currentScenarioIndex]; }
+
 // ───────────────────────────────────────────────────────────────────────────
 // PIKTOGRAMME (Inline-SVG, einfarbig — passen sich via currentColor an)
 // ───────────────────────────────────────────────────────────────────────────
@@ -1069,10 +1084,10 @@ let scenarioStartTime = 0;
 let aiHistory = []; // [{ role: 'user'|'assistant', content: string }, …] — Konversations-Historie für die API
 let aiPending = false; // True während ein Request läuft, verhindert Mehrfach-Submit
 
-function getCurrentScenario() { return SCENARIOS[currentScenarioIndex]; }
+function getCurrentScenario() { return SCENARIOS[_scenarioOrder[currentScenarioIndex]]; }
 
 // ===== PRODUCT DATA — wird dynamisch aus aktuellem Szenario geladen =====
-let products = SCENARIOS[0].products;
+let products = SCENARIOS[_scenarioOrder[0]].products;
 
 // ===== STATE =====
 let cart = [];
@@ -1258,7 +1273,7 @@ heroCta.addEventListener('click', () => scrollToProducts());
 // ===== PRODUCT DETAIL =====
 function openDetail(p, preSelectOptionIdx = 0) {
   window._openDetailProductId = p.id;
-  if (window.VerdTracker) window.VerdTracker.trackPdpOpen(p.id, currentScenarioIndex);
+  if (window.VerdTracker) window.VerdTracker.trackPdpOpen(p.id, getActualScenarioIdx());
   // Mobile Variant A: Bot in kompakte Ansicht — Produkt soll sauber sichtbar sein
   if (window.innerWidth <= 768 && typeof window._variantACollapseBot === 'function') {
     window._variantACollapseBot();
@@ -1399,7 +1414,7 @@ function openDetail(p, preSelectOptionIdx = 0) {
       productDetailContent.querySelectorAll('.detail-tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       productDetailContent.querySelector(`.detail-tab-content[data-tab="${btn.dataset.tab}"]`).classList.add('active');
-      if (window.VerdTracker) window.VerdTracker.trackTabClick(btn.dataset.tab, currentScenarioIndex);
+      if (window.VerdTracker) window.VerdTracker.trackTabClick(btn.dataset.tab, getActualScenarioIdx());
     });
   });
 
@@ -1467,7 +1482,7 @@ function closeDetail() {
   // PDP-Close tracking — wir müssen das aktuell offene Produkt herausfinden
   // Wir nutzen ein globales _openDetailProductId das wir beim Öffnen setzen
   if (window._openDetailProductId && window.VerdTracker) {
-    window.VerdTracker.trackPdpClose(window._openDetailProductId, currentScenarioIndex);
+    window.VerdTracker.trackPdpClose(window._openDetailProductId, getActualScenarioIdx());
     window._openDetailProductId = null;
   }
   productDetail.classList.remove('open');
@@ -1531,7 +1546,7 @@ function addToCart(product, option) {
   showToast(`„${product.name}" wurde hinzugefügt`);
   if (window.VerdTracker) window.VerdTracker.trackCartAdd(
     product.id,
-    currentScenarioIndex,
+    getActualScenarioIdx(),
     opt.price,
     !!opt.isUpsell,
     product.role === 'cross-sell'
@@ -1674,7 +1689,11 @@ const welcomeStart = document.getElementById('welcomeStart');
 consentBox.addEventListener('change', () => welcomeStart.disabled = !consentBox.checked);
 // Einwilligung → direkt in Szenario 1 (keine Demografie vorher)
 welcomeStart.addEventListener('click', () => {
-  if (window.VerdTracker) window.VerdTracker._studyStartMs = Date.now();
+  if (window.VerdTracker) {
+    window.VerdTracker._studyStartMs = Date.now();
+    const scOrderStr = _scenarioOrder.map(i => ['sc1','sc2','sc3'][i]).join(',');
+    window.VerdTracker.trackSurveyAnswer('scenario_order', scOrderStr);
+  }
   startScenario(0);
 });
 
@@ -1706,7 +1725,7 @@ function startScenario(idx) {
   currentScenarioIndex = idx;
   scenarioStartTime = Date.now();
   const sc = getCurrentScenario();
-  if (window.VerdTracker) window.VerdTracker.startScenario(idx, sc.id);
+  if (window.VerdTracker) window.VerdTracker.startScenario(_scenarioOrder[idx], sc.id);
 
   // Reset cart for clean scenario
   cart = [];
@@ -1770,7 +1789,7 @@ checkoutBtn.addEventListener('click', () => {
   const mainChosen = cart.find(i => i.role === 'main') || cart[0];
   const crossSellInCart = cart.filter(i => i.role === 'cross-sell');
   const upsellInCart = cart.filter(i => i.isUpsell);
-  if (window.VerdTracker) window.VerdTracker.trackCheckout(currentScenarioIndex, { mainChosen });
+  if (window.VerdTracker) window.VerdTracker.trackCheckout(getActualScenarioIdx(), { mainChosen });
 
   closeCart();
 
@@ -2250,7 +2269,7 @@ function renderSuggestions(list) {
 function triggerAiMessage(text, source) {
   if (aiPending) return;
   aiInput.value = text;
-  if (window.VerdTracker) window.VerdTracker.trackSuggestionUsed(currentScenarioIndex);
+  if (window.VerdTracker) window.VerdTracker.trackSuggestionUsed(getActualScenarioIdx());
   sendAiMessage();
 }
 function appendAiMessage(role, text) {
@@ -2384,7 +2403,7 @@ async function sendAiMessage() {
 
   const sc = getCurrentScenario();
 
-  if (window.VerdTracker) window.VerdTracker.trackUserMessage(txt, currentScenarioIndex);
+  if (window.VerdTracker) window.VerdTracker.trackUserMessage(txt, getActualScenarioIdx());
 
   showTyping();
 
@@ -2456,7 +2475,7 @@ async function sendAiMessage() {
   }
 
   const recommendedProductId = identifyRecommendedProduct(reply, sc, serverRecommendation);
-  if (window.VerdTracker) window.VerdTracker.trackAiReply(reply, currentScenarioIndex, recommendedProductId, serverSellType);
+  if (window.VerdTracker) window.VerdTracker.trackAiReply(reply, getActualScenarioIdx(), recommendedProductId, serverSellType);
   if ((recommendedProductId || serverSellType) && sc) addProductLinkToLastBotMessage(recommendedProductId, sc, serverSellType);
 
   aiPending = false;
