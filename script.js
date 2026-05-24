@@ -45,7 +45,6 @@
       ai_recommended_product_id: '',
       ai_recommendation_followed: false,
       bot_open_source_c: '',
-      abbruch_at: '',
       // Interne Hilfsfelder (nicht direkt an Sheets)
       _startTime: null,
       _botOpenTime: null,
@@ -75,6 +74,8 @@
     _allChatLog: [], // Globaler Log über alle Szenarien
     _complete: false,
     _surveyStartMs: null,
+    _displayStep: 1,  // 1-3 = Aufgabe, 4 = Umfrage, 5 = Demographik
+    _abbruchAt: '',
 
     init(variant) {
       this._sessionId = uuidv4();
@@ -85,10 +86,8 @@
       // Abbruch-Tracking: beim Schließen des Tabs Teilabbruch senden
       window.addEventListener('beforeunload', () => {
         if (!this._complete) {
-          const sc = this._currentScenarioIdx >= 0 ? this._scenarios[this._currentScenarioIdx] : null;
-          if (sc && !sc.abbruch_at) {
-            sc.abbruch_at = `szenario_${this._currentScenarioIdx + 1}_nicht_abgeschlossen`;
-          }
+          const labels = {1:'aufgabe_1', 2:'aufgabe_2', 3:'aufgabe_3', 4:'umfrage', 5:'demographik'};
+          this._abbruchAt = labels[this._displayStep] || `aufgabe_${this._displayStep}`;
           this.flush('beforeunload');
         }
       });
@@ -324,7 +323,6 @@
         p[prefix + 'ai_recommended_product_id'] = sc.ai_recommended_product_id;
         p[prefix + 'ai_recommendation_followed'] = sc.ai_recommendation_followed ? 'ja' : 'nein';
         p[prefix + 'bot_open_source_c'] = sc.bot_open_source_c;
-        p[prefix + 'abbruch_at'] = sc.abbruch_at;
       });
 
       // Gesamtbearbeitungszeit
@@ -339,8 +337,7 @@
       Object.assign(p, this._surveyAnswers);
 
       // Globaler Abbruch-Status
-      const abbruchSc = this._scenarios.find(sc => sc.abbruch_at);
-      p.abbruch_at = abbruchSc ? abbruchSc.abbruch_at : '';
+      p.abbruch_at = this._abbruchAt || '';
 
       // Chat-Log
       const logParts = this._allChatLog.map(entry => `[Szenario${entry.scenario}-${entry.role === 'user' ? 'User' : 'AI'}]${entry.text}`);
@@ -1082,7 +1079,8 @@ function icon(name, size = 16) {
 let currentScenarioIndex = 0;
 let scenarioStartTime = 0;
 let aiHistory = []; // [{ role: 'user'|'assistant', content: string }, …] — Konversations-Historie für die API
-let aiPending = false; // True während ein Request läuft, verhindert Mehrfach-Submit
+let aiPending = false;
+let aiSellDone = false; // true sobald Up- oder Cross-Sell einmal gemacht wurde (pro Szenario) // True während ein Request läuft, verhindert Mehrfach-Submit
 
 function getCurrentScenario() { return SCENARIOS[_scenarioOrder[currentScenarioIndex]]; }
 
@@ -1725,7 +1723,10 @@ function startScenario(idx) {
   currentScenarioIndex = idx;
   scenarioStartTime = Date.now();
   const sc = getCurrentScenario();
-  if (window.VerdTracker) window.VerdTracker.startScenario(_scenarioOrder[idx], sc.id);
+  if (window.VerdTracker) {
+    window.VerdTracker.startScenario(_scenarioOrder[idx], sc.id);
+    window.VerdTracker._displayStep = idx + 1;
+  }
 
   // Reset cart for clean scenario
   cart = [];
@@ -2243,6 +2244,7 @@ function resetAiBot(scenario) {
   aiMessagesEl.innerHTML = '';
   aiHistory = [];           // Konversation pro Szenario zurücksetzen
   aiPending = false;
+  aiSellDone = false;
   aiInput.disabled = false;
   appendAiMessage('bot', `Hallo! Frag mich gerne, was zu dir passen könnte — ich kenne alle Produkte hier.`);
   renderSuggestions(INITIAL_AI_SUGGESTIONS);
@@ -2348,6 +2350,8 @@ function buildScenarioContext(scenario) {
     title: scenario.title,
     text: scenario.text,
     userMessageCount: aiHistory.filter(m => m.role === 'user').length,
+    hasSoldAlready: aiSellDone,
+    hasRecommended: aiHistory.some(m => m.role === 'assistant' && m.content.includes('RECOMMENDATION:')),
     products: mainProducts.map(p => ({
       id: p.id,
       name: p.name,
@@ -2441,6 +2445,7 @@ async function sendAiMessage() {
     serverSellType = (data && (data.sellType === 'up' || data.sellType === 'cross'))
       ? data.sellType
       : null;
+    if (serverSellType) aiSellDone = true;
     if (!reply) throw new Error('Leere Antwort');
   } catch (err) {
     console.error('[AI] API-Fehler, nutze lokalen Fallback:', err);
@@ -2564,13 +2569,14 @@ function buildSurveyQuestions() {
   ];
 
   const chatbotQs = [
-    {
+    // chatbot_seen nur wenn Bot nicht genutzt (wer ihn genutzt hat, hat ihn offensichtlich gesehen)
+    ...(!botUsed ? [{
       id: 'chatbot_seen',
       type: 'radio',
       title: 'Hast du den KI-Chatbot auf der Website gesehen?',
       options: ['Ja', 'Nein'],
       skipGroupIfNo: allChatbotDetailIds,
-    },
+    }] : []),
     {
       id: 'chatbot_visibility',
       type: 'scale5',
@@ -2643,6 +2649,7 @@ function startSurvey() {
   if (window.VerdTracker) {
     window.VerdTracker.trackSurveyAnswer('survey_product_order', orderStr);
     window.VerdTracker._surveyStartMs = Date.now();
+    window.VerdTracker._displayStep = 4;
   }
   showGate(gateSurvey);
   renderSurvey();
@@ -2738,7 +2745,10 @@ function completeSurvey() {
     window.VerdTracker.trackSurveyAnswer('survey_duration_seconds', dur);
   }
   // Tracking-Flush ohne complete() — das kommt erst nach der Demografie
-  if (window.VerdTracker) window.VerdTracker.flush();
+  if (window.VerdTracker) {
+    window.VerdTracker.flush();
+    window.VerdTracker._displayStep = 5;
+  }
   showGate(gateDemographics);
 }
 
