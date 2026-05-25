@@ -2315,7 +2315,12 @@ const INITIAL_AI_SUGGESTIONS = [
 
 function resetAiBot(scenario) {
   aiMessagesEl.innerHTML = '';
-  aiHistory = [];           // Konversation pro Szenario zurücksetzen
+  // Auch Embed leeren falls vorhanden (Variante C: neues Szenario = frischer Start)
+  const embedMsgsReset = document.getElementById('aiMessagesEmbed');
+  if (embedMsgsReset) embedMsgsReset.innerHTML = '';
+  const embedSuggReset = document.getElementById('aiSuggestionsEmbed');
+  if (embedSuggReset) embedSuggReset.innerHTML = '';
+  aiHistory = [];
   aiPending = false;
   aiSellDone = false;
   aiInput.disabled = false;
@@ -2392,7 +2397,11 @@ function addProductLinkToLastBotMessage(productId, scenario, sellType) {
   if (product.price === cheapestPrice && product.role !== 'cross-sell') return;
 
   const makeBtn = (container) => {
-    const lastMsg = container?.querySelector('.ai-msg--bot:last-child');
+    if (!container) return;
+    // Alte Links entfernen — immer nur den aktuellen Link zeigen
+    container.querySelectorAll('.ai-product-link').forEach(el => el.closest('div.ai-msg--bot') && el.remove());
+    const allBotMsgs = container.querySelectorAll('.ai-msg--bot');
+    const lastMsg = allBotMsgs[allBotMsgs.length - 1];
     if (!lastMsg) return;
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -2413,7 +2422,11 @@ function addDualSellButtons(upProductName, scenario) {
   const crossProduct = scenario.products.find(p => p.role === 'cross-sell');
 
   const addBtns = (container) => {
-    const lastMsg = container?.querySelector('.ai-msg--bot:last-child');
+    if (!container) return;
+    // Alte Links entfernen vor SELL_DUAL
+    container.querySelectorAll('.ai-product-link').forEach(el => el.remove());
+    const allBotMsgs = container.querySelectorAll('.ai-msg--bot');
+    const lastMsg = allBotMsgs[allBotMsgs.length - 1];
     if (!lastMsg) return;
     const wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:6px;';
