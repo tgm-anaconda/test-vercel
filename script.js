@@ -101,7 +101,10 @@
       this._sessionId = uuidv4();
       this._timestampStart = new Date().toISOString();
       this._variant = variant;
-      this._device = window.innerWidth < 768 ? 'mobile' : 'desktop';
+      const _ua = navigator.userAgent;
+      const _isIpad = /iPad/i.test(_ua) || (/Macintosh/i.test(_ua) && navigator.maxTouchPoints > 1);
+      const _isTablet = _isIpad || (window.innerWidth >= 768 && window.innerWidth <= 1024);
+      this._device = window.innerWidth < 768 ? 'mobile' : _isTablet ? 'tablet' : 'desktop';
 
       // Abbruch-Tracking: beim Schließen des Tabs Teilabbruch senden
       window.addEventListener('beforeunload', () => {
