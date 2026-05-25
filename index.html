@@ -754,7 +754,8 @@ body.has-task-banner .detail-gallery {
   .task-banner__inner { padding: 0 12px; gap: 8px; flex-wrap: nowrap; height: 48px; overflow: hidden; }
   .task-banner__step { font-size: 10px; padding: 3px 8px; flex-shrink: 0; cursor: pointer; }
   .task-banner__text { display: none; }
-  .task-banner__help { display: inline-flex; align-items: center; justify-content: center; align-self: center; padding: 0; width: 32px; height: 32px; min-height: 32px; border-radius: 50%; flex-shrink: 0; }
+  .task-banner__help { display: inline-flex; align-items: center; justify-content: center; align-self: center; padding: 0; width: 32px; height: 32px; min-height: 32px; max-height: 32px; border-radius: 50%; flex-shrink: 0; line-height: 0; overflow: hidden; }
+  .task-banner__help svg { display: block; flex-shrink: 0; margin: 0; }
   .task-banner__help-label { display: none; }
 
   /* Gate-Cards (Welcome/Demographics) */
