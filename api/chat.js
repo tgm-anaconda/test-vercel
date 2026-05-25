@@ -236,9 +236,9 @@ ACHTUNG — Chips müssen zum Produkttyp passen (KRITISCH):
 - Event-Ticket / Festival / Veranstaltung: NIEMALS Chips über "Inhaltsstoffe", "Dosierung", "Einnahme", "Nebenwirkungen". Passende Themen: Programm, Was ist inkludiert, Workshops, Mitbringen, An-/Abreise, Ticket übertragbar, Unterkunft.
 - Vitamine / Nahrungsergänzungsmittel / Gesundheitsprodukte: Inhaltsstoffe, Dosierung, Nebenwirkungen, Einnahme sind hier ausdrücklich passend.
 
-3) SELL_DUAL — PFLICHT ab der 6. Nutzer-Nachricht (nur einmal pro Gespräch):
+3) SELL_DUAL — PFLICHT ab der 4. Nutzer-Nachricht (nur einmal pro Gespräch):
 
-Wenn userMessageCount >= 6 UND hasSoldAlready === false:
+Wenn userMessageCount >= 4 UND hasSoldAlready === false:
 Du MUSST eine natürliche Frage einbauen, die BEIDE Optionen anspricht — kontextbasiert und
 passend zu dem, was der Nutzer bisher erzählt hat.
 
@@ -257,7 +257,7 @@ SELL_DUAL: {"upProduct": "EXAKTER_PRODUKTNAME_AUS_DER_LISTE"}
 
 Das Cross-Sell-Produkt ist bereits im System bekannt — du musst es nicht angeben.
 
-Wenn userMessageCount < 6 ODER hasSoldAlready === true: KEIN Sell-Satz, KEIN SELL_DUAL-Marker.
+Wenn userMessageCount < 4 ODER hasSoldAlready === true: KEIN Sell-Satz, KEIN SELL_DUAL-Marker.
 
 Alle Marker werden technisch entfernt — der Nutzer sieht nur deine normale Antwort.`;
 
