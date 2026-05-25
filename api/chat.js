@@ -231,6 +231,11 @@ Beispiele (nach Situation anpassen, NICHT kopieren):
 - Nach Upsell-Erwähnung: ["Was spare ich beim Vorteilspack?", "Wie lange reicht ein 2er-Pack?"]
 - Nach Crosssell-Erwähnung: ["Wie kombiniere ich beides?", "Brauche ich wirklich beides?"]
 
+ACHTUNG — Chips müssen zum Produkttyp passen (KRITISCH):
+- Tablettenbox / Pillendose / Aufbewahrung: NIEMALS Chips über "Inhaltsstoffe", "Nebenwirkungen", "Dosierung", "Einnahme" oder medizinische Wirkung. Passende Themen: Fächeranzahl, Materialfragen, Wasserdichtigkeit, Größe, Reiseeignung, Pflege, Haltbarkeit.
+- Event-Ticket / Festival / Veranstaltung: NIEMALS Chips über "Inhaltsstoffe", "Dosierung", "Einnahme", "Nebenwirkungen". Passende Themen: Programm, Was ist inkludiert, Workshops, Mitbringen, An-/Abreise, Ticket übertragbar, Unterkunft.
+- Vitamine / Nahrungsergänzungsmittel / Gesundheitsprodukte: Inhaltsstoffe, Dosierung, Nebenwirkungen, Einnahme sind hier ausdrücklich passend.
+
 3) SELL_DUAL — PFLICHT ab der 6. Nutzer-Nachricht (nur einmal pro Gespräch):
 
 Wenn userMessageCount >= 6 UND hasSoldAlready === false:
