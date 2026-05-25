@@ -157,8 +157,8 @@
       if (recommendedProductId) {
         sc.ai_recommended_product_id = recommendedProductId;
       }
-      if (sellType === 'up') sc.upsell_recommended = true;
-      if (sellType === 'cross') sc.crosssell_recommended = true;
+      if (sellType === 'up' || sellType === 'dual') sc.upsell_recommended = true;
+      if (sellType === 'cross' || sellType === 'dual') sc.crosssell_recommended = true;
     },
 
     trackSuggestionUsed(scenarioIdx) {
@@ -1078,6 +1078,7 @@ function icon(name, size = 16) {
 // ───────────────────────────────────────────────────────────────────────────
 let currentScenarioIndex = 0;
 let scenarioStartTime = 0;
+let _taskIntroReopened = false;
 let aiHistory = []; // [{ role: 'user'|'assistant', content: string }, …] — Konversations-Historie für die API
 let aiPending = false;
 let aiSellDone = false; // true sobald Up- oder Cross-Sell einmal gemacht wurde (pro Szenario) // True während ein Request läuft, verhindert Mehrfach-Submit
@@ -1722,6 +1723,7 @@ document.getElementById('demoForm').addEventListener('submit', e => {
 function startScenario(idx) {
   currentScenarioIndex = idx;
   scenarioStartTime = Date.now();
+  _taskIntroReopened = false;
   const sc = getCurrentScenario();
   if (window.VerdTracker) {
     window.VerdTracker.startScenario(_scenarioOrder[idx], sc.id);
@@ -1760,6 +1762,37 @@ function startScenario(idx) {
 
   // AI bot reset
   resetAiBot(sc);
+
+  // Philosophy section — szenario-spezifisch
+  const philosophyData = {
+    vitamine: {
+      label: 'Unsere Philosophie',
+      title: 'Radikale Transparenz<br/>ist unser Standard',
+      body: 'Wir zeigen Ihnen jede Zutat, deren Herkunftsland und den Anteil in der Kapsel. Keine versteckten Mischungen, kein „proprietary blend" — nur reine Wahrheit über das, was Sie schlucken.',
+      list: ['Vollständige Inhaltsstoff-Deklaration', 'Chargen-Zertifikate öffentlich einsehbar', 'Herkunft jeder Zutat dokumentiert', 'Keine Füllstoffe oder künstlichen Zusätze'],
+    },
+    tablettenbox: {
+      label: 'Unser Ansatz',
+      title: 'Ordnung, die<br/>wirklich hält',
+      body: 'Gute Gewohnheiten brauchen verlässliche Helfer. Unsere Tablettenboxen sind nicht fürs Regal gedacht — sie sind für den Alltag: robust, praktisch und langlebig genug, um Jahre durchzuhalten.',
+      list: ['Materialien geprüft nach Lebensmittelstandard', 'Kein Weichmacher, kein BPA', 'Jedes Fach hält dicht — auch im Koffer', 'Langlebigkeit statt Wegwerf-Mentalität'],
+    },
+    event: {
+      label: 'Unser Versprechen',
+      title: 'Momente, die<br/>im Gedächtnis bleiben',
+      body: 'Ein guter Tag braucht keine Ablenkung — er braucht den richtigen Rahmen. Das VERDEA Festival ist von Grund auf so geplant, dass Sie das Programm wirklich erleben, nicht nur dabei sind.',
+      list: ['Kleine Gruppen, echte Gespräche', 'Kuratiertes Programm ohne Füller', 'Nachhaltige Veranstaltung, CO₂-kompensiert', 'Lokale Partner und regionale Küche'],
+    },
+  };
+  const phd = philosophyData[sc.id] || philosophyData.vitamine;
+  const phLabel = document.querySelector('.transparency__text .section-label');
+  const phTitle = document.querySelector('.transparency__text .section-title');
+  const phBody = document.querySelector('.transparency__text > p:not(.section-label)');
+  const phList = document.querySelector('.transparency__list');
+  if (phLabel) phLabel.textContent = phd.label;
+  if (phTitle) phTitle.innerHTML = phd.title;
+  if (phBody) phBody.textContent = phd.body;
+  if (phList) phList.innerHTML = phd.list.map(item => `<li><span>✓</span> ${item}</li>`).join('');
 }
 
 document.getElementById('taskIntroStart').addEventListener('click', () => {
@@ -1770,14 +1803,17 @@ document.getElementById('taskIntroStart').addEventListener('click', () => {
   if (productDetail.classList.contains('open')) closeDetail();
   if (aboutPage.classList.contains('open')) closeAbout();
   closeCart();
-  // scroll to products section
-  setTimeout(() => scrollToProducts(), 200);
+  if (!_taskIntroReopened) {
+    setTimeout(() => scrollToProducts(), 200);
+  }
+  _taskIntroReopened = false;
   // Varianten-spezifische Bot-Initialisierung
   initVariantBot();
 });
 
 // Re-show task intro when participant clicks "ℹ️"
 taskBannerHelp.addEventListener('click', () => {
+  _taskIntroReopened = true;
   showGate(gateTaskIntro);
   // task_instruction_reopened — kein dediziertes Tracking in V10
 });
@@ -2327,6 +2363,47 @@ function addProductLinkToLastBotMessage(productId, scenario, sellType) {
   makeBtn(document.getElementById('aiMessagesEmbed'));
 }
 
+function addDualSellButtons(upProductName, scenario) {
+  // Findet das Up-Sell Produkt per Name-Match
+  const upProduct = scenario.products.find(p =>
+    p.role !== 'cross-sell' && p.name && p.name.toLowerCase().includes(upProductName.toLowerCase().split(' ')[0])
+  ) || scenario.products.find(p => p.role !== 'cross-sell');
+  const crossProduct = scenario.products.find(p => p.role === 'cross-sell');
+
+  const addBtns = (container) => {
+    const lastMsg = container?.querySelector('.ai-msg--bot:last-child');
+    if (!lastMsg) return;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:6px;';
+
+    if (upProduct) {
+      const upsellIdx = (upProduct.optionDetails || []).findIndex(o => o.isUpsell);
+      const optIdx = upsellIdx >= 0 ? upsellIdx : 1;
+      const upsellLabel = upProduct.options && upProduct.options[optIdx];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-product-link';
+      btn.textContent = upsellLabel ? `Vorteilspack ansehen: ${upsellLabel} →` : `${upProduct.name} (Vorteilspack) →`;
+      btn.addEventListener('click', () => openDetail(upProduct, optIdx));
+      wrap.appendChild(btn);
+    }
+
+    if (crossProduct) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-product-link ai-product-link--cross';
+      btn.textContent = `Dazu passend: ${crossProduct.name} ansehen →`;
+      btn.addEventListener('click', () => openDetail(crossProduct, 0));
+      wrap.appendChild(btn);
+    }
+
+    if (wrap.children.length) lastMsg.appendChild(wrap);
+  };
+
+  addBtns(aiMessagesEl);
+  addBtns(document.getElementById('aiMessagesEmbed'));
+}
+
 function showTyping() {
   const el = document.createElement('div');
   el.className = 'ai-msg--typing';
@@ -2417,7 +2494,7 @@ async function sendAiMessage() {
   let reply = '';
   let serverRecommendation = null;
   let serverSuggestions = null;
-  let serverSellType = null;
+  let serverSellDual = null;
   let usedFallback = false;
 
   try {
@@ -2442,10 +2519,10 @@ async function sendAiMessage() {
     serverSuggestions = (data && Array.isArray(data.suggestions))
       ? data.suggestions
       : null;
-    serverSellType = (data && (data.sellType === 'up' || data.sellType === 'cross'))
-      ? data.sellType
+    serverSellDual = (data && data.sellDual && typeof data.sellDual.upProduct === 'string')
+      ? data.sellDual
       : null;
-    if (serverSellType) aiSellDone = true;
+    if (serverSellDual) aiSellDone = true;
     if (!reply) throw new Error('Leere Antwort');
   } catch (err) {
     console.error('[AI] API-Fehler, nutze lokalen Fallback:', err);
@@ -2480,8 +2557,9 @@ async function sendAiMessage() {
   }
 
   const recommendedProductId = identifyRecommendedProduct(reply, sc, serverRecommendation);
-  if (window.VerdTracker) window.VerdTracker.trackAiReply(reply, getActualScenarioIdx(), recommendedProductId, serverSellType);
-  if ((recommendedProductId || serverSellType) && sc) addProductLinkToLastBotMessage(recommendedProductId, sc, serverSellType);
+  if (window.VerdTracker) window.VerdTracker.trackAiReply(reply, getActualScenarioIdx(), recommendedProductId, serverSellDual ? 'dual' : null);
+  if (serverSellDual && sc) addDualSellButtons(serverSellDual.upProduct, sc);
+  else if (serverRecommendation && recommendedProductId && sc) addProductLinkToLastBotMessage(recommendedProductId, sc, null);
 
   aiPending = false;
   aiInput.disabled = false;
@@ -2542,24 +2620,33 @@ function buildSurveyQuestions() {
     ? window.VerdTracker._scenarios.some(sc => sc.bot_msg_count_user > 0)
     : false;
 
-  // Block 1: Produktvertrautheit (randomisierte Reihenfolge)
-  const productQs = _surveyProductOrder.flatMap(idx => {
-    const p = SURVEY_PRODUCT_INFO[idx];
-    return [
-      {
-        id: `product_knowledge_${p.id}`,
-        type: 'radio',
-        title: `Wie würdest du dein Wissen über ${p.name} vor der Studie einschätzen?`,
-        options: ['Sehr gering', 'Gering', 'Mittel', 'Hoch', 'Sehr hoch'],
-      },
-      {
-        id: `product_purchased_${p.id}`,
-        type: 'radio',
-        title: `Hast du ${p.name} bereits selbst gekauft?`,
-        options: ['Nein', 'Ja, einmal', 'Ja, mehr als 5-mal', 'Ja, mehr als 10-mal'],
-      },
-    ];
-  });
+  // Block 1: Produktvertrautheit (randomisierte Reihenfolge) — als Matrix-Fragen
+  const orderedProducts = _surveyProductOrder.map(idx => SURVEY_PRODUCT_INFO[idx]);
+
+  // Short labels for column headers
+  const shortLabels = {
+    sc1: 'Vitamin D & Nahrungserg.',
+    sc2: 'Tablettenboxen',
+    sc3: 'Festival-Tickets',
+  };
+
+  const productQs = [
+    {
+      id: 'product_knowledge_matrix',
+      type: 'matrix',
+      title: 'Wie würdest du dein Wissen über folgende Produktkategorien einschätzen?',
+      sub: 'Dein Wissen VOR der Studie.',
+      rows: ['Sehr gering', 'Gering', 'Mittel', 'Hoch', 'Sehr hoch'],
+      cols: orderedProducts.map(p => ({ id: p.id, label: shortLabels[p.id] || p.name })),
+    },
+    {
+      id: 'product_purchased_matrix',
+      type: 'matrix',
+      title: 'Hast du folgende Produkte bereits selbst gekauft?',
+      rows: ['Nein', 'Ja, einmal', 'Ja, mehr als 5-mal', 'Ja, mehr als 10-mal'],
+      cols: orderedProducts.map(p => ({ id: p.id, label: shortLabels[p.id] || p.name })),
+    },
+  ];
 
   // Block 3: Chatbot-Fragen — abhängig von tatsächlicher Nutzung (Tracking)
   const allChatbotDetailIds = [
@@ -2624,6 +2711,10 @@ function buildSurveyQuestions() {
     { id: 'ai_trust', type: 'scale5',
       title: 'Inwiefern findest du die Antworten von KI-Chatbots vertrauenswürdig?',
       sub: '1 = sehr unvertrauenswürdig · 5 = sehr vertrauenswürdig' },
+
+    // Demographics als letzte Frage
+    { id: 'demographics', type: 'demographics', title: 'Angaben zu Ihrer Person',
+      sub: 'Diese Angaben helfen uns, die Ergebnisse statistisch auszuwerten. Sie bleiben vollständig anonym.' },
   ];
 }
 let surveyStep = 0;
@@ -2679,20 +2770,110 @@ function renderSurvey() {
     html += '</div>';
   } else if (q.type === 'textarea') {
     html += `<textarea class="survey-textarea" name="surveyAns" placeholder="Optional …"></textarea>`;
+  } else if (q.type === 'matrix') {
+    html += '<div class="survey-matrix-wrap" style="overflow-x:auto;margin-top:12px;">';
+    html += '<table class="survey-matrix" style="border-collapse:collapse;width:100%;font-size:13px;">';
+    html += '<thead><tr><th style="text-align:left;padding:6px 8px;font-weight:600;border-bottom:2px solid #e2e8f0;min-width:110px;"></th>';
+    q.cols.forEach(col => {
+      html += `<th style="text-align:center;padding:6px 8px;font-weight:600;border-bottom:2px solid #e2e8f0;min-width:90px;">${col.label}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+    q.rows.forEach((row, ri) => {
+      html += `<tr style="background:${ri % 2 === 0 ? '#fff' : '#f8fafc'};">`;
+      html += `<td style="padding:8px 8px;border-bottom:1px solid #e2e8f0;font-weight:500;">${row}</td>`;
+      q.cols.forEach(col => {
+        const name = `matrix_${q.id}_${col.id}`;
+        html += `<td style="text-align:center;padding:8px 4px;border-bottom:1px solid #e2e8f0;"><input type="radio" name="${name}" value="${row}"></td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  } else if (q.type === 'demographics') {
+    html += `
+    <div class="demo-inline-fields">
+      <div class="form-field" style="margin-bottom:12px;">
+        <label for="surveyDemoAge" style="display:block;font-weight:600;margin-bottom:4px;">Alter</label>
+        <input type="number" id="surveyDemoAge" class="form-input survey-demo-field" min="10" max="99" step="1" inputmode="numeric" placeholder="z.B. 28" style="width:120px;" />
+      </div>
+      <div class="form-field" style="margin-bottom:12px;">
+        <label style="display:block;font-weight:600;margin-bottom:6px;">Geschlecht</label>
+        <div class="form-radio-group">
+          <label class="form-radio"><input type="radio" name="surveyGender" value="weiblich" /><span>Weiblich</span></label>
+          <label class="form-radio"><input type="radio" name="surveyGender" value="männlich" /><span>Männlich</span></label>
+          <label class="form-radio"><input type="radio" name="surveyGender" value="divers" /><span>Divers</span></label>
+          <label class="form-radio"><input type="radio" name="surveyGender" value="keine_angabe" /><span>Keine Angabe</span></label>
+        </div>
+      </div>
+      <div class="form-field" style="margin-bottom:12px;">
+        <label for="surveyDemoIncome" style="display:block;font-weight:600;margin-bottom:4px;">Monatliches Netto-Einkommen</label>
+        <select id="surveyDemoIncome" class="form-select survey-demo-field" style="max-width:320px;">
+          <option value="">Bitte auswählen</option>
+          <option value="lt1000">Unter 1.000 €</option>
+          <option value="1000-2000">1.000 bis unter 2.000 €</option>
+          <option value="2000-3000">2.000 bis unter 3.000 €</option>
+          <option value="3000-4000">3.000 bis unter 4.000 €</option>
+          <option value="4000-5000">4.000 bis unter 5.000 €</option>
+          <option value="gt5000">5.000 € oder mehr</option>
+          <option value="keine_angabe">Keine Angabe</option>
+        </select>
+      </div>
+      <div class="form-field" style="margin-bottom:4px;">
+        <label for="surveyDemoOccupation" style="display:block;font-weight:600;margin-bottom:4px;">Berufsgruppe</label>
+        <select id="surveyDemoOccupation" class="form-select survey-demo-field" style="max-width:320px;">
+          <option value="">Bitte auswählen</option>
+          <option value="schueler">Schüler</option>
+          <option value="student_ohne">Student (ohne Nebenjob)</option>
+          <option value="student_mit">Student (mit Nebenjob)</option>
+          <option value="vollzeit">Vollzeitberufstätig</option>
+          <option value="teilzeit">Teilzeitberufstätig</option>
+          <option value="minijob">Minijob / Aushilfsbasis</option>
+          <option value="arbeitslos">Arbeitslos</option>
+          <option value="sonstiges">Sonstiges</option>
+        </select>
+      </div>
+    </div>
+  `;
   }
 
   c.innerHTML = html;
 
   // Gespeicherten Wert wiederherstellen
   const saved = surveyAnswers[q.id];
-  if (saved !== undefined) {
-    if (q.type === 'scale' || q.type === 'scale5' || q.type === 'radio') {
+  if (q.type === 'scale' || q.type === 'scale5' || q.type === 'radio') {
+    if (saved !== undefined) {
       const r = c.querySelector(`input[value="${CSS.escape ? CSS.escape(saved) : saved}"]`)
              || Array.from(c.querySelectorAll('input[name="surveyAns"]')).find(el => el.value === saved);
       if (r) r.checked = true;
-    } else if (q.type === 'textarea') {
+    }
+  } else if (q.type === 'textarea') {
+    if (saved !== undefined) {
       const ta = c.querySelector('textarea');
       if (ta) ta.value = saved;
+    }
+  } else if (q.type === 'matrix') {
+    q.cols.forEach(col => {
+      const key = q.id === 'product_knowledge_matrix'
+        ? `product_knowledge_${col.id}`
+        : `product_purchased_${col.id}`;
+      const savedV = surveyAnswers[key];
+      if (savedV) {
+        const name = `matrix_${q.id}_${col.id}`;
+        const r = c.querySelector(`input[name="${name}"][value="${CSS.escape ? CSS.escape(savedV) : savedV}"]`)
+               || Array.from(c.querySelectorAll(`input[name="${name}"]`)).find(el => el.value === savedV);
+        if (r) r.checked = true;
+      }
+    });
+  } else if (q.type === 'demographics') {
+    const savedDemo = surveyAnswers['demographics_data'];
+    if (savedDemo) {
+      const ageEl = document.getElementById('surveyDemoAge');
+      if (ageEl && savedDemo.age) ageEl.value = savedDemo.age;
+      const genderR = document.querySelector(`input[name="surveyGender"][value="${savedDemo.gender}"]`);
+      if (genderR) genderR.checked = true;
+      const incomeEl = document.getElementById('surveyDemoIncome');
+      if (incomeEl && savedDemo.income) incomeEl.value = savedDemo.income;
+      const occEl = document.getElementById('surveyDemoOccupation');
+      if (occEl && savedDemo.occupation) occEl.value = savedDemo.occupation;
     }
   }
 
@@ -2710,16 +2891,94 @@ document.getElementById('surveyNext').addEventListener('click', () => {
   if (!q) return;
 
   let val = '';
+  let matrixVals = null;
+
   if (q.type === 'scale' || q.type === 'scale5' || q.type === 'radio') {
     val = document.querySelector('input[name="surveyAns"]:checked')?.value || '';
   } else if (q.type === 'textarea') {
     val = document.querySelector('textarea[name="surveyAns"]')?.value.trim() || '';
+  } else if (q.type === 'matrix') {
+    // Validate all columns have a selection
+    matrixVals = {};
+    let allFilled = true;
+    q.cols.forEach(col => {
+      const name = `matrix_${q.id}_${col.id}`;
+      const checked = document.querySelector(`input[name="${name}"]:checked`);
+      if (checked) {
+        matrixVals[col.id] = checked.value;
+      } else {
+        allFilled = false;
+      }
+    });
+    val = allFilled ? 'filled' : '';
+  } else if (q.type === 'demographics') {
+    const age = document.getElementById('surveyDemoAge')?.value?.trim();
+    const gender = document.querySelector('input[name="surveyGender"]:checked')?.value;
+    const income = document.getElementById('surveyDemoIncome')?.value;
+    const occupation = document.getElementById('surveyDemoOccupation')?.value;
+
+    // Validate with red borders
+    let demoValid = true;
+    const ageEl = document.getElementById('surveyDemoAge');
+    const incomeEl = document.getElementById('surveyDemoIncome');
+    const occEl = document.getElementById('surveyDemoOccupation');
+
+    [ageEl, incomeEl, occEl].forEach(el => el && el.classList.remove('field-error'));
+    document.querySelectorAll('input[name="surveyGender"]').forEach(r => r.closest('.form-radio-group')?.classList.remove('field-error'));
+
+    if (!age || isNaN(Number(age)) || Number(age) < 10 || Number(age) > 99) {
+      if (ageEl) ageEl.classList.add('field-error');
+      demoValid = false;
+    }
+    if (!gender) {
+      const grp = document.querySelector('.form-radio-group');
+      if (grp) grp.classList.add('field-error');
+      demoValid = false;
+    }
+    if (!income) {
+      if (incomeEl) incomeEl.classList.add('field-error');
+      demoValid = false;
+    }
+    if (!occupation) {
+      if (occEl) occEl.classList.add('field-error');
+      demoValid = false;
+    }
+
+    if (!demoValid) {
+      const surveyErrEl = document.getElementById('surveyError');
+      if (surveyErrEl) surveyErrEl.textContent = 'Bitte fülle alle Felder aus.';
+      return;
+    }
+
+    // Store demographics
+    surveyAnswers['demographics_data'] = { age, gender, income, occupation };
+    if (window.VerdTracker) window.VerdTracker.setDemographics({ age, gender, income, occupation });
+    val = 'filled';
   }
 
-  if (!val && !q.optional) { showToast('Bitte beantworten Sie diese Frage.'); return; }
+  if (!val && !q.optional) {
+    const surveyErrEl = document.getElementById('surveyError');
+    if (surveyErrEl) { surveyErrEl.textContent = 'Bitte beantworte diese Frage, um fortzufahren.'; }
+    return;
+  }
 
-  surveyAnswers[q.id] = val;
-  if (window.VerdTracker) window.VerdTracker.trackSurveyAnswer(q.id, val);
+  const surveyErrEl = document.getElementById('surveyError');
+  if (surveyErrEl) surveyErrEl.textContent = '';
+
+  // Don't double-save demographics (already saved above)
+  if (q.type !== 'demographics') {
+    if (q.type === 'matrix' && matrixVals) {
+      const prefix = q.id === 'product_knowledge_matrix' ? 'product_knowledge_' : 'product_purchased_';
+      q.cols.forEach(col => {
+        const key = prefix + col.id;
+        surveyAnswers[key] = matrixVals[col.id];
+        if (window.VerdTracker) window.VerdTracker.trackSurveyAnswer(key, matrixVals[col.id]);
+      });
+    } else {
+      surveyAnswers[q.id] = val;
+      if (window.VerdTracker) window.VerdTracker.trackSurveyAnswer(q.id, val);
+    }
+  }
 
   // skipGroupIfNo — wenn "Nein" gewählt, Skip-Liste aktualisieren
   if (q.skipGroupIfNo && val === 'Nein') {
@@ -2744,12 +3003,11 @@ function completeSurvey() {
     const dur = Math.round((Date.now() - window.VerdTracker._surveyStartMs) / 1000);
     window.VerdTracker.trackSurveyAnswer('survey_duration_seconds', dur);
   }
-  // Tracking-Flush ohne complete() — das kommt erst nach der Demografie
   if (window.VerdTracker) {
-    window.VerdTracker.flush();
     window.VerdTracker._displayStep = 5;
+    window.VerdTracker.complete();
   }
-  showGate(gateDemographics);
+  showGate(gateThanks);
 }
 
 // ===== INIT =====
