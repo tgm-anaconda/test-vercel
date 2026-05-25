@@ -2094,22 +2094,9 @@ function openVariantCChat() {
       });
     }
   } else {
-    // Bei Wiedereröffnung: vorhandene Nachrichten + Suggestions übertragen
-    if (embedMsgs && aiMessagesEl) {
-      Array.from(aiMessagesEl.children).forEach(node => {
-        embedMsgs.appendChild(node.cloneNode(true));
-      });
-      embedMsgs.scrollTop = embedMsgs.scrollHeight;
-    }
-    if (embedSugg && aiSuggestions && embedSugg.children.length === 0) {
-      Array.from(aiSuggestions.children).forEach(node => {
-        const clone = node.cloneNode(true);
-        const text = clone.textContent.trim();
-        clone.style.cssText = 'padding:5px 10px;font-size:10.5px;font-weight:500;background:var(--color-green-pale);color:var(--color-green);border-radius:100px;cursor:pointer;border:1px solid transparent;font-family:inherit;';
-        clone.addEventListener('click', () => triggerAiMessage(text, 'embed_suggestion_chip'));
-        embedSugg.appendChild(clone);
-      });
-    }
+    // Embed wurde gerettet und wiederverwendet — Nachrichten sind bereits vorhanden,
+    // kein Kopieren nötig (würde zu Duplikaten und kaputten Event-Listenern führen).
+    if (embedMsgs) embedMsgs.scrollTop = embedMsgs.scrollHeight;
   }
 
   setTimeout(() => embed.querySelector('#aiInputEmbed').focus(), 100);
