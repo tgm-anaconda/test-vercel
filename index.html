@@ -754,7 +754,8 @@ body.has-task-banner .detail-gallery {
   .task-banner__inner { padding: 0 12px; gap: 8px; flex-wrap: nowrap; height: 48px; overflow: hidden; }
   .task-banner__step { font-size: 10px; padding: 3px 8px; flex-shrink: 0; cursor: pointer; }
   .task-banner__text { display: none; }
-  .task-banner__help { display: none; }
+  .task-banner__help { display: inline-flex; padding: 6px 8px; gap: 0; }
+  .task-banner__help-label { display: none; }
 
   /* Gate-Cards (Welcome/Demographics) */
   .gate-card { padding: 28px 20px; }
@@ -1626,7 +1627,7 @@ body.has-task-banner .ai-bot__header {
       <div class="task-banner__text" id="taskBannerText">…</div>
       <button class="task-banner__help" id="taskBannerHelp" type="button">
         <svg class="icon icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-        Anweisung erneut anzeigen
+        <span class="task-banner__help-label">Anweisung erneut anzeigen</span>
       </button>
     </div>
   </div>
