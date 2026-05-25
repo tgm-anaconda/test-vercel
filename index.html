@@ -888,6 +888,8 @@ body.has-task-banner .detail-gallery {
 .form-radio input:checked + span { background: var(--color-green); color: #fff; border-color: var(--color-green); }
 .form-radio span:hover { border-color: var(--color-green-mid); }
 .form-error { color: var(--color-red); font-size: 13px; min-height: 18px; }
+.field-error { border-color: #e53e3e !important; box-shadow: 0 0 0 2px rgba(229,62,62,0.15); }
+.form-radio-group.field-error { outline: 2px solid #e53e3e; outline-offset: 3px; border-radius: 6px; }
 
 /* Task intro tip */
 .task-intro-text { color: var(--color-mid); font-size: 16px; line-height: 1.7; margin: 18px 0; }
@@ -1052,26 +1054,11 @@ body.has-task-banner .about-page { padding-top: calc(var(--header-h) + var(--top
   box-shadow: 0 14px 40px rgba(44,95,46,0.45), 0 0 0 6px rgba(44,95,46,0.12);
   cursor: pointer;
   transition: transform 0.2s ease;
-  animation: fabPulseGreen 2.4s ease-in-out infinite;
   z-index: 700;
   border: none;
 }
 .ai-fab:hover { transform: scale(1.08); }
 .ai-fab[hidden] { display: none; }
-@keyframes fabPulseGreen {
-  0%, 100% { box-shadow: 0 14px 40px rgba(44,95,46,0.45), 0 0 0 6px rgba(44,95,46,0.12); }
-  50%      { box-shadow: 0 18px 48px rgba(44,95,46,0.55), 0 0 0 16px rgba(44,95,46,0.06); }
-}
-.ai-fab__pulse {
-  position: absolute; inset: -4px; border-radius: 50%;
-  border: 2px solid rgba(44,95,46,0.55);
-  animation: fabRing 1.8s ease-out infinite;
-  pointer-events: none;
-}
-@keyframes fabRing {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.5); opacity: 0; }
-}
 .ai-fab__icon { font-size: 36px; line-height: 1; }
 .ai-fab__badge {
   position: absolute; top: -6px; right: -6px;
@@ -1081,21 +1068,6 @@ body.has-task-banner .about-page { padding-top: calc(var(--header-h) + var(--top
   padding: 4px 9px;
   border-radius: 100px;
   letter-spacing: 0.08em;
-}
-.ai-fab__label {
-  position: absolute; right: calc(100% + 14px); top: 50%;
-  transform: translateY(-50%);
-  background: var(--color-dark); color: #fff;
-  padding: 8px 14px; border-radius: 100px;
-  font-size: 13px; font-weight: 500; white-space: nowrap;
-  box-shadow: var(--shadow-md);
-  pointer-events: none;
-}
-.ai-fab__label::after {
-  content: ''; position: absolute; left: 100%; top: 50%;
-  transform: translateY(-50%);
-  border: 6px solid transparent;
-  border-left-color: var(--color-dark);
 }
 
 /* Bot-Panel: rechts angedockt, volle Höhe — auf Desktop */
@@ -2115,7 +2087,7 @@ body.has-task-banner .ai-bot__header {
         <span>Gesamt (inkl. MwSt.)</span>
         <span id="cartTotal">0,00 €</span>
       </div>
-      <button class="btn btn--green btn--full" id="checkoutBtn">Zur sicheren Kasse →</button>
+      <button class="btn btn--green btn--full" id="checkoutBtn">Zur Kasse →</button>
     </div>
   </aside>
 
@@ -2175,8 +2147,6 @@ body.has-task-banner .ai-bot__header {
 
   <!-- ============== KI-BERATER (Side-Panel, prominent) ============== -->
   <button class="ai-fab" id="aiFab" type="button" aria-label="KI-Berater öffnen">
-    <span class="ai-fab__pulse"></span>
-    <span class="ai-fab__label">Berater fragen</span>
     <span class="ai-fab__icon">
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </span>
@@ -2329,7 +2299,7 @@ body.has-task-banner .ai-bot__header {
           <svg class="icon icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-green);"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
           Tipp:
         </strong>
-        Sie können den Online-Shop frei erkunden, Produkte vergleichen, die „Über uns"-Seite besuchen — und den KI-Berater unten rechts fragen. Wenn Sie sich entschieden haben: legen Sie das Produkt in den Warenkorb und gehen Sie zur Kasse.
+        Stöbern Sie im Shop, öffnen Sie Produktseiten und vergleichen Sie das Angebot in Ruhe. Wenn Sie sich entschieden haben: Legen Sie das Produkt in den Warenkorb und gehen Sie zur Kasse.
       </div>
       <div class="gate-card__cta">
         <button class="btn btn--green btn--lg" id="taskIntroStart">Aufgabe starten →</button>
@@ -2343,6 +2313,7 @@ body.has-task-banner .ai-bot__header {
       <div class="survey-progress"><div class="survey-progress__bar" id="surveyBar"></div></div>
       <p class="section-label" id="surveyStepLabel">Frage 1 von 6</p>
       <div id="surveyContent"></div>
+      <p class="survey-error" id="surveyError" style="color:#e53e3e;font-size:13.5px;margin:8px 0 0;min-height:18px;"></p>
       <div class="survey-actions">
         <button class="btn btn--ghost-sm" id="surveyBack" type="button">← Zurück</button>
         <button class="btn btn--green" id="surveyNext" type="button">Weiter</button>
