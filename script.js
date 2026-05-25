@@ -1748,12 +1748,26 @@ document.getElementById('demoForm').addEventListener('submit', e => {
   const income = document.getElementById('demoIncome').value;
   const occupation = document.getElementById('demoOccupation').value;
   const errEl = document.getElementById('demoError');
-  if (!age || !gender || !income || !occupation) {
-    errEl.textContent = 'Bitte füllen Sie alle Felder aus.'; return;
+  const ageEl = document.getElementById('demoAge');
+  const incomeEl = document.getElementById('demoIncome');
+  const occEl = document.getElementById('demoOccupation');
+  // Fehlerklassen zurücksetzen
+  [ageEl, incomeEl, occEl].forEach(el => el && el.classList.remove('field-error'));
+  document.querySelectorAll('input[name="gender"]').forEach(r => r.closest('.form-radio-group')?.classList.remove('field-error'));
+  let valid = true;
+  if (!age) { if (ageEl) ageEl.classList.add('field-error'); valid = false; }
+  if (!gender) {
+    const grp = document.querySelector('#demoForm .form-radio-group');
+    if (grp) grp.classList.add('field-error');
+    valid = false;
   }
+  if (!income) { if (incomeEl) incomeEl.classList.add('field-error'); valid = false; }
+  if (!occupation) { if (occEl) occEl.classList.add('field-error'); valid = false; }
+  if (!valid) { errEl.textContent = 'Bitte fülle alle Felder aus.'; return; }
   const ageNum = Number(age);
   if (!Number.isInteger(ageNum) || ageNum < 10 || ageNum > 99) {
-    errEl.textContent = 'Bitte gib dein Alter als zweistellige Zahl ein (z.B. 22).'; return;
+    if (ageEl) ageEl.classList.add('field-error');
+    errEl.textContent = 'Bitte gib ein gültiges Alter ein (10–99).'; return;
   }
   errEl.textContent = '';
   if (window.VerdTracker) {
@@ -2398,8 +2412,13 @@ function addProductLinkToLastBotMessage(productId, scenario, sellType) {
 
   const makeBtn = (container) => {
     if (!container) return;
-    // Alte Links entfernen — immer nur den aktuellen Link zeigen
-    container.querySelectorAll('.ai-product-link').forEach(el => el.closest('div.ai-msg--bot') && el.remove());
+    // Alte einfache Links entfernen — SELL_DUAL-Wrapper (ai-sell-dual-wrap) bleiben erhalten
+    container.querySelectorAll('.ai-product-link').forEach(el => {
+      if (el.closest('.ai-sell-dual-wrap')) return; // SELL_DUAL-Buttons nicht anfassen
+      const parent = el.parentElement;
+      el.remove();
+      if (parent && parent !== container && !parent.classList.contains('ai-msg') && parent.children.length === 0) parent.remove();
+    });
     const allBotMsgs = container.querySelectorAll('.ai-msg--bot');
     const lastMsg = allBotMsgs[allBotMsgs.length - 1];
     if (!lastMsg) return;
@@ -2423,12 +2442,18 @@ function addDualSellButtons(upProductName, scenario) {
 
   const addBtns = (container) => {
     if (!container) return;
-    // Alte Links entfernen vor SELL_DUAL
-    container.querySelectorAll('.ai-product-link').forEach(el => el.remove());
+    // Alte einfache Links entfernen vor SELL_DUAL (nicht den eigenen Wrapper)
+    container.querySelectorAll('.ai-product-link').forEach(el => {
+      if (el.closest('.ai-sell-dual-wrap')) return;
+      const parent = el.parentElement;
+      el.remove();
+      if (parent && parent !== container && !parent.classList.contains('ai-msg') && parent.children.length === 0) parent.remove();
+    });
     const allBotMsgs = container.querySelectorAll('.ai-msg--bot');
     const lastMsg = allBotMsgs[allBotMsgs.length - 1];
     if (!lastMsg) return;
     const wrap = document.createElement('div');
+    wrap.className = 'ai-sell-dual-wrap';
     wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:6px;';
 
     if (upProduct) {
