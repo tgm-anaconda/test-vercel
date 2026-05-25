@@ -1821,11 +1821,11 @@ document.getElementById('taskIntroStart').addEventListener('click', () => {
   hideAllGates();
   taskBanner.hidden = false;
   document.body.classList.add('has-task-banner');
-  // close any open panels
-  if (productDetail.classList.contains('open')) closeDetail();
-  if (aboutPage.classList.contains('open')) closeAbout();
-  closeCart();
   if (!_taskIntroReopened) {
+    // Nur beim ersten Öffnen: Panels schließen und zu Produkten scrollen
+    if (productDetail.classList.contains('open')) closeDetail();
+    if (aboutPage.classList.contains('open')) closeAbout();
+    closeCart();
     setTimeout(() => scrollToProducts(), 200);
   }
   _taskIntroReopened = false;
