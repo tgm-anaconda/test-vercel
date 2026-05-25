@@ -215,11 +215,13 @@ Format: einzeiliges JSON-Array:
 SUGGESTIONS: ["Frage 1?", "Frage 2?", "Frage 3?"]
 Beispiele: ["Welches empfiehlst du mir?", "Was ist der Unterschied?", "Gibt es Nebenwirkungen?"]
 
-3) SELL_DUAL — EINMALIG wenn userMessageCount >= 4 und hasSoldAlready = false:
-Erwähne natürlich beide Optionen (Up-Sell + Cross-Sell) in einem Satz.
+3) SELL_DUAL — GENAU EINMAL, wenn beide Bedingungen erfüllt sind:
+   a) userMessageCount >= 6
+   b) hasSoldAlready = false
+Wenn beide zutreffen: Erwähne im Antworttext kurz und natürlich beide Optionen (Up-Sell + passendes Ergänzungsprodukt), dann setze ZWINGEND den Marker:
 SELL_DUAL: {"upProduct": "EXAKTER_PRODUKTNAME"}
 
-Wenn userMessageCount < 4 oder hasSoldAlready = true: KEIN SELL_DUAL.
+Wenn userMessageCount < 6 ODER hasSoldAlready = true: KEIN SELL_DUAL — Marker weglassen.
 
 Alle Marker werden technisch entfernt — der Nutzer sieht nur deine normale Antwort.`;
 
