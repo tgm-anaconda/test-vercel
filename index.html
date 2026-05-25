@@ -752,9 +752,9 @@ body.has-task-banner .detail-gallery {
 
   /* Task-Banner — einzeilig, kein Wrap auf Mobile */
   .task-banner__inner { padding: 0 12px; gap: 8px; flex-wrap: nowrap; height: 48px; overflow: hidden; }
-  .task-banner__step { font-size: 10px; padding: 3px 8px; flex-shrink: 0; }
+  .task-banner__step { font-size: 10px; padding: 3px 8px; flex-shrink: 0; cursor: pointer; }
   .task-banner__text { display: none; }
-  .task-banner__help { display: inline-flex; font-size: 11px; padding: 4px 10px; }
+  .task-banner__help { display: none; }
 
   /* Gate-Cards (Welcome/Demographics) */
   .gate-card { padding: 28px 20px; }
@@ -1344,20 +1344,21 @@ body.has-task-banner .ai-bot__header {
    • 769–1023px (Tablet): immer noch unten, etwas mehr Höhe
    • ≥ 1024px (Desktop): Side-Dock rechts (siehe oben in der CSS)
    ==================================================================== */
-/* Tablet: Bot als Slide-up Panel, halbe Höhe */
+/* Tablet + Phone: Bot als Slide-up Panel — volle Breite, unten eingeklinkt */
 @media (max-width: 1023px) {
   .ai-bot {
     position: fixed;
     top: auto;
-    bottom: 80px;
-    right: 16px;
-    left: auto;
-    width: min(400px, calc(100vw - 32px));
-    max-width: min(400px, calc(100vw - 32px));
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
     height: 50vh; max-height: 50vh;
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    box-shadow: 0 8px 40px rgba(44,95,46,0.22);
+    border: none;
+    border-top: 1px solid var(--color-border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -8px 32px rgba(44,95,46,0.2);
     animation: botSlideUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   @keyframes botSlideUp {
