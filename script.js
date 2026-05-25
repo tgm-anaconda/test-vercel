@@ -1,3 +1,23 @@
+// ── Android-Sperre & Querformat-Warnung ────────────────────────────────
+(function() {
+  // Android sperren
+  if (/android/i.test(navigator.userAgent)) {
+    const el = document.getElementById('androidBlock');
+    if (el) el.style.display = 'flex';
+    return; // Kein weiteres JS ausführen
+  }
+  // Querformat-Warnung
+  function checkOrientation() {
+    const warn = document.getElementById('landscapeWarning');
+    if (!warn) return;
+    const isLandscape = window.innerWidth > window.innerHeight && window.innerWidth < 1024;
+    warn.style.display = isLandscape ? 'flex' : 'none';
+  }
+  window.addEventListener('resize', checkOrientation);
+  window.addEventListener('orientationchange', checkOrientation);
+  checkOrientation();
+})();
+
 // ============================================================================
 // VERDEA STUDIE — VerdTracker (Vollständiges Tracking-System)
 // ============================================================================
@@ -86,6 +106,8 @@
       // Abbruch-Tracking: beim Schließen des Tabs Teilabbruch senden
       window.addEventListener('beforeunload', () => {
         if (!this._complete) {
+          const completedCount = this._scenarios.filter(s => s.task_completed).length;
+          if (completedCount < 2) return; // Nur senden wenn mindestens 2 Aufgaben abgeschlossen
           const labels = {1:'aufgabe_1', 2:'aufgabe_2', 3:'aufgabe_3', 4:'umfrage', 5:'demographik'};
           this._abbruchAt = labels[this._displayStep] || `aufgabe_${this._displayStep}`;
           this.flush('beforeunload');
@@ -2349,6 +2371,11 @@ function addProductLinkToLastBotMessage(productId, scenario, sellType) {
 
   if (!product || !btnText) return;
 
+  // Nie das günstigste Hauptprodukt verlinken
+  const mainProducts = scenario.products.filter(p => p.role !== 'cross-sell');
+  const cheapestPrice = Math.min(...mainProducts.map(p => p.price));
+  if (product.price === cheapestPrice && product.role !== 'cross-sell') return;
+
   const makeBtn = (container) => {
     const lastMsg = container?.querySelector('.ai-msg--bot:last-child');
     if (!lastMsg) return;
@@ -2559,7 +2586,10 @@ async function sendAiMessage() {
   const recommendedProductId = identifyRecommendedProduct(reply, sc, serverRecommendation);
   if (window.VerdTracker) window.VerdTracker.trackAiReply(reply, getActualScenarioIdx(), recommendedProductId, serverSellDual ? 'dual' : null);
   if (serverSellDual && sc) addDualSellButtons(serverSellDual.upProduct, sc);
-  else if (serverRecommendation && recommendedProductId && sc) addProductLinkToLastBotMessage(recommendedProductId, sc, null);
+  else if (recommendedProductId && sc) {
+    // Text-Match nur verwenden wenn kein explicit RECOMMENDATION marker — aber trotzdem nie cheapest
+    addProductLinkToLastBotMessage(recommendedProductId, sc, null);
+  }
 
   aiPending = false;
   aiInput.disabled = false;
@@ -2773,9 +2803,9 @@ function renderSurvey() {
   } else if (q.type === 'matrix') {
     html += '<div class="survey-matrix-wrap" style="overflow-x:auto;margin-top:12px;">';
     html += '<table class="survey-matrix" style="border-collapse:collapse;width:100%;font-size:13px;">';
-    html += '<thead><tr><th style="text-align:left;padding:6px 8px;font-weight:600;border-bottom:2px solid #e2e8f0;min-width:110px;"></th>';
+    html += '<thead><tr><th style="text-align:left;padding:5px 4px;font-weight:600;border-bottom:2px solid #e2e8f0;"></th>';
     q.cols.forEach(col => {
-      html += `<th style="text-align:center;padding:6px 8px;font-weight:600;border-bottom:2px solid #e2e8f0;min-width:90px;">${col.label}</th>`;
+      html += `<th style="text-align:center;padding:5px 4px;font-weight:600;border-bottom:2px solid #e2e8f0;word-break:break-word;hyphens:auto;">${col.label}</th>`;
     });
     html += '</tr></thead><tbody>';
     q.rows.forEach((row, ri) => {
