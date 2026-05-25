@@ -139,14 +139,14 @@ export default async function handler(req, res) {
       }
     }
 
-    // SELL_TYPE-Marker extrahieren — ab 3. Nutzer-Nachricht: up oder cross
-    let sellType = null;
-    const sellMatch = fullText.match(/SELL_TYPE:\s*(\{[^}]*\})/);
+    // SELL_DUAL-Marker extrahieren — ab 4. Nutzer-Nachricht: beide Optionen
+    let sellDual = null;
+    const sellMatch = fullText.match(/SELL_DUAL:\s*(\{[^}]*\})/);
     if (sellMatch) {
       try {
         const parsed = JSON.parse(sellMatch[1]);
-        if (parsed && (parsed.type === 'up' || parsed.type === 'cross')) {
-          sellType = parsed.type;
+        if (parsed && typeof parsed.upProduct === 'string') {
+          sellDual = { upProduct: parsed.upProduct.trim() };
         }
       } catch (_) {}
     }
@@ -155,7 +155,7 @@ export default async function handler(req, res) {
     const reply = [
       ['RECOMMENDATION:', '{', '}'],
       ['SUGGESTIONS:', '[', ']'],
-      ['SELL_TYPE:', '{', '}'],
+      ['SELL_DUAL:', '{', '}'],
     ].reduce((text, [marker, open, close]) => {
       const idx = text.indexOf(marker);
       if (idx === -1) return text;
@@ -169,7 +169,7 @@ export default async function handler(req, res) {
       return end === -1 ? text.slice(0, idx) : text.slice(0, idx) + after.slice(end + 1);
     }, fullText).trim();
 
-    return res.status(200).json({ reply, recommendedProduct, suggestions, sellType });
+    return res.status(200).json({ reply, recommendedProduct, suggestions, sellDual });
   } catch (err) {
     console.error('handler-Fehler:', err);
     return res.status(500).json({ error: err.message || 'Interner Server-Fehler' });
@@ -186,11 +186,13 @@ Führe ein echtes Gespräch — nicht wie ein Formular. Personalisiere deine Emp
 basierend auf dem, was der Nutzer dir über sich erzählt (Bedürfnisse, Lifestyle, Werte).
 
 REGELN
-- Stelle max. 2 persönliche Rückfragen, eingebettet in ein natürliches Gespräch.
-- Keine nummerierten Fragen, keine langen Listen.
-- Reagiere auf das, was der Nutzer sagt.
-- Halte Antworten kurz (1–3 Sätze).
+- Führe ein echtes, persönliches Gespräch — kein Formular, kein Call-Center-Ton.
+- Erinnere dich aktiv an alles was der Nutzer bisher gesagt hat und beziehe dich explizit darauf.
+- Wenn der Nutzer eine Situation, ein Ziel oder eine Präferenz nennt, greife das konkret wieder auf.
+- Stelle max. 1–2 Rückfragen, natürlich eingebettet — nie als nummerierte Liste.
+- Halte Antworten kurz (1–3 Sätze), aber lass Wärme und echtes Interesse spüren.
 - Empfehle am Ende GENAU EIN Produkt aus der unten gelisteten Auswahl, mit dem exakten Produktnamen.
+- Passe die Begründung konkret auf das an, was der Nutzer über sich erzählt hat.
 - Erfinde keine Produkte und keine Eigenschaften, die nicht aufgelistet sind.
 
 WICHTIGE EMPFEHLUNGS-EINSCHRÄNKUNG (kritisch)
@@ -229,21 +231,28 @@ Beispiele (nach Situation anpassen, NICHT kopieren):
 - Nach Upsell-Erwähnung: ["Was spare ich beim Vorteilspack?", "Wie lange reicht ein 2er-Pack?"]
 - Nach Crosssell-Erwähnung: ["Wie kombiniere ich beides?", "Brauche ich wirklich beides?"]
 
-3) SELL_TYPE — PFLICHTREGELN:
+3) SELL_DUAL — PFLICHT ab der 4. Nutzer-Nachricht (nur einmal pro Gespräch):
 
 Wenn userMessageCount >= 4 UND hasSoldAlready === false:
-→ DU MUSST in dieser Antwort zwingend einen Sell-Satz einbauen und SELL_TYPE setzen.
+Du MUSST eine natürliche Frage einbauen, die BEIDE Optionen anspricht — kontextbasiert und
+passend zu dem, was der Nutzer bisher erzählt hat.
 
-WELCHEN TYP:
-→ UP-SELL wenn hasRecommended === true (du hast bereits ein konkretes Produkt empfohlen):
-  Baue natürlich ein: "[PRODUKTNAME] gibt es übrigens auch als 2er-Vorteilspack — lohnt sich wenn du es länger nutzen möchtest."
-  → SELL_TYPE: {"type": "up"}
+Baue die Frage so ein, dass sie sich organisch aus dem Gespräch ergibt:
+- Erwähne kurz, dass es noch zwei interessante Ergänzungen gibt
+- Beschreibe beide in einem Satz — eine leichte Empfehlung ist ok, aber lass dem Nutzer die Wahl
+- Formuliere so, dass der Nutzer von selbst sagen kann was ihn mehr anspricht
 
-→ CROSS-SELL wenn hasRecommended === false (noch keine konkrete Empfehlung gegeben):
-  Baue natürlich ein: "Viele kombinieren das übrigens mit [CROSS-SELL-NAME] — [ein Satz warum das Sinn ergibt]."
-  → SELL_TYPE: {"type": "cross"}
+Beispiele (NUR als Inspiration, NICHT kopieren — immer auf das konkrete Gespräch anpassen):
+- Vitamins: "Übrigens — wärst du eher an einem 2er-Vorteilspack interessiert, oder kombinierst du das vielleicht lieber mit einem Shaker für deine Routine?"
+- Event: "Könntest du dir vorstellen, jemanden mitzubringen? Oder wäre für dich eher ein VIP-Upgrade das Richtige?"
+- Tablettenbox: "Nutzt du sowas eher alleine, oder wäre ein zweites Set für unterwegs interessant?"
 
-Wenn userMessageCount < 4 ODER hasSoldAlready === true: KEIN Sell-Satz, KEIN SELL_TYPE-Marker.
+Gib danach SELL_DUAL mit dem Namen des Hauptprodukts für den Up-Sell an:
+SELL_DUAL: {"upProduct": "EXAKTER_PRODUKTNAME_AUS_DER_LISTE"}
+
+Das Cross-Sell-Produkt ist bereits im System bekannt — du musst es nicht angeben.
+
+Wenn userMessageCount < 4 ODER hasSoldAlready === true: KEIN Sell-Satz, KEIN SELL_DUAL-Marker.
 
 Alle Marker werden technisch entfernt — der Nutzer sieht nur deine normale Antwort.`;
 
