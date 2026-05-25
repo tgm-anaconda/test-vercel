@@ -1300,10 +1300,12 @@ function openDetail(p, preSelectOptionIdx = 0) {
     window._variantACollapseBot();
   }
 
-  // Variant C: Embed vor innerHTML-Replace retten
+  // Variant C: Embed vor innerHTML-Replace retten — war er offen, merken für Auto-Reopen
+  let _variantCWasOpen = false;
   if (window.VERDEA_VARIANT === 'C') {
     const existingEmbed = document.getElementById('variantCEmbed');
     if (existingEmbed) {
+      _variantCWasOpen = !existingEmbed.hidden;
       existingEmbed.hidden = true;
       document.body.appendChild(existingEmbed);
     }
@@ -1477,8 +1479,12 @@ function openDetail(p, preSelectOptionIdx = 0) {
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
   // Variante C: Bot einbetten (erst nach dem Rendern)
+  // War der Chat offen (z.B. Link-Klick aus dem Chat heraus), direkt wieder öffnen
   if (window.VERDEA_VARIANT === 'C') {
-    setTimeout(() => embedBotInDetail(), 100);
+    setTimeout(() => {
+      embedBotInDetail();
+      if (_variantCWasOpen) openVariantCChat();
+    }, 100);
   }
 }
 
