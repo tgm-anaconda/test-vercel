@@ -1300,6 +1300,19 @@ function openDetail(p, preSelectOptionIdx = 0) {
     window._variantACollapseBot();
   }
 
+  // Variant C: Embed vor innerHTML-Replace retten
+  if (window.VERDEA_VARIANT === 'C') {
+    const existingEmbed = document.getElementById('variantCEmbed');
+    if (existingEmbed) {
+      existingEmbed.hidden = true;
+      document.body.appendChild(existingEmbed);
+    }
+    const existingBtn = document.getElementById('variantCOpenBtn');
+    if (existingBtn) existingBtn.remove();
+    const existingGallery = document.querySelector('.detail-gallery');
+    if (existingGallery) existingGallery.classList.remove('variant-c-bot-open');
+  }
+
   const sceneImg = (typeof getCurrentScenario === 'function' && getCurrentScenario()) ? getCurrentScenario().image : null;
   const detailImg = p.image || sceneImg;
   productDetailContent.innerHTML = `
@@ -2107,7 +2120,10 @@ function closeVariantCChat() {
 function removeBotFromDetail() {
   if (window.VERDEA_VARIANT !== 'C') return;
   const embed = document.getElementById('variantCEmbed');
-  if (embed) embed.remove();
+  if (embed) {
+    embed.hidden = true;
+    document.body.appendChild(embed); // retten statt löschen
+  }
   const openBtn = document.getElementById('variantCOpenBtn');
   if (openBtn) openBtn.remove();
   const gallery = document.querySelector('.detail-gallery');
