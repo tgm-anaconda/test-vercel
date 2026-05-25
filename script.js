@@ -1833,11 +1833,14 @@ document.getElementById('taskIntroStart').addEventListener('click', () => {
   initVariantBot();
 });
 
-// Re-show task intro when participant clicks "ℹ️"
+// Re-show task intro when participant clicks "ℹ️" (desktop) or the step pill (mobile)
 taskBannerHelp.addEventListener('click', () => {
   _taskIntroReopened = true;
   showGate(gateTaskIntro);
-  // task_instruction_reopened — kein dediziertes Tracking in V10
+});
+taskBannerStep.addEventListener('click', () => {
+  _taskIntroReopened = true;
+  showGate(gateTaskIntro);
 });
 
 // ----- CHECKOUT INTERCEPTION (= scenario completion) -----
@@ -1927,7 +1930,7 @@ function applyVariantBotStyle() {
     const sub = aiBot.querySelector('.ai-bot__sub');
     if (sub) sub.style.display = 'none';
     const closeBtn = aiBot.querySelector('.ai-bot__close');
-    if (closeBtn) closeBtn.style.cssText = 'background:rgba(255,255,255,0.18);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;margin-left:auto;cursor:pointer;border:none;flex-shrink:0;';
+    if (closeBtn) closeBtn.style.cssText = 'background:rgba(255,255,255,0.18);color:#fff;border-radius:50%;width:28px;height:28px;min-width:28px;max-width:28px;min-height:28px;max-height:28px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;margin-left:auto;cursor:pointer;border:none;flex-shrink:0;';
     // Suggestion-Chips deutlich kleiner
     const sugg = aiBot.querySelector('.ai-bot__suggestions');
     if (sugg) sugg.style.cssText = 'padding:6px 10px;gap:5px;background:var(--color-surface);border-top:1px solid var(--color-border);display:flex;flex-wrap:wrap;flex-shrink:0;';
