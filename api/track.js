@@ -11,7 +11,7 @@
 // ✏️  HIER NUR DIE GAS-URLS PFLEGEN — eine URL pro Zeile
 // =============================================================
 const GAS_URLS = [
-  'https://script.google.com/macros/s/AKfycbweLt0Tl8JSS499dLBjcp19WyYiVnvRNjHgCVbIoryqseuEfh8cUucJhmyzasr5i_M/exec', // Sheet 1
+  'https://script.google.com/macros/s/AKfycby7Pmnbrc3xZyU7i8SskPKELqWCUI4pxKYnA6V8YWcu2Ct0A07n3YaPiOsKK8Ez2h8/exec', // Sheet 1 (Haupt)
   'https://script.google.com/macros/s/AKfycbz336NB3YpxSpanu6A6AHt3YerYOUMJTUr3IVK3Fss8Z2fkxvbumuJ6EOezss0J9VzF/exec', // Sheet 2
   'https://script.google.com/macros/s/AKfycbyNyD2iPT6MOHJNTmBUwdyll3EM2yR8jTi6dflteCzAV_pbtHFoBS7tXRCLAlp99She/exec', // Sheet 3
   'https://script.google.com/macros/s/AKfycbxwVvt9-jpOBQXQJ-QTHCRtHPoChWuIPTwVS5eqvrg0q2rDIDpbDCRJkHR-TCL5W_d2/exec', // Sheet 4
