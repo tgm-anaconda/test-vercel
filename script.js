@@ -1705,6 +1705,9 @@ const gateDemographics = document.getElementById('gateDemographics');
 const gateTaskIntro = document.getElementById('gateTaskIntro');
 const gateSurvey = document.getElementById('gateSurvey');
 const gateThanks = document.getElementById('gateThanks');
+const gateSurveyCircleAsk    = document.getElementById('gateSurveyCircleAsk');
+const gateSurveyCircleCode   = document.getElementById('gateSurveyCircleCode');
+const gateSurveyCircleNoKey  = document.getElementById('gateSurveyCircleNoKey');
 const taskBanner = document.getElementById('taskBanner');
 const taskBannerStep = document.getElementById('taskBannerStep');
 const taskBannerText = document.getElementById('taskBannerText');
@@ -1713,13 +1716,15 @@ const aiFab = document.getElementById('aiFab');
 const aiBot = document.getElementById('aiBot');
 const aiBotClose = document.getElementById('aiBotClose');
 
+const _ALL_GATES = [gateWelcome, gateDemographics, gateTaskIntro, gateSurvey, gateThanks,
+                    gateSurveyCircleAsk, gateSurveyCircleCode, gateSurveyCircleNoKey];
 function showGate(el) {
-  [gateWelcome, gateDemographics, gateTaskIntro, gateSurvey, gateThanks].forEach(g => g.classList.remove('active'));
+  _ALL_GATES.forEach(g => g && g.classList.remove('active'));
   el.classList.add('active');
   lockBody(true);
 }
 function hideAllGates() {
-  [gateWelcome, gateDemographics, gateTaskIntro, gateSurvey, gateThanks].forEach(g => g.classList.remove('active'));
+  _ALL_GATES.forEach(g => g && g.classList.remove('active'));
   lockBody(false);
 }
 
