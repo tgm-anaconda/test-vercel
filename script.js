@@ -1774,7 +1774,32 @@ document.getElementById('demoForm').addEventListener('submit', e => {
     window.VerdTracker.setDemographics({ age, gender, income, occupation });
     window.VerdTracker.complete();
   }
-  showGate(gateThanks);
+  // Statt direkt zum EndScreen → SurveyCircle-Abfrage zeigen
+  showGate(document.getElementById('gateSurveyCircleAsk'));
+});
+
+// ===== SurveyCircle-Abfrage =====
+const MIN_DURATION_FOR_KEY = 140; // Sekunden — Schwelle für gültigen Code
+
+function _getStudyDurationSeconds() {
+  // Versucht die Gesamtdauer aus VerdTracker zu bekommen
+  if (window.VerdTracker && typeof window.VerdTracker._studyStartMs === 'number') {
+    return Math.round((Date.now() - window.VerdTracker._studyStartMs) / 1000);
+  }
+  return 0;
+}
+
+document.getElementById('surveyCircleYes')?.addEventListener('click', () => {
+  const dauer = _getStudyDurationSeconds();
+  if (dauer >= MIN_DURATION_FOR_KEY) {
+    showGate(document.getElementById('gateSurveyCircleCode'));
+  } else {
+    showGate(document.getElementById('gateSurveyCircleNoKey'));
+  }
+});
+
+document.getElementById('surveyCircleNo')?.addEventListener('click', () => {
+  showGate(document.getElementById('gateThanks'));
 });
 
 // ----- SCENARIO START -----
