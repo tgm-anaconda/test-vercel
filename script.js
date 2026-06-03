@@ -3120,7 +3120,8 @@ function completeSurvey() {
     window.VerdTracker._displayStep = 5;
     window.VerdTracker.complete();
   }
-  showGate(gateThanks);
+  // Statt direkt zum EndScreen → SurveyCircle-Abfrage zeigen
+  showGate(document.getElementById('gateSurveyCircleAsk'));
 }
 
 // ===== INIT =====
