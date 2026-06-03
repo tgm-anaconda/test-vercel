@@ -2211,7 +2211,7 @@ body.has-task-banner .ai-bot__header {
         </span>
         <p class="section-label">Willkommen zur Studie</p>
         <h1 class="gate-card__title">Studie: Website-Optimierung<br/>im E-Commerce</h1>
-        <p class="gate-card__sub">Schön, dass Sie teilnehmen. Wir untersuchen, wie Nutzerinnen und Nutzer Online-Shops erleben und Kaufentscheidungen treffen. Sie dauert ca. <strong>8 Minuten</strong>.</p>
+        <p class="gate-card__sub">Schön, dass Sie teilnehmen. Wir untersuchen, wie Nutzerinnen und Nutzer Online-Shops erleben und Kaufentscheidungen treffen. Sie dauert ca. <strong>8–12 Minuten</strong>.</p>
       </div>
 
       <ul class="gate-list">
@@ -2348,12 +2348,49 @@ body.has-task-banner .ai-bot__header {
     </div>
   </div>
 
+  <!-- ============== GATE: SURVEYCIRCLE-ABFRAGE ============== -->
+  <div class="gate-overlay" id="gateSurveyCircleAsk">
+    <div class="gate-card centered">
+      <p class="section-label">Eine kurze Frage</p>
+      <h2 class="gate-card__title gate-card__title--sm">Kommen Sie von SurveyCircle?</h2>
+      <p class="gate-card__sub" style="margin: 12px auto 28px;">Bitte wählen Sie aus, ob Sie über SurveyCircle auf diese Studie aufmerksam geworden sind.</p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn--green btn--lg" id="surveyCircleYes" type="button">Ja</button>
+        <button class="btn btn--outline btn--lg" id="surveyCircleNo" type="button">Nein</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== GATE: SURVEYCIRCLE-CODE (Bearbeitungsdauer >= 140s) ============== -->
+  <div class="gate-overlay" id="gateSurveyCircleCode">
+    <div class="gate-card centered">
+      <div class="thanks-icon">✓</div>
+      <h1 class="gate-card__title">Vielen Dank für Ihre Teilnahme!</h1>
+      <p class="gate-card__sub" style="margin: 12px auto 24px;">Ihre Antworten wurden anonym gespeichert und tragen zur Forschung bei.</p>
+      <div style="background: var(--color-green-pale); border: 1px solid var(--color-green-light); border-radius: var(--radius-lg); padding: 24px; margin: 8px auto 20px; max-width: 460px;">
+        <p style="font-size:14px; color: var(--color-mid); margin-bottom: 10px;">Ihr SurveyCircle-Code:</p>
+        <p style="font-family: var(--font-serif); font-size: 22px; font-weight: 600; color: var(--color-green); letter-spacing: 0.08em; margin-bottom: 14px; word-break: break-all;">G8D9-URJP-AR5S-MWGM</p>
+        <a href="https://www.surveycircle.com" target="_blank" rel="noopener" class="btn btn--green-sm" style="text-decoration:none;">Zu SurveyCircle →</a>
+      </div>
+      <p class="gate-card__sub" style="margin: 16px auto 0; font-size: 14px;">Sie können das Fenster jetzt schließen.</p>
+    </div>
+  </div>
+
+  <!-- ============== GATE: SURVEYCIRCLE-KEIN-KEY (Bearbeitungsdauer < 140s) ============== -->
+  <div class="gate-overlay" id="gateSurveyCircleNoKey">
+    <div class="gate-card centered">
+      <h1 class="gate-card__title">Vielen Dank für Ihre Teilnahme!</h1>
+      <p class="gate-card__sub" style="margin: 16px auto 20px; max-width: 520px;">Leider können wir Ihnen heute keinen SurveyCircle-Code zur Verfügung stellen, da die Bearbeitungszeit Ihrer Teilnahme zu kurz war und die Antworten daher nicht in vollständiger Qualität für die Studie verwertbar sind.</p>
+      <p class="gate-card__sub" style="margin: 0 auto; font-size: 14px;">Sie können das Fenster jetzt schließen.</p>
+    </div>
+  </div>
+
   <!-- ============== GATE: THANKS ============== -->
   <div class="gate-overlay" id="gateThanks">
     <div class="gate-card centered">
       <div class="thanks-icon">✓</div>
       <h1 class="gate-card__title">Vielen Dank für Ihre Teilnahme!</h1>
-      <p class="gate-card__sub" style="margin: 0 auto;">Ihre Antworten wurden anonym gespeichert und tragen zur Forschung bei. SurveyCircle: https://www.surveycircle.com ; Code: G8D9-URJP-AR5S-MWGM. Sie können das Fenster jetzt schließen.</p>
+      <p class="gate-card__sub" style="margin: 0 auto;">Ihre Antworten wurden anonym gespeichert und tragen zur Forschung bei. Sie können das Fenster jetzt schließen.</p>
     </div>
   </div>
 
